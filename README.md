@@ -14,3 +14,9 @@ for me and a few friends. Not public.
 - Ladder refresh: at most once per 5 minutes
 - Per-user refreshes are rate limited
 - All statistics come only from Riot API data
+
+
+ms.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of
+Riot Games or anyone officially involved in producing or managing Riot Games
+properties. Riot Games, and all associated properties are trademarks or
+registered trademarks of Riot Games, Inc.
