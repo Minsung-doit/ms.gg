@@ -1,0 +1,940 @@
+/* 챔피언 페이지 (17-champion-page.js). 색은 테마 변수만 써서 다크·화이트 모드 둘 다 맞춘다 */
+
+.cp-page {
+  --cp-good: #10B981;
+  --cp-bad: #E84057;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  color: var(--text-main);
+}
+
+[data-theme="light"] .cp-page {
+  --cp-good: #059669;
+  --cp-bad: #DC2626;
+}
+
+.cp-good { color: var(--cp-good); }
+.cp-bad { color: var(--cp-bad); }
+.cp-muted { color: var(--text-muted); }
+
+.cp-loading,
+.cp-empty-page {
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.cp-icon {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+}
+
+.cp-icon.cp-round { border-radius: 50%; }
+.cp-icon.cp-faint { opacity: 0.75; }
+.cp-icon.cp-shard { border: none; background: transparent; }
+
+/* 머리: 초상화 · 이름 · 라인 아이콘 · 핵심 수치 */
+.cp-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.cp-portrait {
+  border-radius: 12px;
+  border-width: 2px;
+}
+
+.cp-head-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cp-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cp-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-heading);
+}
+
+.cp-tier-badge {
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #fff;
+  background: #64748B;
+}
+
+.cp-tier-badge.tier-0 { background: #E84057; }
+.cp-tier-badge.tier-1 { background: #3B82F6; }
+.cp-tier-badge.tier-2 { background: #0EA5E9; }
+.cp-tier-badge.tier-3 { background: #10B981; }
+.cp-tier-badge.tier-4 { background: #A16207; }
+
+.cp-tool {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.cp-tool:hover { color: var(--primary); border-color: var(--primary); }
+
+.cp-lanes {
+  display: flex;
+  gap: 6px;
+}
+
+.cp-lane {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.cp-lane:hover { opacity: 0.9; }
+
+.cp-lane.active {
+  opacity: 1;
+  border-color: var(--primary);
+  background: var(--nav-tab-active-bg);
+}
+
+.cp-head-stats {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.cp-head-stats div { text-align: center; }
+
+.cp-head-stats dt {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.cp-head-stats dd {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text-heading);
+}
+
+.cp-head-stats dd.cp-good { color: var(--cp-good); }
+.cp-head-stats dd.cp-bad { color: var(--cp-bad); }
+
+.cp-head-stats small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cp-sample {
+  margin: 8px 4px 14px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* 본문: 왼쪽 빌드, 오른쪽 상성·시너지 */
+.cp-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.cp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cp-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.cp-block-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.cp-block-head h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.cp-note {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.cp-cols {
+  display: flex;
+  margin-left: auto;
+}
+
+.cp-cols span,
+.cp-stat {
+  width: 58px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cp-cols span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.cp-stat {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-stat.cp-good,
+.cp-stat.cp-bad { font-weight: 800; }
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 7px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cp-row:first-of-type { border-top: none; }
+
+.cp-row-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.cp-sep {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin: 0 1px;
+}
+
+.cp-shards {
+  display: flex;
+  gap: 2px;
+  margin-left: 6px;
+}
+
+.cp-skill {
+  position: relative;
+  display: inline-block;
+}
+
+.cp-skill-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #fff;
+  background: #475569;
+}
+
+.cp-skill .cp-icon + .cp-skill-key {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 16px;
+  height: 16px;
+  font-size: 0.68rem;
+}
+
+.cp-skill-key.key-q { background: #2563EB; }
+.cp-skill-key.key-w { background: #059669; }
+.cp-skill-key.key-e { background: #7C3AED; }
+.cp-skill-key.key-r { background: #DC2626; }
+
+.cp-first3 {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border-color);
+}
+
+.cp-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.cp-item-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* 상성: 왼쪽 어려움, 오른쪽 쉬움 (세로 목록) */
+.cp-mu-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.cp-mu-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 2px solid currentColor;
+}
+
+.cp-mu-row,
+.cp-syn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cp-mu-row:hover,
+.cp-syn-row:hover { background: var(--nav-tab-hover-bg); }
+
+.cp-mu-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-mu-wr {
+  font-size: 0.82rem;
+  font-weight: 800;
+  width: 52px;
+  min-width: 52px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-mu-games {
+  width: 38px;
+  min-width: 38px;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-empty {
+  padding: 6px 2px;
+  color: var(--text-muted);
+}
+
+/* 잘 맞는 챔피언: 라인별 세로 목록 */
+.cp-syn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+}
+
+.cp-syn-lane-head {
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cp-syn-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cp-syn-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.cp-tier-chip {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-syn-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.8rem;
+  font-weight: 800;
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-skills-detail { margin-top: 14px; }
+
+@media (max-width: 900px) {
+  .cp-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .cp-page { padding: 12px 10px 90px; }
+  .cp-header { padding: 14px; gap: 12px; }
+  .cp-portrait { width: 56px !important; height: 56px !important; }
+  .cp-name { font-size: 1.3rem; }
+  .cp-head-stats { margin: 0; width: 100%; justify-content: space-between; gap: 8px; }
+  .cp-head-stats dd { font-size: 1rem; }
+  .cp-cols span, .cp-stat { width: 48px; }
+  .cp-mu-grid { grid-template-columns: 1fr; gap: 14px; }
+  .cp-syn-grid { grid-template-columns: 1fr; }
+}
+
+/* 소환사 전적 페이지: 전적 창(#playerDetailModal)을 팝업이 아닌 페이지로 (18-summoner-page.js) */
+#playerDetailModal.as-page {
+  position: static;
+  display: none;
+  background: none;
+  backdrop-filter: none;
+  z-index: auto;
+  padding: 0;
+}
+
+#playerDetailModal.as-page.active {
+  display: block !important;
+}
+
+#playerDetailModal.as-page .modal-card {
+  max-width: 1180px !important;
+  width: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin: 20px 16px 48px;
+  box-shadow: none;
+  animation: none;
+  transform: none;
+}
+
+@media (min-width: 1212px) {
+  #playerDetailModal.as-page .modal-card { margin: 20px auto 48px; }
+}
+
+#playerDetailModal.as-page .modal-header,
+#playerDetailModal.as-page #btnCloseDetailModal2 {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #playerDetailModal.as-page .modal-card {
+    margin: 10px 8px 90px;
+    padding: 14px 10px;
+    border-radius: 12px;
+  }
+}
+
+/* ==========================================================================
+   다듬기 작업 D: 챔피언 페이지 · 1:1 매치업 · 멀티서치 · 관전 가독성 최적화
+   ========================================================================== */
+
+/* 1. 1:1 매치업 입력칸 이중 테두리 제거 */
+[data-theme="dark"] .matchup-champ-input,
+[data-theme="light"] .matchup-champ-input,
+.matchup-pick-slot .matchup-champ-input,
+#matchupChamp1Input,
+#matchupChamp2Input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+/* 2. 모바일(390px) 챔피언 이름 잘림 방지 (피..., 애..., 탈... -> 세로 1열 전체 너비 확보) */
+@media (max-width: 640px) {
+  .cp-mu-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .cp-mu-row {
+    padding: 6px 4px !important;
+    gap: 8px !important;
+  }
+  .cp-mu-name {
+    font-size: 0.85rem !important;
+  }
+  .cp-mu-wr {
+    font-size: 0.82rem !important;
+    min-width: 44px !important;
+    font-variant-numeric: tabular-nums;
+  }
+  .cp-mu-games {
+    font-size: 0.72rem !important;
+    min-width: 36px !important;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* 3. 집단지성 카운터 보드 & 멀티서치 라이트 테마 가독성 & 명도 대비(WCAG) 개선 */
+[data-theme="light"] #btnShareDiscordMulti {
+  background: #EEF2FF !important;
+  border-color: #C7D2FE !important;
+  color: #4F46E5 !important;
+}
+
+[data-theme="light"] .community-board-section {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-quick-filter-bar {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-filter-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .cb-pos-chip {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .cb-pos-chip:hover {
+  background: #F1F5F9 !important;
+  border-color: #94A3B8 !important;
+}
+
+[data-theme="light"] .cb-pos-chip.active {
+  background: #2563EB !important;
+  border-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="light"] .cb-cat-btn {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .cb-cat-btn:hover {
+  background: #F1F5F9 !important;
+}
+
+[data-theme="light"] .cb-cat-btn.active {
+  background: #2563EB !important;
+  border-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="light"] .cb-tip-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-tip-card:hover {
+  border-color: #93C5FD !important;
+}
+
+[data-theme="light"] .cb-author-name {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .cb-tip-content {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .cb-time-text {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .cb-vote-btn {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #475569 !important;
+}
+
+/* 4. 관전 샘플 배너 화이트/다크 모드 가독성 */
+.spec-sample-banner,
+#specSampleBanner {
+  margin: 0 0 1rem;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #FBBF24;
+}
+
+[data-theme="light"] .spec-sample-banner,
+[data-theme="light"] #specSampleBanner {
+  background: #FEF3C7 !important;
+  border-color: #FCD34D !important;
+  color: #92400E !important;
+}
+
+/* 5. 관전 모바일 헤더 간결화 (4개 버튼 화면 과점 방지) */
+@media (max-width: 640px) {
+  .spec-dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px !important;
+  }
+  .spec-header-left {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .spec-header-right {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .spec-header-right .spec-dropdown-wrap {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+  }
+  .spec-header-right .spec-dropdown-wrap .spec-btn-control {
+    width: 100% !important;
+  }
+  .spec-header-right > button.spec-btn-control {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+}
+
+/* 6. 숫자 정렬 및 가독성 (고정폭 tabular-nums) */
+.cp-stat,
+.cp-mu-wr,
+.cp-mu-games,
+.matchup-stat-val,
+.matchup-h2h-wr,
+.matchup-h2h-games,
+.ms-champ-stats,
+.ms-champ-wr,
+.ms-champ-games,
+.ms-record-wl,
+.ms-record-wr,
+.spec-elapsed-timer,
+.spec-time-badge,
+.spec-countdown-badge,
+.cd-value-text,
+.cd-level-label,
+.cd-mana-cost-sub {
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-mu-wr,
+.cp-mu-games,
+.ms-champ-wr,
+.ms-champ-games,
+.ms-record-wr {
+  text-align: right;
+}
+
+/* 4·5·6번째 아이템: 순서별 세로 열 */
+#viewChampion .cp-late-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#viewChampion .cp-late-head {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+#viewChampion .cp-late-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 게임 티어 필터 */
+#viewChampion .cp-tier-filters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+#viewChampion .cp-tier-filter {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#viewChampion .cp-tier-filter.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* 직전 패치 대비 승률 변화 */
+#viewChampion .cp-prev {
+  margin-left: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* 레벨별 스킬 표 */
+#viewChampion .cp-skill-grid {
+  display: grid;
+  gap: 3px;
+  align-items: center;
+  margin: 4px 0 10px;
+}
+
+#viewChampion .cp-sg-lv {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#viewChampion .cp-sg-key .cp-icon { border-radius: 4px; }
+
+#viewChampion .cp-sg-cell {
+  height: 22px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+#viewChampion .cp-sg-cell.on.key-q { background: #2563EB; }
+#viewChampion .cp-sg-cell.on.key-w { background: #059669; }
+#viewChampion .cp-sg-cell.on.key-e { background: #7C3AED; }
+#viewChampion .cp-sg-cell.on.key-r { background: #DC2626; }
+
+@media (max-width: 640px) {
+  #viewChampion .cp-skill-grid { gap: 2px; }
+  #viewChampion .cp-sg-cell { height: 20px; font-size: 0.68rem; }
+}
+
+/* 룬 트리 전체 */
+#viewChampion .cp-rune-tree {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  padding: 10px 4px 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+#viewChampion .cp-rt-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#viewChampion .cp-rt-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+#viewChampion .cp-rt-off {
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+
+#viewChampion .cp-rt-on {
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 1px #F59E0B;
+}
+
+#viewChampion .cp-rt-shards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+#viewChampion .cp-rt-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  #viewChampion .cp-rune-tree { grid-template-columns: 1fr 1fr; gap: 10px; }
+  #viewChampion .cp-rt-stat { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 8px; }
+  #viewChampion .cp-rt-row { gap: 5px; }
+}
+
+#playerDetailModal.load-failed .modal-footer {
+  display: none;
+}
+
+/* 시간대별 승률 */
+#viewChampion .cp-pc {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 4px;
+}
+
+#viewChampion .cp-pc-mid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(22px + 50px);
+  border-top: 1px dashed var(--border-color);
+  pointer-events: none;
+}
+
+#viewChampion .cp-pc-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+#viewChampion .cp-pc-val {
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+#viewChampion .cp-pc-track {
+  width: 100%;
+  max-width: 44px;
+  height: 100px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 6px;
+  background: var(--bg-input);
+  overflow: hidden;
+}
+
+#viewChampion .cp-pc-bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+}
+
+#viewChampion .cp-pc-bar.cp-good { background: var(--cp-good); }
+#viewChampion .cp-pc-bar.cp-bad { background: var(--cp-bad); }
+
+#viewChampion .cp-pc-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+
+[data-theme="light"] #viewChampion .cp-pc-track {
+  background: #F1F5F9;
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+[data-theme="light"] #viewChampion .cp-note {
+  color: #475569;
+}
+
+[data-theme="light"] #viewChampion .cp-cols span {
+  color: #475569;
+}
+
+[data-theme="light"] #viewChampion .cp-stat.cp-muted {
+  color: #475569;
+}
+
+[data-theme="light"] #viewChampion .cp-mu-games {
+  color: #475569;
+}
+
+[data-theme="light"] #viewChampion .cp-pc-col .cp-mu-games {
+  color: #475569;
+}
+
+[data-theme="light"] #viewChampion .cp-pc-lbl {
+  color: #1E293B;
+}

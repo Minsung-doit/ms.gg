@@ -1,0 +1,28 @@
+/* 32-home-inhouse.css — 홈 '이번 주 내전' 위젯 (#homeInhouse, 23-home-inhouse.js)
+   상자·헤더는 29-home-recruit.css 의 .home-recruit 규칙을 같이 쓰고, 여기서는 내용만. */
+
+#viewSearch #homeInhouse .hi-top { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+#viewSearch #homeInhouse .hi-top-row { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 0.88rem; }
+#viewSearch #homeInhouse .hi-medal {
+  flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.74rem; font-weight: 800; color: #fff;
+}
+#viewSearch #homeInhouse .hi-medal-1 { background: #F59E0B; }
+#viewSearch #homeInhouse .hi-medal-2 { background: #94A3B8; }
+#viewSearch #homeInhouse .hi-medal-3 { background: #B45309; }
+#viewSearch #homeInhouse .hi-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--hr-text); }
+#viewSearch #homeInhouse .hi-record { flex: 0 0 auto; color: var(--hr-muted); font-size: 0.8rem; white-space: nowrap; }
+#viewSearch #homeInhouse .hi-record em { font-style: normal; }
+
+#viewSearch #homeInhouse .hi-last { border-top: 1px solid var(--hr-border); padding-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+#viewSearch #homeInhouse .hi-last-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
+#viewSearch #homeInhouse .hi-last-label { font-size: 0.76rem; color: var(--hr-muted); }
+#viewSearch #homeInhouse .hi-status { font-size: 0.74rem; font-weight: 700; color: var(--hr-muted); white-space: nowrap; }
+#viewSearch #homeInhouse .hi-status-blue { color: #3B82F6; }
+#viewSearch #homeInhouse .hi-status-red { color: #EF4444; }
+#viewSearch #homeInhouse .hi-side { font-size: 0.8rem; color: var(--hr-text); line-height: 1.5; overflow-wrap: anywhere; }
+#viewSearch #homeInhouse .hi-side-tag { font-weight: 800; margin-right: 2px; }
+#viewSearch #homeInhouse .hi-blue .hi-side-tag { color: #3B82F6; }
+#viewSearch #homeInhouse .hi-red .hi-side-tag { color: #EF4444; }
+#viewSearch #homeInhouse .hi-win { font-weight: 700; }
+#viewSearch #homeInhouse .hi-lose { opacity: 0.6; }

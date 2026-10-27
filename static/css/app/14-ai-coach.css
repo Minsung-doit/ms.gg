@@ -1,0 +1,347 @@
+/* AI 코치: 검색 버튼 오른쪽 AI 버튼(글자 없는 반짝임 로고) + 코칭 패널 */
+
+.ai-coach-btn {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  margin-left: 0.5rem;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 45%, #06B6D4 100%);
+  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.ai-coach-btn::before {
+  /* 버튼 테두리를 따라 도는 무지개빛 링: AI 기능임을 한눈에 (버튼 밖으로 나가지 않게 잘라 낸다) */
+  content: "";
+  position: absolute;
+  width: 160%;
+  height: 160%;
+  left: -30%;
+  top: -30%;
+  background: conic-gradient(from 0deg, #F472B6, #A78BFA, #60A5FA, #22D3EE, #F472B6);
+  z-index: -2;
+  animation: aiCoachSpin 4s linear infinite;
+}
+
+.ai-coach-btn::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 45%, #06B6D4 100%);
+  z-index: -1;
+}
+
+.ai-coach-btn:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset, 0 8px 28px rgba(124, 58, 237, 0.6);
+}
+
+.ai-coach-btn:focus-visible {
+  outline: 3px solid #A78BFA;
+  outline-offset: 3px;
+}
+
+.ai-coach-logo {
+  width: 40px;
+  height: 40px;
+  display: block;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.45));
+}
+
+/* 로봇: 눈 깜빡임 + 안테나 불빛 + 살짝 끄덕임 */
+.ai-coach-logo .ai-bot-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aiBotBlink 3.6s ease-in-out infinite;
+}
+
+.ai-coach-logo .ai-bot-antenna {
+  animation: aiBotGlow 1.8s ease-in-out infinite;
+}
+
+.ai-coach-btn:hover .ai-coach-logo {
+  animation: aiBotNod 0.6s ease-in-out;
+}
+
+@keyframes aiCoachSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes aiBotBlink {
+  0%, 44%, 50%, 100% { transform: scaleY(1); }
+  47% { transform: scaleY(0.12); }
+}
+
+@keyframes aiBotGlow {
+  0%, 100% { fill: #FDE047; }
+  50% { fill: #F472B6; }
+}
+
+@keyframes aiBotNod {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-10deg); }
+  70% { transform: rotate(10deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-coach-btn::before,
+  .ai-coach-logo .ai-bot-eyes,
+  .ai-coach-logo .ai-bot-antenna,
+  .ai-coach-btn:hover .ai-coach-logo {
+    animation: none;
+  }
+}
+
+/* 코칭 패널 */
+.ai-coach-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5vh 16px;
+  background: rgba(2, 6, 23, 0.68);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+
+.ai-coach-overlay.open {
+  display: flex;
+}
+
+.ai-coach-panel {
+  width: 100%;
+  max-width: 760px;
+  background: var(--bg-surface, #0f172a);
+  color: var(--text-primary, #e2e8f0);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.ai-coach-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.28), rgba(6, 182, 212, 0.18));
+  border-bottom: 1px solid var(--border-color, #334155);
+}
+
+.ai-coach-head .ai-coach-btn {
+  cursor: default;
+  margin-left: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.ai-coach-head .ai-coach-btn:hover {
+  transform: none;
+}
+
+.ai-coach-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text-heading, #f8fafc);
+}
+
+.ai-coach-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.ai-coach-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.ai-coach-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-coach-score-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ai-coach-score {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: var(--text-heading, #f8fafc);
+  background: conic-gradient(#A78BFA calc(var(--score, 0) * 1%), rgba(148, 163, 184, 0.18) 0);
+  position: relative;
+}
+
+.ai-coach-score::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--bg-surface, #0f172a);
+}
+
+.ai-coach-score span {
+  position: relative;
+}
+
+.ai-coach-score small {
+  position: relative;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+}
+
+.ai-coach-summary {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.14), rgba(6, 182, 212, 0.1));
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.ai-coach-section-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-heading, #f8fafc);
+  margin-bottom: 6px;
+}
+
+.ai-coach-metric {
+  display: grid;
+  grid-template-columns: 130px 1fr 120px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  padding: 4px 0;
+}
+
+.ai-coach-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.ai-coach-bar::after {
+  /* 고티어 평균(50점) 기준선 */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(248, 250, 252, 0.6);
+}
+
+.ai-coach-bar > div {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.ai-coach-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.ai-coach-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-coach-pool-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+
+.ai-coach-pool-item img {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+.ai-coach-note {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+@media (max-width: 640px) {
+  /* 좁은 화면: 입력칸이 줄어들어 검색·AI 버튼이 화면 밖으로 밀리지 않게 */
+  .search-box {
+    padding-left: 0.75rem;
+  }
+
+  .search-box .search-region-chip {
+    display: none;
+  }
+
+  .search-box .search-icon {
+    margin-right: 0.5rem;
+    font-size: 1.05rem;
+  }
+
+  .search-box .search-input {
+    min-width: 0;
+    font-size: 1rem;
+  }
+
+  .search-box .search-btn {
+    flex: 0 0 auto;
+    padding: 0.65rem 1rem;
+  }
+
+  .ai-coach-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .ai-coach-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ai-coach-metric {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

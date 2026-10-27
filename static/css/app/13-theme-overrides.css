@@ -1,0 +1,1208 @@
+/* Dark Theme Overrides */
+[data-theme="dark"] .champ-masters-showcase-section {
+  background: #0B111E;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .champ-masters-header {
+  border-bottom: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .champ-masters-title {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .champ-master-horizontal-row {
+  background: #101726;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .champ-master-horizontal-row:hover {
+  background: #151F33;
+  border-color: #3B82F6;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .champ-master-game-name {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .champ-master-tag-line {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .champ-master-lp-val {
+  color: #60A5FA;
+}
+
+[data-theme="dark"] .champ-master-record-val {
+  color: #10B981;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .champ-masters-showcase-section {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .champ-masters-header {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+[data-theme="light"] .champ-masters-title {
+  color: #0F172A;
+}
+
+[data-theme="light"] .champ-master-horizontal-row {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .champ-master-horizontal-row:hover {
+  background: #FFFFFF;
+  border-color: #2563EB;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+}
+
+[data-theme="light"] .champ-master-game-name {
+  color: #0F172A;
+}
+
+[data-theme="light"] .champ-master-tag-line {
+  color: #475569;
+}
+
+[data-theme="light"] .champ-master-lp-val {
+  color: #2563EB;
+}
+
+[data-theme="light"] .champ-master-record-val {
+  color: #059669;
+}
+
+
+
+
+
+
+/* ==============================================================================
+   🚀 1. LIVE IN-GAME INSPECTOR & AI PREDICTION (FR-LIVE-01)
+   ============================================================================== */
+.ingame-ai-pred-widget {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg, 12px);
+  transition: all 0.2s ease;
+}
+
+.pred-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.pred-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pred-verdict-pill {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.pred-gauge-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.pred-side-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  min-width: 90px;
+}
+
+.pred-side-label.blue {
+  color: #38BDF8;
+}
+
+.pred-side-label.red {
+  color: #EF4444;
+  justify-content: flex-end;
+}
+
+.side-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.side-badge.blue {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+}
+
+.side-badge.red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+.pred-pct-num {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.pred-track {
+  flex: 1;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pred-bar-fill.blue {
+  background: linear-gradient(90deg, #0284C7, #38BDF8);
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pred-bar-fill.red {
+  background: linear-gradient(90deg, #EF4444, #DC2626);
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pred-pros-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pred-pro-box {
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.pro-box-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pro-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.76rem;
+}
+
+.pro-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dark/Light for AI Prediction Widget */
+[data-theme="dark"] .ingame-ai-pred-widget {
+  background: #0B111E;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .pred-header-title {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .pred-pro-box.blue {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+[data-theme="dark"] .pred-pro-box.red {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .pro-list li {
+  color: #CBD5E1;
+}
+
+[data-theme="light"] .ingame-ai-pred-widget {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .pred-header-title {
+  color: #0F172A;
+}
+
+[data-theme="light"] .pred-pro-box.blue {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+}
+
+[data-theme="light"] .pred-pro-box.red {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+
+[data-theme="light"] .pro-list li {
+  color: #334155;
+  font-weight: 600;
+}
+
+/* ── VIP Briefings ── */
+.ingame-vip-section {
+  margin-bottom: 1.25rem;
+}
+
+.ingame-section-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ingame-vip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.ingame-vip-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s ease;
+}
+
+.ingame-vip-card:hover {
+  transform: translateY(-2px);
+}
+
+.vip-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vip-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.vip-badge.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.vip-badge.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.vip-badge.badge-info {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.vip-role-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.vip-role-chip.blue { color: #38BDF8; }
+.vip-role-chip.red { color: #EF4444; }
+
+.vip-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vip-champ-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.vip-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.vip-player-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.vip-champ-name {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.vip-desc-text {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+[data-theme="dark"] .ingame-vip-card {
+  background: #101726;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .vip-player-name {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .vip-desc-text {
+  color: #CBD5E1;
+}
+
+[data-theme="light"] .ingame-vip-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .vip-player-name {
+  color: #0F172A;
+}
+
+[data-theme="light"] .vip-desc-text {
+  color: #334155;
+  font-weight: 600;
+}
+
+/* ── 5-Line 1:1 Matchups ── */
+.ingame-lanes-section {
+  margin-bottom: 1.25rem;
+}
+
+.ingame-lanes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lane-match-card {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.lane-card-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lane-card-player.red {
+  justify-content: flex-end;
+}
+
+.lane-champ-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.lane-text-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.lane-cname {
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.lane-pname {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.85;
+  margin-left: 2px;
+}
+
+.lane-wr.blue {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #38BDF8;
+}
+
+.lane-wr.red {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #EF4444;
+}
+
+.lane-card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.lane-pos-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-heading);
+}
+
+.lane-dominance-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+[data-theme="dark"] .lane-match-card {
+  background: #101726;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .lane-cname {
+  color: #F8FAFC;
+}
+
+[data-theme="light"] .lane-match-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .lane-cname {
+  color: #0F172A;
+}
+
+/* Streak Strip */
+.ingame-streak-strip {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+}
+
+.streak-dot {
+  font-size: 0.6rem;
+  font-weight: 800;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.streak-dot.win {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+}
+
+.streak-dot.loss {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+/* ==============================================================================
+   🧾 2. AI LOL PERFORMANCE RECEIPT (FR-COACH-RECEIPT)
+   ============================================================================== */
+.coach-receipt-wrap {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.coach-receipt-card {
+  width: 100%;
+  max-width: 680px;
+  padding: 1.5rem 1.75rem;
+  border-radius: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.receipt-shop-name {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.receipt-main-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.receipt-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 0.74rem;
+  padding: 6px 0;
+}
+
+.receipt-divider-dash {
+  border-top: 1.5px dashed var(--border-color, #334155);
+  margin: 10px 0;
+}
+
+.receipt-divider-solid {
+  border-top: 1.5px solid var(--border-color, #334155);
+  margin: 6px 0;
+}
+
+.receipt-items-head {
+  display: grid;
+  grid-template-columns: 70px 1fr 60px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 0;
+}
+
+.receipt-item-line {
+  display: grid;
+  grid-template-columns: 70px 1fr 60px;
+  align-items: flex-start;
+  padding: 6px 0;
+  font-size: 0.76rem;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.08);
+}
+
+.item-code {
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.item-title {
+  font-weight: 800;
+}
+
+.item-detail {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.item-share {
+  font-weight: 900;
+  text-align: right;
+  font-size: 0.84rem;
+}
+
+.item-share.penalty {
+  color: #EF4444;
+}
+
+.item-share.credit {
+  color: #10B981;
+}
+
+.receipt-summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.summary-val.val-penalty {
+  color: #EF4444;
+}
+
+.summary-val.val-credit {
+  color: #10B981;
+}
+
+.receipt-rx-box {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.rx-header {
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rx-text {
+  font-size: 0.76rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.receipt-footer-stamp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+.stamp-badge {
+  font-size: 0.85rem;
+  font-weight: 900;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 2px solid;
+  transform: rotate(-3deg);
+  letter-spacing: 0.05em;
+}
+
+.stamp-badge.stamp-red {
+  color: #EF4444;
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.stamp-badge.stamp-blue {
+  color: #10B981;
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.barcode-box {
+  text-align: right;
+}
+
+.barcode-graphic {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+}
+
+.barcode-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+/* Dark Theme for Receipt */
+[data-theme="dark"] .coach-receipt-card {
+  background: #0D131F;
+  border: 1.5px solid #273142;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .receipt-shop-name {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .receipt-rx-box {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+[data-theme="dark"] .rx-header {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .rx-text {
+  color: #CBD5E1;
+}
+
+/* Light Theme for Receipt */
+[data-theme="light"] .coach-receipt-card {
+  background: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  color: #0F172A;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .receipt-shop-name {
+  color: #0284C7;
+}
+
+[data-theme="light"] .receipt-rx-box {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+}
+
+[data-theme="light"] .rx-header {
+  color: #0369A1;
+}
+
+[data-theme="light"] .rx-text {
+  color: #1E293B;
+  font-weight: 600;
+}
+
+
+/* ==============================================================================
+   OPGG ENTERPRISE FRONTEND REDESIGN (ORD-2026-1020-DES-CORE-SPEC-03)
+   ============================================================================== */
+
+/* 1. 영수증 승인 스탬프 쿵 낙하 & 회전 바운스 애니메이션 */
+@keyframes stampImpact {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) rotate(15deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.92) rotate(-14deg);
+  }
+  80% {
+    transform: scale(1.04) rotate(-11deg);
+  }
+  100% {
+    opacity: 0.92;
+    transform: scale(1) rotate(-12deg);
+  }
+}
+
+.receipt-stamp-loss {
+  border: 3px double #DC2626;
+  color: #DC2626;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transform: rotate(-12deg);
+  opacity: 0.92;
+  display: inline-block;
+  background: rgba(220, 38, 38, 0.08);
+  letter-spacing: 0.08em;
+  font-size: 0.88rem;
+  animation: stampImpact 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.receipt-stamp-win {
+  border: 3px double #2563EB;
+  color: #2563EB;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transform: rotate(10deg);
+  opacity: 0.92;
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.08);
+  letter-spacing: 0.08em;
+  font-size: 0.88rem;
+  animation: stampImpact 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* 2. 영수증 지그재그 절취선 (Perforated Zig-Zag Edges) */
+.coach-receipt-card {
+  position: relative;
+  background: var(--receipt-bg, #0D131F);
+  border: 1px solid var(--receipt-border, #273142);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.receipt-zigzag-edge-top,
+.receipt-zigzag-edge-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-repeat: repeat-x;
+  background-size: 16px 8px;
+  pointer-events: none;
+}
+
+.receipt-zigzag-edge-top {
+  top: -8px;
+  background-image: radial-gradient(circle at 8px 0px, transparent 8px, var(--receipt-bg, #0D131F) 8.5px);
+}
+
+.receipt-zigzag-edge-bottom {
+  bottom: -8px;
+  background-image: radial-gradient(circle at 8px 8px, transparent 8px, var(--receipt-bg, #0D131F) 8.5px);
+}
+
+/* 3. 승부예측 듀얼 프로그레스 바 충전 애니메이션 */
+@keyframes gaugeFillBlue {
+  0% { width: 0%; }
+  100% { width: var(--blue-win-pct, 50%); }
+}
+
+.pred-fill-blue {
+  animation: gaugeFillBlue 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: linear-gradient(90deg, #2563EB, #38BDF8);
+  height: 100%;
+}
+
+.pred-fill-red {
+  background: linear-gradient(90deg, #F87171, #DC2626);
+  height: 100%;
+}
+
+/* 4. VIP 위험도 타겟팅 카드 호흡 펄스 (Breathing Pulse) */
+@keyframes vipDangerPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+    border-color: rgba(239, 68, 68, 0.85);
+  }
+}
+
+.ingame-vip-card.severity-danger {
+  border-left: 4px solid #EF4444 !important;
+  animation: vipDangerPulse 2s infinite ease-in-out;
+}
+
+.ingame-vip-card.severity-warning {
+  border-left: 4px solid #F59E0B !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+.ingame-vip-card.severity-info,
+.ingame-vip-card.severity-master {
+  border-left: 4px solid #3B82F6 !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+/* 5. 10인 라인별 1:1 맞대결 인스펙터 (FR-01, 디자인 명세 3.1) */
+.live-matchup-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 1fr;
+  align-items: center;
+  background: var(--bg-surface, #1C2A42);
+  border: 1px solid var(--border-color, #273142);
+  border-radius: 12px;
+  padding: 12px 16px;
+  gap: 12px;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.live-matchup-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary, #3B82F6);
+}
+
+.matchup-side-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.matchup-side-player.red {
+  justify-content: flex-end;
+}
+
+.matchup-player-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.matchup-player-info.text-right {
+  text-align: right;
+}
+
+.matchup-player-name {
+  display: inline-block;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text-heading, #FFFFFF);
+}
+
+.matchup-player-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.matchup-player-info.text-right .matchup-player-meta {
+  justify-content: flex-end;
+}
+
+.matchup-mental-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+}
+
+.matchup-player-info.text-right .matchup-mental-badge {
+  margin-left: auto;
+}
+
+.matchup-mental-badge.hot {
+  background: rgba(239, 68, 68, 0.18);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.matchup-mental-badge.tilt {
+  background: rgba(245, 158, 11, 0.18);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.matchup-mental-badge.calm {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.matchup-center-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.matchup-dominance-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.matchup-dominance-badge.blue,
+.matchup-dominance-badge.dominance-win {
+  background: rgba(37, 99, 235, 0.18);
+  color: #60A5FA;
+  border: 1px solid #3B82F6;
+}
+
+.matchup-dominance-badge.even {
+  background: rgba(245, 158, 11, 0.18);
+  color: #FBBF24;
+  border: 1px solid #F59E0B;
+}
+
+.matchup-dominance-badge.loss,
+.matchup-dominance-badge.red {
+  background: rgba(220, 38, 38, 0.18);
+  color: #F87171;
+  border: 1px solid #EF4444;
+}
+
+.streak-badge {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+.streak-badge.w {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.streak-badge.l {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+/* 6. 행동 처방전 및 맞춤 추천 챔피언 덱 */
+.coach-prescription-box {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.coach-prescription-header {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #38BDF8;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coach-prescription-text {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-main, #F1F5F9);
+  margin: 0;
+}
+
+.coach-rec-champions {
+  margin-top: 14px;
+}
+
+.coach-rec-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.coach-rec-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--bg-surface, #1C2A42);
+  border: 1px solid var(--border-color, #273142);
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.coach-rec-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary, #3B82F6);
+}
+
+.coach-rec-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.coach-rec-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-rec-name {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text-heading, #FFFFFF);
+}
+
+.coach-rec-reason {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+  line-height: 1.4;
+}
+
+/* 7. 스카이스크래퍼 배너 부드러운 위치 추종 */
+.ad-skyscraper-wing {
+  transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              right 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s ease;
+  will-change: left, right, opacity;
+}
+
+.tier-dual-crest[src=""],
+.player-modal-tier-crest[src=""],
+.tier-card-emblem-mini[src=""] {
+  display: none;
+}
+
+/* 화이트 모드: 선택된 탭 배경이 연한 파랑(#EBF2FF)이라 흰 글자가 안 보인다 → 진한 파랑 글자 */
+[data-theme="light"] .pos-tab.active,
+[data-theme="light"] .modal-nav-tab.active,
+[data-theme="light"] .tier-graph-tab.active,
+[data-theme="light"] .season-tab-btn.active {
+  color: #1D4ED8;
+}
+
+/* 화이트 모드: 스킬 핵심 메커니즘 글자(연노랑)가 밝은 배경에서 안 보임 */
+[data-theme="light"] .skill-mechanic-box {
+  color: #92400E;
+}
+
+/* 화이트 모드: 스킬 계수 줄이 연보라 위 연보라라 안 보임 */
+[data-theme="light"] .skill-scaling-box {
+  color: #5B21B6;
+}
+
+/* 화이트 모드 대비 보정 (자동 점검에서 대비 2.5 미만이던 글자들, 2026-10-26) */
+[data-theme="light"] .quick-op-winrate,
+[data-theme="light"] .quick-op-winrate strong { color: #047857 !important; }
+[data-theme="light"] .quick-op-winrate.win-low,
+[data-theme="light"] .quick-op-winrate.win-low strong { color: #B91C1C !important; }
+[data-theme="light"] .quick-op-pos-tag { filter: brightness(0.6) saturate(1.3); }
+[data-theme="light"] .champ-thumb-name { color: #1E293B !important; }
+[data-theme="light"] .tl-summary-chip strong,
+[data-theme="light"] .chip-games strong { color: #5B21B6 !important; }
+[data-theme="light"] .skill-meta-pill,
+[data-theme="light"] .cd-mana-cost-sub { color: #1D4ED8 !important; }
+[data-theme="light"] .tier-dual-name { filter: brightness(0.75) saturate(1.2); }
+[data-theme="light"] .mc-kda-ratio { filter: brightness(0.75) saturate(1.2); }
+[data-theme="light"] .champ-thumb-item.active .champ-thumb-name { color: #B45309 !important; }
+[data-theme="light"] .combo-step-pill,
+[data-theme="light"] .combo-difficulty-pill { filter: brightness(0.6) saturate(1.4); }
+
+/* 화면 제목 통일: 왼쪽 정렬, 같은 크기 (장인 랭킹만 가운데·크기가 달랐음) */
+.masters-page-title,
+.tierlist-page-title,
+.leaderboard-page-title,
+.multisearch-title,
+.duofinder-title,
+.matchup-title,
+.server-ranking-title {
+  font-size: 1.45rem !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  margin-top: 0 !important;
+}
+

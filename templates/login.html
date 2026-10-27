@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>로그인 - {{ site_name }}</title>
+  <link rel="icon" type="image/png" href="/static/images/pwa-icon-192.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --bg: #0b0f17; --card: #121a2a; --border: #24324a; --text: #e2e8f0; --muted: #94a3b8; --discord: #5865F2; }
+    @media (prefers-color-scheme: light) { :root { --bg: #f1f5f9; --card: #ffffff; --border: #dbe3ee; --text: #0f172a; --muted: #64748b; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+           background: radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.18), transparent 60%), var(--bg);
+           color: var(--text); font-family: Pretendard, -apple-system, "Malgun Gothic", sans-serif; }
+    .card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+            padding: 32px 28px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); }
+    .logo { width: 72px; height: 72px; border-radius: 16px; display: block; margin: 0 auto 14px; }
+    h1 { margin: 0 0 6px; font-size: 1.35rem; font-weight: 900; }
+    p { margin: 0 0 22px; color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 16px;
+           border-radius: 12px; background: var(--discord); color: #fff; font-weight: 800; font-size: 1rem; text-decoration: none;
+           transition: filter 0.15s; }
+    .btn:hover { filter: brightness(1.1); }
+    .btn i { font-size: 1.25rem; }
+    .msg { margin: 0 0 18px; padding: 10px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+           background: rgba(232, 64, 87, 0.12); color: #f87171; border: 1px solid rgba(232, 64, 87, 0.35); }
+    .foot { margin-top: 18px; font-size: 0.72rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="/static/images/pwa-icon-192.png" alt="{{ site_name }}">
+    <h1>{{ site_name }}</h1>
+    <p>디스코드 서버 멤버 전용 전적 검색 사이트입니다.<br>디스코드로 로그인하면 바로 들어갈 수 있어요.</p>
+    {% if message %}<div class="msg">{{ message }}</div>{% endif %}
+    {% if configured %}
+    <a class="btn" href="/auth/discord/login?next={{ next_path | urlencode }}"><i class="fa-brands fa-discord"></i> 디스코드로 로그인</a>
+    {% else %}
+    <div class="msg">로그인 설정이 아직 끝나지 않았습니다. 관리자에게 알려주세요.</div>
+    {% endif %}
+    <div class="foot">디스코드 사용자 ID와 서버 가입 여부만 확인하며, 메시지나 다른 정보는 읽지 않습니다.</div>
+  </main>
+</body>
+</html>

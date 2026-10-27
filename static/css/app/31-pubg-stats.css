@@ -1,0 +1,21 @@
+/* 31-pubg-stats.css — 구인 게시판 배그 글 '전적' 버튼·패널 (10-duo-synergy-finder.js togglePubgStats) */
+
+#viewDuoFinder .pg-stats-wrap { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+#viewDuoFinder .pg-stats-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-heading);
+}
+#viewDuoFinder .pg-stats-btn i { color: #F2A900; }
+#viewDuoFinder .pg-stats-btn[aria-expanded="true"] { border-color: #F2A900; }
+#viewDuoFinder .pg-stats-panel { border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; background: var(--bg-input); }
+#viewDuoFinder .pg-stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; }
+#viewDuoFinder .pg-stat { display: flex; flex-direction: column; min-width: 0; }
+#viewDuoFinder .pg-stat-label { font-size: 0.7rem; color: var(--text-muted); }
+#viewDuoFinder .pg-stat-value { font-size: 0.86rem; font-weight: 700; color: var(--text-heading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#viewDuoFinder .pg-stats-msg { font-size: 0.8rem; color: var(--text-muted); }
+#viewDuoFinder .pg-stats-src { margin-top: 8px; font-size: 0.68rem; color: var(--text-muted); }
+
+@media (max-width: 420px) {
+  #viewDuoFinder .pg-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

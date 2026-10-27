@@ -1,0 +1,726 @@
+/* ==========================================================================
+   👑 carry.gg 어드민 거버넌스 콘솔 전용 헥스테크 다크 디자인 시스템 (Admin CSS)
+   문서 번호: ORD-2026-1019-DES-ADMIN-SEPARATION-SPEC
+   규격: Hextech Dark Theme / 60 FPS Zero-Reflow / WCAG AAA Compliant
+   ========================================================================== */
+
+:root {
+  /* ── 1. 어드민 콘솔 5단계 고도(Elevation) 계층 배경 시스템 ── */
+  --admin-bg: #0B0E14;              /* Level 0: 심해 보이드 블랙 베이스 */
+  --admin-nav-bg: #0E131C;          /* Level 1: 글로벌 어드민 탑바 & 탭 */
+  --admin-card-bg: #151A24;         /* Level 2: 헥스테크 카드 컨테이너 */
+  --admin-card-header: #1B2230;     /* Level 3: 카드 헤더 & 섹션 구분 바 */
+  --admin-border: #2A364F;          /* 마법공학 1px 섬세한 구조 분할선 */
+  --admin-term-bg: #080A0E;         /* Level 4: 사이버 콘솔 터미널 & 인풋 딥 다크 */
+
+  /* ── 2. 최고 권위 시그니처 액센트 토큰 ── */
+  --admin-gold: #F59E0B;
+  --admin-gold-hover: #D97706;
+  --admin-gold-glow: 0 0 16px rgba(245, 158, 11, 0.35);
+  --admin-gold-subtle: rgba(245, 158, 11, 0.15);
+
+  /* ── 3. 상태 피드백 및 엔지니어링 메트릭 토큰 ── */
+  --admin-blue: #38BDF8;
+  --admin-blue-glow: 0 0 16px rgba(56, 189, 248, 0.35);
+  --admin-blue-subtle: rgba(56, 189, 248, 0.12);
+
+  --admin-green: #10B981;
+  --admin-green-glow: 0 0 16px rgba(16, 185, 129, 0.35);
+  --admin-green-subtle: rgba(16, 185, 129, 0.12);
+
+  --admin-red: #EF4444;
+  --admin-red-glow: 0 0 16px rgba(239, 68, 68, 0.35);
+  --admin-red-subtle: rgba(239, 68, 68, 0.15);
+
+  --admin-purple: #A855F7;
+  --admin-purple-glow: 0 0 16px rgba(168, 85, 247, 0.35);
+  --admin-pink: #EC4899;
+
+  /* ── 4. 타이포그래피 및 명도 대비 토큰 (WCAG AAA) ── */
+  --admin-text-heading: #FFFFFF;
+  --admin-text-main: #E2E8F0;
+  --admin-text-muted: #8E9DB5;
+  --admin-term-txt: #A5B4FC;
+  --admin-font: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  --admin-font-mono: Consolas, "JetBrains Mono", Menlo, Courier, monospace;
+
+  /* ── 5. 지오메트리 & 모션 토큰 ── */
+  --admin-container-max: 1400px;
+  --admin-radius-card: 14px;
+  --admin-radius-input: 8px;
+  --admin-radius-pill: 999px;
+  --admin-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Reset & Core Typography */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--admin-font);
+  background-color: var(--admin-bg);
+  color: var(--admin-text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   1. Top Global Admin Navbar (고정 상단바)
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-navbar {
+  background: var(--admin-nav-bg);
+  border-bottom: 1px solid var(--admin-border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.admin-badge-logo {
+  background: linear-gradient(135deg, #F59E0B, #B45309);
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 1rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: -0.5px;
+  box-shadow: var(--admin-gold-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-brand-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--admin-text-heading);
+  letter-spacing: -0.3px;
+}
+
+.admin-env-pill {
+  background: var(--admin-gold-subtle);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #FBBF24;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--admin-radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.admin-env-pill i {
+  color: var(--admin-gold);
+}
+
+.admin-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   2. Buttons & Tactile Feedback (60 FPS)
+   ────────────────────────────────────────────────────────────────────────── */
+.btn-admin-action {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-main);
+  padding: 6px 14px;
+  border-radius: var(--admin-radius-input);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: var(--admin-transition);
+  user-select: none;
+}
+
+.btn-admin-action:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--admin-blue);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+}
+
+.btn-admin-action:active {
+  transform: scale(0.98);
+}
+
+.btn-admin-primary {
+  background: var(--admin-gold);
+  color: #000000;
+  border-color: var(--admin-gold);
+  font-weight: 800;
+}
+
+.btn-admin-primary:hover {
+  background: var(--admin-gold-hover);
+  border-color: var(--admin-gold-hover);
+  color: #000000;
+  box-shadow: var(--admin-gold-glow);
+  transform: translateY(-1px);
+}
+
+.btn-admin-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-admin-danger {
+  background: var(--admin-red-subtle);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #F87171;
+}
+
+.btn-admin-danger:hover {
+  background: var(--admin-red);
+  color: #FFFFFF;
+  border-color: var(--admin-red);
+  box-shadow: var(--admin-red-glow);
+  transform: translateY(-1px);
+}
+
+.btn-admin-danger:active {
+  transform: scale(0.97);
+}
+
+.btn-admin-success {
+  background: var(--admin-green-subtle);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34D399;
+}
+
+.btn-admin-success:hover {
+  background: var(--admin-green);
+  color: #FFFFFF;
+  border-color: var(--admin-green);
+  box-shadow: var(--admin-green-glow);
+  transform: translateY(-1px);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   3. Container Layout
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-container {
+  max-width: var(--admin-container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   4. Gatekeeper Login Card (보안 인증 게이트웨이)
+   ────────────────────────────────────────────────────────────────────────── */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72vh;
+  padding: 1rem;
+}
+
+.login-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  transition: var(--admin-transition);
+}
+
+.login-card.shake {
+  animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.login-card-header {
+  background: var(--admin-card-header);
+  padding: 1.75rem 1.5rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.login-logo-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  border: 2px solid var(--admin-gold);
+  color: var(--admin-gold);
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.85rem auto;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  animation: logoGlowPulse 3s infinite ease-in-out;
+}
+
+@keyframes logoGlowPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.25); }
+  50% { box-shadow: 0 0 28px rgba(245, 158, 11, 0.55); }
+}
+
+.login-card-body {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.login-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--admin-text-muted);
+}
+
+.login-input {
+  background: var(--admin-term-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-input);
+  padding: 10px 14px;
+  color: #FFFFFF;
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--admin-transition);
+  font-family: inherit;
+}
+
+.login-input:focus {
+  border-color: var(--admin-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+  background: #0D111A;
+}
+
+.login-btn-submit {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #000000;
+  border: none;
+  border-radius: var(--admin-radius-input);
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.login-btn-submit:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: var(--admin-gold-glow);
+}
+
+.login-btn-submit:active {
+  transform: scale(0.98);
+}
+
+.login-error-msg {
+  display: none;
+  color: #EF4444;
+  background: var(--admin-red-subtle);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   5. Telemetry Quick Stats Grid Bar (5대 지표)
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 1.75rem;
+}
+
+.admin-stat-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--admin-transition);
+}
+
+.admin-stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.admin-stat-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-accent, #38BDF8);
+  box-shadow: 0 0 10px var(--card-accent, #38BDF8);
+}
+
+.stat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--admin-text-heading);
+  line-height: 1.2;
+}
+
+.stat-sub {
+  font-size: 0.72rem;
+  color: var(--admin-text-muted);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   6. Navigation Tabs
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-tabs-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--admin-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-border) transparent;
+}
+
+.admin-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--admin-text-muted);
+  padding: 8px 16px;
+  border-radius: var(--admin-radius-input);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--admin-transition);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.admin-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+}
+
+.admin-tab-btn.active {
+  background: var(--admin-gold-subtle);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #FBBF24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   7. Admin Panels (60 FPS Fade & Slide Transition)
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
+  animation: adminPanelFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes adminPanelFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   8. Card Containers & Headers
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-card);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.admin-card-header {
+  background: var(--admin-card-header);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--admin-text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-card-body {
+  padding: 20px;
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   9. Dark Cyber Terminal Logs Box (Level 4 Deep Dark)
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-log-box {
+  background: var(--admin-term-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-input);
+  padding: 16px;
+  font-family: var(--admin-font-mono);
+  font-size: 0.84rem;
+  color: var(--admin-term-txt);
+  max-height: 480px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.55;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.admin-log-box::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.admin-log-box::-webkit-scrollbar-thumb {
+  background: var(--admin-border);
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   10. Floating Toast Notification (3.5s Feedback)
+   ────────────────────────────────────────────────────────────────────────── */
+.admin-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1E293B;
+  color: #FFFFFF;
+  border: 1px solid var(--admin-border);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.admin-toast.show {
+  display: flex;
+  animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   11. 4단계 반응형 뷰포트 미디어 쿼리 (Responsive Matrix)
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1440px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-navbar {
+    padding: 0.6rem 1rem;
+  }
+  .admin-container {
+    padding: 1rem;
+  }
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-brand-title {
+    display: none;
+  }
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-tabs-nav {
+    gap: 6px;
+    padding-bottom: 0.5rem;
+  }
+  .admin-tab-btn {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+  }
+  .admin-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    justify-content: center;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   12. 패널: 구인글 관리 전용 스타일
+   ────────────────────────────────────────────────────────────────────────── */
+#panelCommunity .admin-game-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+#panelCommunity .admin-game-lol {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+#panelCommunity .admin-game-pubg {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+#panelCommunity .admin-game-overwatch {
+  background: rgba(249, 115, 22, 0.15);
+  color: #F97316;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+[data-theme="light"] #panelCommunity .admin-game-lol {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284C7;
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+[data-theme="light"] #panelCommunity .admin-game-pubg {
+  background: rgba(217, 119, 6, 0.12);
+  color: #B45309;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+[data-theme="light"] #panelCommunity .admin-game-overwatch {
+  background: rgba(234, 88, 12, 0.12);
+  color: #C2410C;
+  border-color: rgba(234, 88, 12, 0.3);
+}
+

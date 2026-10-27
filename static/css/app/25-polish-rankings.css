@@ -1,0 +1,1771 @@
+/* ==========================================================================
+   25-polish-rankings.css
+   챔피언 랭킹(티어표) · 장인 랭킹 · 챌린저 랭킹 가독성 & 모바일 최적화
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 공통: 고정폭 숫자 & 가독성
+   -------------------------------------------------------------------------- */
+.tl-rate-num,
+.tl-games-text,
+.counter-chip-rate,
+.master-mastery-pts,
+.master-mastery-lvl,
+.master-lp-text,
+.lb-lp-text,
+.lb-wr-text,
+.lb-record-sub,
+.tl-summary-chip strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   2. 챔피언 장인 랭킹 (Masters)
+   -------------------------------------------------------------------------- */
+.masters-top-bar {
+  margin-bottom: 1rem;
+}
+
+.masters-page-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.masters-layout-wrapper {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* 좌측 챔피언 목록: 4열 그리드로 변경하여 챔피언 이름이 절대 잘리지 않도록 공간 확보 */
+.champ-sidebar {
+  width: 324px;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  position: sticky;
+  top: 75px;
+  box-shadow: var(--card-shadow);
+  box-sizing: border-box;
+}
+
+.champ-sidebar-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.champ-sidebar-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.champ-sidebar-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.champ-count-pill {
+  font-size: 0.72rem;
+  background: var(--bg-input);
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.champ-search-box-left {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  gap: 8px;
+}
+
+.champ-search-box-left:focus-within {
+  border-color: #F59E0B;
+}
+
+.champ-filter-input {
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  width: 100%;
+  outline: none;
+}
+
+/* 4열 그리드 (셀당 약 70px) */
+.champ-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px 4px !important;
+  margin-top: 0.5rem;
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  padding-right: 3px;
+  box-sizing: border-box;
+}
+
+.champ-thumb-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  cursor: pointer;
+  padding: 4px 2px !important;
+  border-radius: 6px !important;
+  border: 1.5px solid transparent !important;
+  background: transparent !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  transition: all 0.15s ease;
+}
+
+.champ-thumb-item:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.champ-thumb-item.active {
+  border-color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35) !important;
+}
+
+.champ-thumb-img {
+  width: 44px !important;
+  height: 44px !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px !important;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  display: block;
+}
+
+/* 이름이 말줄임표(...)로 잘리지 않고 2줄까지 완전 표시되도록 설정 */
+.champ-thumb-name {
+  font-size: 0.72rem !important;
+  line-height: 1.2 !important;
+  margin-top: 3px !important;
+  text-align: center !important;
+  color: var(--text-main) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  max-height: 2.4em !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+.champ-thumb-item.active .champ-thumb-name {
+  color: #F59E0B !important;
+  font-weight: 800 !important;
+}
+
+/* 우측 상세 장인 패널 */
+.masters-main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-champ-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--card-shadow);
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.banner-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  border: 2px solid #F59E0B;
+  object-fit: cover;
+}
+
+.banner-title-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.banner-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.banner-name-main {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.banner-id-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.btn-deselect {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-deselect:hover {
+  color: #EF4444;
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 티어 필터 카드 */
+.tier-filter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--card-shadow);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tier-btn {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.tier-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tier-btn.active {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 2px 8px rgba(83, 131, 232, 0.35);
+}
+
+.tier-btn.apex-tier-btn {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #F59E0B;
+}
+
+.tier-btn.apex-tier-btn:hover {
+  background: rgba(245, 158, 11, 0.22);
+}
+
+.tier-btn.apex-tier-btn.active {
+  background: #F59E0B !important;
+  color: #111827 !important;
+  border-color: #F59E0B !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+}
+
+.tier-btn.apex-tier-btn.active i {
+  color: #111827 !important;
+}
+
+.badge-pill:empty {
+  display: none !important;
+}
+
+/* 장인 랭킹 테이블 */
+.masters-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.masters-title-wrap h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.tier-indicator-pill {
+  font-size: 0.74rem;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60A5FA;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.masters-desc-text {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.masters-count-indicator {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.masters-table-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+}
+
+.masters-table-header {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 2fr) minmax(0, 1.4fr) 70px 120px 85px;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.master-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 2fr) minmax(0, 1.4fr) 70px 120px 85px;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.84rem;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.master-row:hover {
+  background: var(--table-hover);
+}
+
+.col-rank {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.rank-badge.top-1 { color: #F59E0B; font-weight: 900; }
+.rank-badge.top-2 { color: #94A3B8; font-weight: 800; }
+.rank-badge.top-3 { color: #D97706; font-weight: 800; }
+
+.master-player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.master-names {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.master-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.master-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.master-tier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.master-tier-text {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.master-tier-text span {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.master-lp-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.col-mastery-level {
+  text-align: center;
+}
+
+.col-mastery-points {
+  text-align: right;
+  padding-right: 4px;
+}
+
+.col-last-play {
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   3. 챔피언 티어표 (Tier List)
+   -------------------------------------------------------------------------- */
+.tierlist-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tierlist-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tierlist-page-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.tierlist-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tierlist-mode-switch {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.tl-mode-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.tl-mode-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(83, 131, 232, 0.3);
+}
+
+.tierlist-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 210px;
+}
+
+.tierlist-search-wrap i {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.tierlist-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 30px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.tierlist-search-input:focus {
+  border-color: var(--primary);
+}
+
+/* 상단 요약 툴바 정리 (필터 박스 숨김 상태에서 불필요한 여백 제거) */
+.tierlist-advanced-toolbar {
+  padding: 8px 14px !important;
+  margin-bottom: 10px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-height: auto !important;
+}
+
+.tl-summary-chips {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.tl-summary-chip {
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+.tl-summary-chip.chip-op {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #EF4444 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.tl-summary-chip.chip-t1 {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #F59E0B !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.tl-summary-chip.chip-t2 {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+.tl-summary-chip.chip-t3 {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #34D399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.tl-summary-chip.chip-t4,
+.tl-summary-chip.chip-t5 {
+  color: var(--text-muted) !important;
+}
+
+.tl-summary-chip.chip-games {
+  background: rgba(139, 92, 246, 0.12) !important;
+  color: #A78BFA !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+
+#tlSampleNote {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* 포지션 & 정렬 필터 바 */
+.tierlist-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.position-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pos-tab {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 32px;
+  transition: all 0.15s ease;
+}
+
+.pos-tab:hover {
+  background: var(--bg-input);
+  color: var(--text-heading);
+}
+
+.pos-tab.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+.tierlist-sort-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tierlist-sort-label {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.tl-sort-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tl-sort-btn:hover {
+  color: var(--text-heading);
+}
+
+.tl-sort-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* 화이트 모드 포지션 아이콘 명도 보정 (금색이 흰 배경에서 안 보이는 문제 해결) */
+[data-theme="light"] .pos-tab-img,
+[data-theme="light"] .tl-pos-img {
+  filter: brightness(0.2) contrast(1.2);
+}
+
+[data-theme="light"] .pos-tab.active .pos-tab-img {
+  filter: brightness(0) invert(1);
+}
+
+/* 티어표 테이블 (데스크톱) */
+.tierlist-table-wrapper {
+  background: var(--bg-card);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+  box-shadow: var(--card-shadow);
+}
+
+.tierlist-table-header {
+  display: grid;
+  grid-template-columns: 44px minmax(130px, 1.8fr) 48px 44px 90px 85px 80px 80px minmax(160px, 1.4fr) 72px;
+  min-width: 960px;
+  padding: 9px 14px;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tierlist-body {
+  min-width: 960px;
+}
+
+.tierlist-row {
+  display: grid;
+  grid-template-columns: 44px minmax(130px, 1.8fr) 48px 44px 90px 85px 80px 80px minmax(160px, 1.4fr) 72px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  font-size: 0.84rem;
+  transition: background 0.15s ease;
+}
+
+.tierlist-row:hover {
+  background: var(--table-hover);
+}
+
+.tl-col-winrate,
+.tl-col-pickrate,
+.tl-col-banrate,
+.tl-col-games {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.tl-col-position,
+.tl-col-tier,
+.tl-col-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tl-col-rank {
+  justify-content: flex-start;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.tl-champ-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tl-champ-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.tl-champ-name {
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-rate-num {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tl-mini-bar {
+  width: 60px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+[data-theme="light"] .tl-mini-bar {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.tl-counter-chips {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.counter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg-input);
+  padding: 1px 5px 1px 2px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.counter-chip-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   4. 챌린저 랭킹 (Leaderboard)
+   -------------------------------------------------------------------------- */
+.leaderboard-container {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.leaderboard-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leaderboard-page-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.leaderboard-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 230px;
+}
+
+.leaderboard-search-wrap i {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.leaderboard-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 30px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.leaderboard-search-input:focus {
+  border-color: var(--primary);
+}
+
+.leaderboard-table-wrapper {
+  background: var(--bg-card);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+  box-shadow: var(--card-shadow);
+}
+
+.leaderboard-table-header {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 2fr) 140px 140px 40px;
+  padding: 10px 14px;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  align-items: center;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 2fr) 140px 140px 40px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.leaderboard-row:hover {
+  background: var(--table-hover);
+}
+
+.lb-col-rank {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.lb-col-rank.top-1 { color: #F59E0B; }
+.lb-col-rank.top-2 { color: #94A3B8; }
+.lb-col-rank.top-3 { color: #CD7F32; }
+
+.lb-player-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lb-name {
+  font-weight: 800;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.86rem;
+}
+
+.lb-tier-cell {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap;
+}
+
+.lb-emblem {
+  width: 24px !important;
+  height: 24px !important;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.lb-lp-text {
+  font-size: 0.82rem !important;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap !important;
+}
+
+.lb-winrate-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lb-wr-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.lb-wr-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.lb-wr-text.is-good { color: #10B981; }
+.lb-wr-text.is-bad { color: #E84057; }
+
+[data-theme="light"] .lb-wr-text.is-good { color: #059669; }
+[data-theme="light"] .lb-wr-text.is-bad { color: #DC2626; }
+
+.lb-record-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.lb-wr-bar {
+  width: 80px;
+  height: 4px;
+  background: rgba(232, 64, 87, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.lb-wr-bar-fill {
+  height: 100%;
+  background: #10B981;
+}
+
+.lb-search-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.lb-search-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   5. 모바일 반응형 (max-width: 640px / 390px 폭 최적화)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* [장인 랭킹] */
+  .masters-layout-wrapper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .champ-sidebar {
+    width: 100% !important;
+    position: static !important;
+    padding: 10px !important;
+  }
+
+  .champ-grid {
+    grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)) !important;
+    max-height: 160px !important;
+    gap: 6px 4px !important;
+  }
+
+  .champ-thumb-img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .champ-thumb-name {
+    font-size: 0.68rem !important;
+    line-height: 1.15 !important;
+  }
+
+  /* 장인 랭킹 표: 레벨·최근플레이 열 숨겨 390px에서 가로 스크롤 완전 제거 */
+  .masters-table-wrapper {
+    overflow-x: hidden !important;
+  }
+
+  .masters-table-header,
+  .master-row {
+    grid-template-columns: 32px minmax(0, 1.5fr) minmax(0, 1.1fr) minmax(0, 1.1fr) !important;
+    padding: 8px 6px !important;
+    gap: 4px !important;
+  }
+
+  .col-mastery-level,
+  .col-last-play {
+    display: none !important;
+  }
+
+  .col-mastery-points {
+    text-align: right;
+  }
+
+  .master-tier-text {
+    font-size: 0.76rem;
+  }
+
+  .master-lp-text {
+    font-size: 0.68rem;
+  }
+
+  /* [티어표] */
+  .tierlist-top-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .tierlist-top-right {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .tierlist-mode-switch {
+    width: 100%;
+  }
+
+  .tl-mode-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .tierlist-search-wrap {
+    width: 100% !important;
+  }
+
+  #tlRecentChampChipsWrap {
+    display: none !important;
+  }
+
+  .tierlist-advanced-toolbar {
+    padding: 6px 8px !important;
+  }
+
+  .tl-summary-chips {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    padding-bottom: 2px !important;
+  }
+
+  .tl-summary-chips::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .tierlist-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 6px 8px;
+  }
+
+  .position-tabs {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .tierlist-sort-group {
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .tierlist-sort-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 티어표: 불필요한 열 숨겨 390px 화면에서 순위·챔피언·티어·승률·픽률만 딱 맞게 표시 */
+  .tierlist-table-wrapper {
+    overflow-x: hidden !important;
+  }
+
+  .tierlist-table-header,
+  .tierlist-body,
+  .tierlist-row {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .tierlist-table-header,
+  .tierlist-row {
+    grid-template-columns: 28px minmax(0, 1.8fr) 36px 65px 56px !important;
+    padding: 7px 5px !important;
+    gap: 4px !important;
+  }
+
+  .tl-col-position,
+  .tl-col-banrate,
+  .tl-col-games,
+  .tl-col-counters,
+  .tl-col-action {
+    display: none !important;
+  }
+
+  .tl-champ-avatar {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .tl-champ-name {
+    font-size: 0.78rem !important;
+  }
+
+  .tier-pill {
+    font-size: 0.68rem !important;
+    padding: 1px 4px !important;
+    min-width: 24px !important;
+  }
+
+  .tl-rate-num {
+    font-size: 0.75rem !important;
+  }
+
+  .tl-mini-bar {
+    width: 100% !important;
+    max-width: 44px !important;
+  }
+
+  /* [챌린저 랭킹] */
+  .leaderboard-search-wrap {
+    width: 100% !important;
+  }
+
+  .leaderboard-table-wrapper {
+    overflow-x: hidden !important;
+  }
+
+  .leaderboard-table-header,
+  .leaderboard-row {
+    grid-template-columns: 32px minmax(0, 1.8fr) 95px 75px !important;
+    padding: 8px 6px !important;
+    gap: 4px !important;
+  }
+
+  .lb-action-cell,
+  .lb-col-action {
+    display: none !important;
+  }
+
+  .lb-emblem {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .lb-lp-text {
+    font-size: 0.76rem !important;
+  }
+
+  .lb-record-sub {
+    display: none !important;
+  }
+
+  .lb-wr-bar {
+    width: 100% !important;
+    max-width: 55px !important;
+  }
+}
+
+/* ==========================================================================
+   6. 2차 다듬기 (Round 2 Polish) — 장인 랭킹 · 티어표 · 챌린저 랭킹 완결
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   6-1. 장인 랭킹 (Masters) 챔피언 목록 이름 잘림 & 여백 보정
+   - 긴 단어(블리츠크랭크 등) 및 복합어(트위스티드 페이트 등) 2줄 내 완전 표시
+   - 줄바꿈 시 글자 하단 디센더 잘림 방지 (line-height 1.25, max-height 2.6em)
+   -------------------------------------------------------------------------- */
+.champ-thumb-name {
+  font-size: 0.72rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.35px !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  max-height: 2.6em !important;
+  min-height: 2.5em !important;
+  padding: 0 1px !important;
+  box-sizing: border-box !important;
+}
+
+/* --------------------------------------------------------------------------
+   6-2. 티어표 상단 요약칩 & 필터 툴바 정돈
+   - 좌측 필터 드롭다운 숨김 시 빈 공간 제거 -> 요약칩 좌측, 표본 안내 우측 배치
+   - 한 줄로 깔끔하게 정리되어 불필요한 높이 낭비 제거
+   -------------------------------------------------------------------------- */
+.tl-filters-left:empty,
+.tl-filters-left:not(:has(*:not([style*="display: none"]):not(:empty))) {
+  display: none !important;
+}
+
+.tierlist-advanced-toolbar {
+  padding: 6px 14px !important;
+  margin-bottom: 10px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px 14px !important;
+  min-height: auto !important;
+}
+
+.tl-summary-chips {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+}
+
+#tlSampleNote,
+.tl-sample-note {
+  font-size: 0.72rem !important;
+  color: var(--text-muted) !important;
+  margin: 0 0 0 auto !important;
+  width: auto !important;
+  white-space: nowrap !important;
+}
+
+/* --------------------------------------------------------------------------
+   6-3. 티어표 데스크톱 테이블 헤더 충돌 및 간격 최적화
+   - '게임'과 '카운터' 컬럼이 붙어서 '게임카운터'로 보이는 현상 해결
+   - 게임수 숫자와 카운터 칩 간 여백 확보
+   -------------------------------------------------------------------------- */
+.tierlist-table-header {
+  grid-template-columns: 44px minmax(130px, 1.8fr) 46px 44px 85px 80px 75px 85px minmax(150px, 1.4fr) 72px !important;
+  gap: 0 6px !important;
+}
+
+.tierlist-row {
+  grid-template-columns: 44px minmax(130px, 1.8fr) 46px 44px 85px 80px 75px 85px minmax(150px, 1.4fr) 72px !important;
+  gap: 0 6px !important;
+}
+
+.tl-col-games {
+  text-align: right !important;
+  padding-right: 12px !important;
+}
+
+.tl-col-counters {
+  padding-left: 6px !important;
+}
+
+/* --------------------------------------------------------------------------
+   6-4. 화이트 모드(Light Theme) 고대비 가독성 보정
+   - 흰 배경에서 밝은 노랑/하늘/연두색 텍스트가 안 보이는 현상 완벽 해결
+   -------------------------------------------------------------------------- */
+[data-theme="light"] .tier-btn.apex-tier-btn {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(217, 119, 6, 0.45) !important;
+  color: #B45309 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .tier-btn.apex-tier-btn:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #92400E !important;
+}
+
+[data-theme="light"] .tier-indicator-pill {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1D4ED8 !important;
+  border-color: rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="light"] #mastersChampTitle {
+  color: #2563EB !important;
+}
+
+[data-theme="light"] .rank-badge.top-1,
+[data-theme="light"] .lb-col-rank.top-1 {
+  color: #D97706 !important;
+}
+
+[data-theme="light"] .rank-badge.top-2,
+[data-theme="light"] .lb-col-rank.top-2 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .rank-badge.top-3,
+[data-theme="light"] .lb-col-rank.top-3 {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .master-mastery-pts {
+  color: #D97706 !important;
+}
+
+/* 화이트 모드 티어표 요약 칩 */
+[data-theme="light"] .tl-summary-chip.chip-op {
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #DC2626 !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+[data-theme="light"] .tl-summary-chip.chip-t1 {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #B45309 !important;
+  border-color: rgba(180, 83, 9, 0.35) !important;
+}
+
+[data-theme="light"] .tl-summary-chip.chip-t2 {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1D4ED8 !important;
+  border-color: rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="light"] .tl-summary-chip.chip-t3 {
+  background: rgba(16, 185, 129, 0.08) !important;
+  color: #047857 !important;
+  border-color: rgba(4, 120, 87, 0.3) !important;
+}
+
+[data-theme="light"] .tl-summary-chip.chip-games {
+  background: rgba(124, 58, 237, 0.08) !important;
+  color: #6D28D9 !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+}
+
+/* 화이트 모드 티어 뱃지 */
+[data-theme="light"] .tier-pill-1 {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #B45309 !important;
+  border-color: rgba(180, 83, 9, 0.35) !important;
+}
+
+[data-theme="light"] .tier-pill-2 {
+  background: rgba(37, 99, 235, 0.1) !important;
+  color: #1D4ED8 !important;
+  border-color: rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="light"] .tier-pill-3 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #047857 !important;
+  border-color: rgba(4, 120, 87, 0.3) !important;
+}
+
+/* 화이트 모드 챌린저 랭킹 */
+[data-theme="light"] .lb-name {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .lb-lp-text {
+  color: #0F172A !important;
+}
+
+/* --------------------------------------------------------------------------
+   6-5. 모바일 (max-width: 640px / 390px 화면) 2차 미세 조정
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* 1. 장인 랭킹 사이드바: 챔피언 그리드 높이 & 아이콘 최적화 (2.5행 잘림 제거) */
+  .champ-sidebar {
+    padding: 8px 10px !important;
+  }
+
+  .champ-grid {
+    grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)) !important;
+    max-height: 172px !important;
+    gap: 4px 2px !important;
+  }
+
+  .champ-thumb-item {
+    padding: 3px 1px !important;
+  }
+
+  .champ-thumb-name {
+    font-size: 0.69rem !important;
+    letter-spacing: -0.4px !important;
+    line-height: 1.2 !important;
+    max-height: 2.5em !important;
+    min-height: 2.4em !important;
+  }
+
+  /* 2. 장인 랭킹 테이블: 소환사명 열 대폭 확장 (말줄임 방지) */
+  .masters-table-header,
+  .master-row {
+    grid-template-columns: 28px minmax(0, 2fr) 72px 76px !important;
+    padding: 7px 6px !important;
+    gap: 4px !important;
+  }
+
+  .master-icon-wrap {
+    flex-shrink: 0 !important;
+  }
+
+  .master-icon {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .master-name {
+    font-size: 0.82rem !important;
+  }
+
+  /* 3. 티어표 상단 툴바: 모바일 세로 배치 & 가로 스크롤 칩 */
+  .tierlist-advanced-toolbar {
+    padding: 6px 8px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+  }
+
+  .tl-summary-chips {
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+  }
+
+  #tlSampleNote,
+  .tl-sample-note {
+    width: 100% !important;
+    margin: 2px 0 0 0 !important;
+    white-space: normal !important;
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* 4. 티어표 모바일: 포지션(라인) 컬럼(22px) 유지하여 중복 챔피언 라인 식별 */
+  .tierlist-table-header,
+  .tierlist-row {
+    grid-template-columns: 24px minmax(0, 1.6fr) 28px 22px 58px 50px !important;
+    padding: 7px 4px !important;
+    gap: 3px !important;
+  }
+
+  .tl-col-position {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .tierlist-table-header .tl-col-position {
+    font-size: 0.68rem !important;
+    color: var(--text-muted) !important;
+  }
+
+  .tl-pos-img {
+    width: 16px !important;
+    height: 16px !important;
+    display: block !important;
+  }
+
+  /* 5. 챌린저 랭킹 모바일: 소환사명 열 너비 확대 (닉네임 잘림 완화) */
+  .leaderboard-table-header,
+  .leaderboard-row {
+    grid-template-columns: 28px minmax(0, 2fr) 78px 65px !important;
+    padding: 7px 6px !important;
+    gap: 4px !important;
+  }
+
+  .lb-name {
+    font-size: 0.82rem !important;
+  }
+}
+
+/* 챔피언 랭킹: 게임 티어 필터 */
+#viewTierList .tl-tier-filters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+#viewTierList .tl-tier-filter {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#viewTierList .tl-tier-filter.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* 챌린저 랭킹: 모스트 챔피언 (수집된 최근 게임 기준) */
+#viewLeaderboard .lb-player-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+#viewLeaderboard .lb-most {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+#viewLeaderboard .lb-most img {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 640px) {
+  #viewLeaderboard .lb-most img { width: 18px; height: 18px; }
+  #viewLeaderboard .lb-most img:nth-child(3) { display: none; }
+}
+
+/* 태블릿·작은 노트북 (641~1150px): 표가 화면보다 넓어 오른쪽이 잘리던 문제 → 카운터·버튼 열 숨김 */
+@media (min-width: 641px) and (max-width: 1150px) {
+  #viewTierList .tierlist-body {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  #viewTierList .tierlist-table-header,
+  #viewTierList .tierlist-row {
+    min-width: 0 !important;
+    width: 100% !important;
+    grid-template-columns: 40px minmax(0, 1.8fr) 48px 44px minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 0.9fr) 64px !important;
+  }
+
+  #viewTierList .tl-col-counters,
+  #viewTierList .tl-col-action {
+    display: none !important;
+  }
+}
+
+/* 티어표: 직전 패치 대비 순위 변동(▲/▼/NEW)과 승률 변화 — 순위 숫자 아래에 쌓아 열 너비를 늘리지 않는다 */
+#viewTierList .tl-col-rank {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  gap: 1px;
+}
+
+#viewTierList .tl-rank-move {
+  display: block;
+  padding-left: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+#viewTierList .tl-rank-move.up,
+#viewTierList .tl-wr-delta.up { color: #10B981; }
+#viewTierList .tl-rank-move.down,
+#viewTierList .tl-wr-delta.down { color: #E84057; }
+#viewTierList .tl-rank-move.new {
+  margin-left: 4px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 0.55rem;
+  color: #5383E8;
+  background: rgba(83, 131, 232, 0.16);
+}
+
+#viewTierList .tl-wr-delta {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+#viewTierList .tl-wr-delta.flat { color: var(--text-muted); }
+
+[data-theme="light"] #viewTierList .tl-rank-move.new {
+  color: #3B6FD8;
+  background: rgba(83, 131, 232, 0.12);
+}
+
+@media (max-width: 640px) {
+  #viewTierList .tl-rank-move { padding-left: 0; font-size: 0.55rem; }
+  #viewTierList .tl-rank-move.new { margin-left: 0; padding: 0 2px; font-size: 0.5rem; }
+  #viewTierList .tl-wr-delta { font-size: 0.56rem; }
+}
+
+/* 휴대폰: 정렬 버튼·장인 티어 칩이 글자 단위로 꺾이거나 여러 줄을 차지하던 문제 → 한 줄 가로 스크롤 */
+@media (max-width: 640px) {
+  #viewTierList .tierlist-sort-group { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; gap: 4px !important; max-width: 100%; }
+  #viewTierList .tierlist-sort-group > * { flex: 0 0 auto !important; white-space: nowrap !important; }
+  #viewMasters .tier-buttons-grid { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; gap: 6px !important; max-width: 100%; }
+  #viewMasters .tier-buttons-grid > * { flex: 0 0 auto !important; white-space: nowrap !important; }
+}
+@media (max-width: 640px) {
+  #viewMasters .masters-main-content, #viewMasters .masters-content-area, #viewMasters .tier-filter-card, #viewMasters .filter-group { min-width: 0 !important; max-width: 100% !important; }
+  #viewMasters .masters-main-content { flex: 1 1 auto; width: 100%; }
+}
+@media (max-width: 640px) {
+  #viewMasters .master-row .col-rank { white-space: nowrap !important; font-size: 0.82rem !important; }
+  #viewMasters .master-row .col-rank i { display: none; }
+}

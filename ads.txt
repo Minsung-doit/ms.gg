@@ -1,0 +1,4 @@
+# Google AdSense ads.txt for carry.gg
+# https://support.google.com/adsense/answer/7532444
+# 형식: <광고 시스템 도메인>, <게시자 계정 ID>, <관계 유형(DIRECT/RESELLER)>, <인증 기관 ID>
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

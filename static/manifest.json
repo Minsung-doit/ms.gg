@@ -1,0 +1,78 @@
+{
+  "name": "carry.gg - 롤 전적검색 & 인게임 관전",
+  "short_name": "carry.gg",
+  "description": "스마트폰과 태블릿을 위한 초고속 롤 전적검색, 픽창 5인 멀티서치, 실시간 인게임 관전 PWA 앱",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0f131a",
+  "theme_color": "#121722",
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "categories": ["games", "utilities", "entertainment"],
+  "icons": [
+    {
+      "src": "/static/images/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/images/pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "소환사 검색",
+      "short_name": "전적검색",
+      "description": "소환사 닉네임 전적 및 티어 검색",
+      "url": "/?tab=search",
+      "icons": [{ "src": "/static/images/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "멀티서치 (픽창 5인)",
+      "short_name": "멀티서치",
+      "description": "챔피언 선택창 복사 붙여넣기 5인 스마트 분석",
+      "url": "/?tab=multisearch",
+      "icons": [{ "src": "/static/images/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "실시간 인게임 관전",
+      "short_name": "인게임관전",
+      "description": "현재 진행 중인 실시간 게임 관전 및 룬/빌드 분석",
+      "url": "/?tab=spectator",
+      "icons": [{ "src": "/static/images/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "소환사 랭킹 (래더)",
+      "short_name": "랭킹",
+      "description": "한국 서버 챌린저 랭킹 및 순위표",
+      "url": "/?tab=leaderboard",
+      "icons": [{ "src": "/static/images/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "1:1 상성 매치업",
+      "short_name": "상성분석",
+      "description": "챔피언 대 챔피언 8대 듀얼 Bar 상성 비교",
+      "url": "/?tab=matchup",
+      "icons": [{ "src": "/static/images/pwa-icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

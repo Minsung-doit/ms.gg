@@ -1,0 +1,4070 @@
+/* ==============================================================================
+   24-polish-summoner.css
+   소환사 전적 페이지 다듬기 (랭크 카드, 최근 20경기 요약, KDA 그래프, 챔피언 표,
+   경기 목록, 경기 펼침 상세, 인게임 탭)
+   - 다크 모드 / 화이트 모드 100% 가독성 대비
+   - 모바일 390px 가로 스크롤 완전 방지
+   - 숫자 오른쪽 정렬 및 tabular-nums 고정폭
+   - 승률 색상: 50% 초과 #10B981, 50% 이하 #E84057 (화이트 모드 #059669 / #DC2626)
+   ============================================================================== */
+
+:root {
+  --wr-good: #10B981;
+  --wr-bad: #E84057;
+  --wr-win-bg: rgba(59, 130, 246, 0.08);
+  --wr-win-border: rgba(59, 130, 246, 0.28);
+  --wr-loss-bg: rgba(232, 64, 87, 0.08);
+  --wr-loss-border: rgba(232, 64, 87, 0.28);
+}
+
+[data-theme="light"] {
+  --wr-good: #059669;
+  --wr-bad: #DC2626;
+  --wr-win-bg: #F0F7FF;
+  --wr-win-border: #BFDBFE;
+  --wr-loss-bg: #FFF5F5;
+  --wr-loss-border: #FECACA;
+}
+
+/* 숫자 고정폭 통일 */
+.tier-dual-lp,
+.wins-text,
+.losses-text,
+.winrate-badge,
+.tier-lp-target-text,
+.donut-text,
+.record-counts,
+.record-meta-note,
+.kda-ratio-highlight,
+.kda-numbers-row,
+.kp-badge,
+.role-bar-pct,
+.mcc-wr-pct,
+.mcc-kda-ratio,
+.mcc-kda-kda-row,
+.mcc-cs-main,
+.mcc-cs-sub,
+.mc-kda-score,
+.mc-kda-ratio,
+.mc-kp-row,
+.mc-cs-val,
+.mc-meta-sub,
+.acc-kda-nums,
+.acc-kda-ratio,
+.acc-damage-num,
+.acc-cs-num,
+.acc-cs-min,
+.acc-gold-val,
+.acc-ward-val,
+.queue-filter-stat-info {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------------------
+   1. 소환사 헤더 (.player-modal-header-card)
+   ------------------------------------------------------------------------------ */
+.player-modal-header-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.player-modal-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.player-modal-avatar-wrap {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.player-modal-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  object-fit: cover;
+  display: block;
+}
+
+.player-modal-lvl {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: var(--text-heading);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.player-modal-crest-wrap {
+  display: none !important; /* 랭크 카드에 공식 엠블럼이 크고 선명하게 나오므로 헤더 중복 제거 */
+}
+
+.player-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.player-modal-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.player-modal-name {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: -0.3px;
+}
+
+.player-modal-tag {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.player-modal-sync-time {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.player-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-player-spectator,
+.btn-player-refresh {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.btn-player-spectator {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.btn-player-spectator:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: #EF4444;
+}
+
+.btn-player-refresh {
+  background: var(--primary);
+  color: #FFFFFF !important;
+  border: 1px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.btn-player-refresh:hover:not(:disabled) {
+  background: #2563EB;
+  border-color: #2563EB;
+}
+
+[data-theme="light"] .btn-player-spectator {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+[data-theme="light"] .btn-player-spectator:hover {
+  background: #FEE2E2;
+}
+
+[data-theme="light"] .btn-player-refresh {
+  background: #2563EB;
+  border-color: #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .btn-player-refresh:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+/* ------------------------------------------------------------------------------
+   2. 서브 탭 (.modal-nav-tabs)
+   ------------------------------------------------------------------------------ */
+.modal-nav-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 14px;
+}
+
+.modal-nav-tab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.modal-nav-tab:hover {
+  color: var(--text-heading);
+  background: var(--bg-input);
+}
+
+.modal-nav-tab.active {
+  background: var(--primary);
+  color: #FFFFFF !important;
+  border-color: var(--primary);
+}
+
+[data-theme="light"] .modal-nav-tab.active {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #2563EB !important;
+}
+
+/* ------------------------------------------------------------------------------
+   3. 솔로랭크 & 자유랭크 듀얼 카드 (.player-tier-cards-dual)
+   ------------------------------------------------------------------------------ */
+.player-tier-cards-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.tier-dual-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.tier-dual-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tier-dual-queue-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tier-dual-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tier-dual-crest-wrap {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tier-dual-crest {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  display: block;
+}
+
+.tier-dual-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tier-dual-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tier-dual-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+
+.tier-dual-lp {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+[data-theme="light"] .tier-dual-lp {
+  color: #0F172A;
+}
+
+.tier-dual-winloss {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.wins-text {
+  color: #3B82F6;
+  font-weight: 700;
+}
+
+[data-theme="light"] .wins-text {
+  color: #1D4ED8;
+}
+
+.losses-text {
+  color: #E84057;
+  font-weight: 700;
+}
+
+[data-theme="light"] .losses-text {
+  color: #DC2626;
+}
+
+.winrate-badge {
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+}
+
+.winrate-badge.is-good {
+  color: var(--wr-good);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.winrate-badge.is-bad {
+  color: var(--wr-bad);
+  background: rgba(232, 64, 87, 0.12);
+}
+
+.tier-lp-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tier-lp-labels-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.tier-lp-target-text {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+[data-theme="light"] .tier-lp-target-text {
+  color: #1E293B;
+}
+
+.tier-lp-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tier-lp-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+/* ------------------------------------------------------------------------------
+   4. 티어 변동 기록 알림 (.tier-graph-empty)
+   ------------------------------------------------------------------------------ */
+.tier-graph-empty {
+  margin: 10px 0 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------------------------------
+   5. 최근 20전 종합 전적 위젯 (.opgg-recent20-summary-widget)
+   ------------------------------------------------------------------------------ */
+.opgg-recent20-summary-widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: minmax(170px, 1.15fr) minmax(150px, 1fr) minmax(160px, 1.1fr) minmax(200px, 1.35fr);
+  gap: 16px;
+}
+
+.summary-section {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-widget-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.summary-record-flex {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.donut-chart-container {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-circle-bg {
+  fill: none;
+  stroke: var(--bg-input);
+  stroke-width: 3.5;
+}
+
+.donut-circle-fill {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+
+.donut-text {
+  font-size: 8.5px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  transform: rotate(90deg);
+  transform-origin: 18px 21px;
+}
+
+.record-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.record-counts {
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  gap: 6px;
+}
+
+.record-mini-bar {
+  width: 80px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bg-input);
+  display: flex;
+  overflow: hidden;
+  margin: 3px 0;
+}
+
+.mini-bar-win {
+  height: 100%;
+  background: var(--wr-good);
+}
+
+.mini-bar-loss {
+  height: 100%;
+  background: var(--wr-bad);
+}
+
+.record-meta-note {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* KDA & 킬관여 섹션 */
+.kda-score-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.kda-ratio-highlight {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+
+.kda-label-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.kda-numbers-row {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 3px 0;
+}
+
+.kda-numbers-row .kda-d {
+  color: #E84057;
+}
+
+[data-theme="light"] .kda-numbers-row .kda-d {
+  color: #DC2626;
+}
+
+.kda-kp-row {
+  margin-top: 2px;
+}
+
+.kp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.kp-badge strong {
+  color: var(--text-heading);
+}
+
+[data-theme="light"] .kp-badge strong {
+  color: #0F172A;
+}
+
+/* 선호 포지션 */
+.roles-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+}
+
+.role-bar-name {
+  width: 26px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.role-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.role-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #3B82F6;
+  transition: width 0.35s ease;
+}
+
+[data-theme="light"] .role-bar-fill {
+  background: #2563EB;
+}
+
+.role-bar-pct {
+  width: 32px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+[data-theme="light"] .role-bar-pct {
+  color: #1E293B;
+}
+
+/* 같이 한 소환사 */
+.summary-mates-section .summary-widget-title {
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------------------
+   6. KDA 그래프 카드 (.opgg-kda-trend-dashboard)
+   ------------------------------------------------------------------------------ */
+.opgg-kda-trend-dashboard {
+  margin-bottom: 14px;
+}
+
+.kda-trend-graph-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.trend-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.trend-card-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kda-svg-wrapper {
+  width: 100%;
+  overflow: visible;
+}
+
+.kda-svg-chart {
+  width: 100%;
+  height: 150px;
+  display: block;
+}
+
+.kda-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color);
+}
+
+.kda-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kda-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.kda-legend-dot.win { background: #3B82F6; }
+.kda-legend-dot.loss { background: #EF4444; }
+.kda-legend-dot.avg { background: #F59E0B; }
+
+/* ------------------------------------------------------------------------------
+   7. 챔피언 표 (.opgg-most-champs-widget)
+   ------------------------------------------------------------------------------ */
+.opgg-most-champs-widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+
+.most-champs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.most-champs-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.most-champs-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.most-champs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.most-champs-table th {
+  padding: 8px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+}
+
+.most-champs-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.most-champ-row:hover td {
+  background: var(--bg-input);
+}
+
+.mcc-champ-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mcc-rank-num {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+}
+
+.mcc-champ-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.mcc-champ-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mcc-champ-name {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.mcc-champ-play-games {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.mcc-winrate-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 130px;
+}
+
+.mcc-wr-text-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.mcc-wr-pct {
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.mcc-record-text {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.mcc-wr-bar-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mcc-wr-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+.mcc-kda-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.mcc-kda-score-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mcc-kda-ratio {
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.mcc-kda-kda-row {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.mcc-cs-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.mcc-cs-main {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+[data-theme="light"] .mcc-cs-main {
+  color: #0F172A;
+}
+
+.mcc-cs-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------------------
+   8. 큐 필터 바 (.match-queue-filter-bar)
+   ------------------------------------------------------------------------------ */
+.match-queue-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.queue-filter-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.queue-filter-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.queue-filter-btn:hover {
+  color: var(--text-heading);
+  background: var(--bg-input);
+}
+
+.queue-filter-btn.active {
+  background: var(--primary);
+  color: #FFFFFF !important;
+  border-color: var(--primary);
+}
+
+[data-theme="light"] .queue-filter-btn.active {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #2563EB !important;
+}
+
+.queue-filter-stat-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+[data-theme="light"] .queue-filter-stat-info {
+  color: #334155;
+}
+
+/* ------------------------------------------------------------------------------
+   9. 경기 목록 카드 (.match-card & .match-card-main)
+   ------------------------------------------------------------------------------ */
+.matches-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-left-width: 5px;
+  border-left-style: solid;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-1px);
+}
+
+.match-card.win {
+  background: var(--wr-win-bg);
+  border-color: var(--wr-win-border);
+  border-left-color: #3B82F6;
+}
+
+.match-card.loss {
+  background: var(--wr-loss-bg);
+  border-color: var(--wr-loss-border);
+  border-left-color: #E84057;
+}
+
+[data-theme="light"] .match-card.win {
+  border-left-color: #2563EB;
+}
+
+[data-theme="light"] .match-card.loss {
+  border-left-color: #DC2626;
+}
+
+.match-card-main {
+  display: grid;
+  grid-template-columns: 88px 94px 130px 105px 160px 1fr 30px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+/* 결과 & 시간 */
+.mc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mc-queue-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+}
+
+.mc-time-ago {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.mc-result-badge {
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.mc-result-badge.win {
+  color: #3B82F6;
+}
+
+[data-theme="light"] .mc-result-badge.win {
+  color: #1D4ED8;
+}
+
+.mc-result-badge.loss {
+  color: #E84057;
+}
+
+[data-theme="light"] .mc-result-badge.loss {
+  color: #DC2626;
+}
+
+.mc-duration {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* 챔피언 + 주문 + 룬 */
+.mc-champ-spells {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mc-champ-img-wrap {
+  width: 44px;
+  height: 44px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mc-champ-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  display: block;
+}
+
+.mc-champ-lvl {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #FFFFFF;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.mc-spells-runes {
+  display: grid;
+  grid-template-columns: 18px 18px;
+  gap: 2px;
+}
+
+.mc-spell-img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: block;
+}
+
+.mc-rune-icon-wrap {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #000;
+}
+
+.mc-rune-icon-wrap.sub {
+  border-radius: 4px;
+  background: transparent;
+}
+
+.mc-rune-img {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: block;
+}
+
+.mc-rune-img.secondary {
+  border-radius: 4px;
+}
+
+/* KDA */
+.mc-kda-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mc-kda-score {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.mc-kda-ratio {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.mc-kp-row {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* CS & 딜량 */
+.mc-cs-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mc-cs-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.mc-meta-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* 아이템 7칸 */
+.mc-items-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 2px;
+}
+
+.mc-item-slot {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-item-slot.trinket-slot {
+  border-radius: 50%;
+}
+
+.mc-item-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 10인 목록 */
+.mc-players-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+  min-width: 0;
+}
+
+.mc-team-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mc-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.mc-player-avatar {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.mc-player-name {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.mc-player-chip.is-me .mc-player-name {
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+[data-theme="light"] .mc-player-chip.is-me .mc-player-name {
+  color: #0F172A;
+}
+
+/* 펼침 버튼 */
+.mc-action-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.btn-toggle-match-detail {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-match-detail:hover {
+  color: var(--text-heading);
+  border-color: var(--primary);
+}
+
+/* ------------------------------------------------------------------------------
+   10. 경기 펼침 상세 (.match-accordion-detail)
+   ------------------------------------------------------------------------------ */
+.match-accordion-detail {
+  display: none;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  padding: 14px 16px;
+}
+
+.match-accordion-detail.open {
+  display: block;
+}
+
+.accordion-teams-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.acc-team-card {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.acc-team-header {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.acc-team-header.blue {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.acc-team-header.red {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.acc-team-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.acc-team-badge.blue { color: #3B82F6; }
+.acc-team-badge.red { color: #EF4444; }
+
+[data-theme="light"] .acc-team-badge.blue { color: #1D4ED8; }
+[data-theme="light"] .acc-team-badge.red { color: #DC2626; }
+
+.acc-team-stats-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.acc-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.acc-team-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.acc-team-table th {
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+}
+
+[data-theme="light"] .acc-team-table th {
+  background: #F1F5F9;
+  color: #334155;
+}
+
+.acc-team-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.acc-player-row.is-me {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+[data-theme="light"] .acc-player-row.is-me {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.acc-player-link {
+  font-weight: 700;
+  color: var(--text-heading);
+  cursor: pointer;
+}
+
+[data-theme="light"] .acc-player-link {
+  color: #0F172A;
+}
+
+.acc-player-tag {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.acc-item-slot {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acc-item-slot.trinket {
+  border-radius: 50%;
+}
+
+.acc-item-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.acc-items-row {
+  display: flex;
+  gap: 2px;
+}
+
+/* ------------------------------------------------------------------------------
+   11. 모바일 640px & 390px 반응형 최적화 (가로 스크롤 완전 방지)
+   ------------------------------------------------------------------------------ */
+@media (max-width: 860px) {
+  .opgg-recent20-summary-widget {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .accordion-teams-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  /* 랭크 카드 세로 1열 */
+  .player-tier-cards-dual {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* 헤더 정리 */
+  .player-modal-header-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .player-modal-name {
+    font-size: 1.25rem;
+  }
+
+  .player-modal-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* 최근 20전 요약 세로 스택 */
+  .opgg-recent20-summary-widget {
+    grid-template-columns: 1fr;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  /* 경기 카드 모바일 압축: 10인 목록 숨김, 핵심 정보 위주 정리 */
+  .match-card-main {
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 8px 12px;
+    padding: 10px 12px;
+  }
+
+  .mc-meta {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .mc-champ-spells {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+
+  .mc-action-col {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+  }
+
+  .mc-kda-info {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+  }
+
+  .mc-cs-info {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+  }
+
+  .mc-items-grid {
+    grid-column: 1 / 4;
+    grid-row: 3 / 4;
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .mc-players-list {
+    display: none !important; /* 모바일 카드 겉면에서는 숨기고 펼침 상세에서 확인 */
+  }
+
+  .most-champs-table th:nth-child(4),
+  .most-champs-table td:nth-child(4) {
+    display: none; /* 모바일에서 CS 컬럼 숨겨 가로폭 390px 내 맞춤 */
+  }
+}
+
+/* ==============================================================================
+   2차 다듬기 (Polish 2) — 소환사 전적 페이지 정밀 보정
+   - 라이트 모드 가독성 대비 확보 (KDA 차트 선/축, 도넛 차트 트랙, 테이블 보더)
+   - 불필요한 중복 숫자/텍스트 정리 (LP 중복 제거, 평점 라벨 제거)
+   - 모바일 390px 최적화: 최근 20전 요약 그리드 2열 압축, 경기 카드 체계적 그리드
+   - 버튼/아이콘 크기·스타일 통일 (즐겨찾기 별 & 메모 버튼)
+   - 데미지 바 및 인게임 탭 가시성 완성
+   ============================================================================== */
+
+/* 1. 소환사 헤더 버튼 통일 */
+.btn-star-bookmark,
+.btn-note-player {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.btn-star-bookmark:hover,
+.btn-note-player:hover {
+  color: var(--text-heading);
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.btn-star-bookmark.bookmarked,
+.btn-note-player.has-note {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="light"] .btn-star-bookmark,
+[data-theme="light"] .btn-note-player {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  color: #64748B;
+}
+
+[data-theme="light"] .btn-star-bookmark:hover,
+[data-theme="light"] .btn-note-player:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+[data-theme="light"] .btn-star-bookmark.bookmarked,
+[data-theme="light"] .btn-note-player.has-note {
+  color: #D97706;
+  background: #FEF3C7;
+  border-color: #FDE68A;
+}
+
+/* 2. 솔로랭크 & 자유랭크 듀얼 카드 정밀 보정 */
+.tier-dual-crest-wrap {
+  min-width: 54px;
+}
+
+.tier-unranked-note {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .tier-unranked-note {
+  color: #64748B;
+}
+
+[data-theme="light"] .tier-dual-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .tier-lp-track {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+}
+
+/* 3. 티어 변동 기록 알림 슬림화 */
+.tier-graph-empty {
+  margin: 8px 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+[data-theme="light"] .tier-graph-empty {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  color: #64748B;
+}
+
+/* 4. 최근 20전 종합 전적 위젯 대비 강화 */
+.donut-circle-bg {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="light"] .donut-circle-bg {
+  stroke: #E2E8F0 !important;
+}
+
+.donut-text {
+  fill: var(--text-heading) !important;
+}
+
+[data-theme="light"] .donut-text {
+  fill: #0F172A !important;
+}
+
+.record-mini-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .record-mini-bar {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+.summary-mates-row {
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.summary-mates-row:hover {
+  background: var(--bg-input);
+}
+
+[data-theme="light"] .summary-mates-row:hover {
+  background: #F1F5F9;
+}
+
+.role-bar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .role-bar-track {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+/* 5. KDA 그래프 (라이트 모드 가시성 완성) */
+.kda-trend-graph-card {
+  padding: 12px 16px;
+}
+
+.kda-svg-chart {
+  height: 120px;
+}
+
+.kda-chart-axis-line {
+  color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="light"] .kda-chart-axis-line {
+  color: #E2E8F0 !important;
+}
+
+.kda-chart-polyline {
+  stroke: #3B82F6 !important;
+}
+
+[data-theme="light"] .kda-chart-polyline {
+  stroke: #2563EB !important;
+}
+
+.kda-point-dot {
+  stroke: #1E293B !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme="light"] .kda-point-dot {
+  stroke: #FFFFFF !important;
+  stroke-width: 2px !important;
+}
+
+.kda-avg-line {
+  stroke: #F59E0B !important;
+}
+
+[data-theme="light"] .kda-avg-line {
+  stroke: #D97706 !important;
+}
+
+.kda-avg-text {
+  fill: #F59E0B !important;
+}
+
+[data-theme="light"] .kda-avg-text {
+  fill: #B45309 !important;
+}
+
+[data-theme="light"] .kda-trend-graph-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .kda-chart-legend {
+  border-top-color: #E2E8F0;
+}
+
+/* 6. 모스트 챔피언 테이블 정밀화 */
+.most-champs-table {
+  table-layout: fixed;
+}
+
+.most-champs-table th {
+  white-space: nowrap;
+}
+
+[data-theme="light"] .opgg-most-champs-widget {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .most-champs-table th {
+  border-bottom-color: #E2E8F0;
+  color: #64748B;
+}
+
+[data-theme="light"] .most-champs-table td {
+  border-bottom-color: #F1F5F9;
+}
+
+[data-theme="light"] .most-champ-row:hover td {
+  background: #F8FAFC;
+}
+
+.mcc-wr-bar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .mcc-wr-bar-track {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+/* 7. 경기 목록 카드 정밀화 */
+.match-card-main {
+  grid-template-columns: 88px 94px 125px 110px 108px minmax(180px, 1fr) 30px;
+}
+
+[data-theme="light"] .match-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .match-card.win {
+  background: #F0F7FF;
+  border-color: #BFDBFE;
+  border-left-color: #2563EB;
+}
+
+[data-theme="light"] .match-card.loss {
+  background: #FFF5F5;
+  border-color: #FECACA;
+  border-left-color: #DC2626;
+}
+
+.mc-items-grid {
+  grid-template-columns: repeat(4, 22px);
+  width: fit-content;
+}
+
+.mc-player-chip:hover .mc-player-name {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.kda-tier-pill {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.kda-tier-pill.blue {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3B82F6;
+}
+
+.kda-tier-pill.green {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+.kda-tier-pill.gold {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+}
+
+[data-theme="light"] .kda-tier-pill.blue {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+[data-theme="light"] .kda-tier-pill.green {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+[data-theme="light"] .kda-tier-pill.gold {
+  background: #FFFBEB;
+  color: #D97706;
+}
+
+/* 8. 경기 펼침 상세 테이블 및 데미지 바 */
+[data-theme="light"] .match-accordion-detail {
+  background: #FFFFFF;
+  border-top-color: #E2E8F0;
+}
+
+[data-theme="light"] .acc-team-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .acc-team-header.blue {
+  background: #EFF6FF;
+  border-bottom-color: #DBEAFE;
+}
+
+[data-theme="light"] .acc-team-header.red {
+  background: #FEF2F2;
+  border-bottom-color: #FEE2E2;
+}
+
+[data-theme="light"] .acc-team-table th {
+  background: #F8FAFC;
+  color: #475569;
+  border-bottom-color: #E2E8F0;
+}
+
+[data-theme="light"] .acc-team-table td {
+  border-bottom-color: #F1F5F9;
+}
+
+[data-theme="light"] .acc-item-slot {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+}
+
+.acc-damage-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 85px;
+}
+
+.acc-damage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.acc-damage-num {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.acc-damage-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+[data-theme="light"] .acc-damage-bar {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+.acc-damage-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.acc-damage-fill.blue {
+  background: #3B82F6;
+}
+
+.acc-damage-fill.red {
+  background: #EF4444;
+}
+
+[data-theme="light"] .acc-damage-fill.blue {
+  background: #2563EB;
+}
+
+[data-theme="light"] .acc-damage-fill.red {
+  background: #DC2626;
+}
+
+.acc-top-dmg-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #EF4444;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 9. 모바일 640px & 390px 반응형 2열 압축 및 체계적 그리드 */
+@media (max-width: 640px) {
+  .opgg-recent20-summary-widget {
+    grid-template-columns: 1fr 1fr !important;
+    padding: 12px !important;
+    gap: 12px 10px !important;
+  }
+
+  .summary-record-section {
+    grid-column: 1 / 2;
+  }
+
+  .summary-kda-section {
+    grid-column: 2 / 3;
+  }
+
+  .summary-roles-section {
+    grid-column: 1 / 3;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+  }
+
+  .summary-mates-section {
+    grid-column: 1 / 3;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+  }
+
+  .donut-chart-container {
+    width: 52px;
+    height: 52px;
+  }
+
+  .summary-record-flex {
+    gap: 8px;
+  }
+
+  .kda-score-box {
+    align-items: center;
+  }
+
+  .kda-ratio-highlight {
+    font-size: 1.2rem;
+  }
+
+  .match-card-main {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    grid-template-areas:
+      "meta meta action"
+      "champ kda cs"
+      "items items items" !important;
+    gap: 8px 10px !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+  }
+
+  .mc-meta {
+    grid-area: meta !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .mc-meta .mc-result-badge {
+    font-size: 0.8rem;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  .mc-action-col {
+    grid-area: action !important;
+    justify-content: flex-end;
+  }
+
+  .mc-champ-spells {
+    grid-area: champ !important;
+  }
+
+  .mc-kda-info {
+    grid-area: kda !important;
+  }
+
+  .mc-cs-info {
+    grid-area: cs !important;
+    align-items: flex-end !important;
+    text-align: right;
+  }
+
+  .mc-items-grid {
+    grid-area: items !important;
+    display: flex !important;
+    gap: 3px !important;
+    margin-top: 2px !important;
+    width: 100%;
+  }
+
+  .mc-players-list {
+    display: none !important;
+  }
+
+  .kda-svg-chart {
+    height: 105px !important;
+  }
+}
+
+/* ==============================================================================
+   3차 다듬기 (Polish 3) — 경기 펼침 상세(10인 표) · 경기 목록 한 줄 · 인게임 탭
+   - lol.ps / op.gg 스타일 수직 2팀 전개 (상하 배치)
+   - 다크/화이트 테마 100% 가독성 명도 대비
+   - 390px 모바일 가로 스크롤 방지 및 열 압축
+   ============================================================================== */
+
+/* 1. 경기 펼침 상세 (.match-accordion-detail & .accordion-teams-grid) */
+.match-accordion-detail {
+  display: none;
+  background: var(--bg-card) !important;
+  border-top: 1px solid var(--border-color) !important;
+  padding: 12px 14px !important;
+}
+
+.match-accordion-detail.open {
+  display: block !important;
+}
+
+/* 2팀을 좌우가 아닌 위아래(1열)로 배치하여 7개 열이 잘림 없이 100% 표시 */
+.accordion-teams-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.acc-team-card {
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  background: var(--bg-card) !important;
+  width: 100% !important;
+}
+
+.acc-team-header {
+  padding: 8px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+.acc-team-header.blue {
+  background: rgba(59, 130, 246, 0.12) !important;
+}
+
+.acc-team-header.red {
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.acc-team-title-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.acc-team-badge {
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.acc-team-badge.blue { color: #3B82F6 !important; }
+.acc-team-badge.red { color: #EF4444 !important; }
+
+.acc-team-outcome {
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  padding: 2px 7px !important;
+  border-radius: 4px !important;
+}
+
+.acc-team-outcome.win {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10B981 !important;
+}
+
+.acc-team-outcome.loss {
+  background: rgba(232, 64, 87, 0.15) !important;
+  color: #E84057 !important;
+}
+
+.acc-team-stats-summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 0.74rem !important;
+  color: var(--text-muted) !important;
+}
+
+.acc-stat-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-stat-pill strong {
+  color: var(--text-heading) !important;
+  font-weight: 700 !important;
+}
+
+.acc-table-scroll {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.acc-team-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 0.74rem !important;
+  color: var(--text-main) !important;
+  table-layout: fixed !important;
+}
+
+.acc-team-table th {
+  padding: 6px 8px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  background: var(--bg-input) !important;
+  white-space: nowrap !important;
+}
+
+.acc-team-table td {
+  padding: 6px 8px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  vertical-align: middle !important;
+  color: var(--text-main) !important;
+}
+
+.acc-team-table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.acc-player-row:hover td {
+  background: var(--bg-input) !important;
+}
+
+.acc-player-row.is-me {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.acc-player-row.is-me td {
+  background: transparent !important;
+}
+
+/* 포지션 아이콘 */
+.acc-pos-icon {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  margin: 0 auto !important;
+  opacity: 0.85 !important;
+}
+
+.acc-pos-empty {
+  color: var(--text-muted) !important;
+  font-size: 0.72rem !important;
+  display: block !important;
+  text-align: center !important;
+}
+
+/* 소환사 정보 셀 */
+.acc-player-info-cell {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+}
+
+.acc-champ-wrap {
+  position: relative !important;
+  width: 32px !important;
+  height: 32px !important;
+  flex-shrink: 0 !important;
+}
+
+.acc-champ-img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  border: 1px solid var(--border-color) !important;
+  display: block !important;
+}
+
+.acc-champ-lvl {
+  position: absolute !important;
+  bottom: -2px !important;
+  right: -2px !important;
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #FFFFFF !important;
+  font-size: 0.58rem !important;
+  font-weight: 800 !important;
+  padding: 0 3px !important;
+  border-radius: 3px !important;
+  line-height: 1.2 !important;
+}
+
+.acc-spells-col,
+.acc-runes-col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.acc-spell-img {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 3px !important;
+  display: block !important;
+}
+
+.acc-rune-img {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 50% !important;
+  display: block !important;
+}
+
+.acc-rune-img.sub {
+  border-radius: 3px !important;
+}
+
+.acc-name-tier-block {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.acc-name-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+.acc-player-link {
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 120px !important;
+}
+
+.acc-player-link:hover {
+  color: var(--primary) !important;
+  text-decoration: underline !important;
+}
+
+.acc-player-tag {
+  color: var(--text-muted) !important;
+  font-size: 0.68rem !important;
+  flex-shrink: 0 !important;
+}
+
+.acc-badge-pill {
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+  padding: 1px 4px !important;
+  border-radius: 3px !important;
+  line-height: 1.1 !important;
+  flex-shrink: 0 !important;
+}
+
+.acc-badge-pill.mvp {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.acc-badge-pill.ace {
+  background: rgba(139, 92, 246, 0.2) !important;
+  color: #A78BFA !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+}
+
+.acc-tier-pill {
+  font-size: 0.64rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+}
+
+/* KDA 셀 */
+.acc-kda-cell {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1px !important;
+}
+
+.acc-kda-nums {
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-death-num {
+  color: #E84057 !important;
+}
+
+.acc-kda-sub {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 0.68rem !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-kda-ratio {
+  font-weight: 800 !important;
+}
+
+.acc-kp-badge {
+  color: var(--text-muted) !important;
+}
+
+/* 피해량 셀 */
+.acc-damage-bar-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  width: 100% !important;
+}
+
+.acc-damage-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+}
+
+.acc-damage-num {
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-damage-bar {
+  width: 100% !important;
+  height: 5px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.acc-damage-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+}
+
+.acc-damage-fill.blue { background: #3B82F6 !important; }
+.acc-damage-fill.red { background: #EF4444 !important; }
+
+.acc-top-dmg-badge {
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  color: #EF4444 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+/* CS 셀 */
+.acc-cs-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 1px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-cs-num {
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+}
+
+.acc-cs-min {
+  font-size: 0.68rem !important;
+  color: var(--text-muted) !important;
+}
+
+/* 와드 셀 */
+.acc-ward-val {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+  font-size: 0.72rem !important;
+  color: var(--text-muted) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.acc-cw {
+  color: #EC4899 !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+/* 아이템 슬롯 */
+.acc-items-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.acc-item-slot {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 3px !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.acc-item-slot.trinket {
+  border-radius: 50% !important;
+  margin-left: 2px !important;
+}
+
+.acc-item-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* 2. 경기 목록 카드 정밀화 (한 줄 구성 & 아이템 3x2+1) */
+.match-card-main {
+  grid-template-columns: 84px 92px 115px 105px 105px minmax(170px, 1fr) 28px !important;
+  gap: 8px 10px !important;
+  padding: 10px 14px !important;
+  align-items: center !important;
+}
+
+.mc-items-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 22px) 22px !important;
+  grid-template-rows: 22px 22px !important;
+  gap: 2px 3px !important;
+  width: fit-content !important;
+  align-items: center !important;
+}
+
+.mc-item-slot {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border-color) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mc-item-slot.trinket-slot {
+  grid-column: 4 !important;
+  grid-row: 1 / 3 !important;
+  border-radius: 50% !important;
+  margin-left: 2px !important;
+}
+
+.mc-players-list {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2px 8px !important;
+  min-width: 0 !important;
+}
+
+.mc-team-col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.mc-player-chip {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  cursor: pointer !important;
+}
+
+.mc-player-avatar {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 3px !important;
+  flex-shrink: 0 !important;
+}
+
+.mc-player-name {
+  font-size: 0.72rem !important;
+  color: var(--text-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.mc-player-chip.is-me .mc-player-name {
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+}
+
+.mc-player-chip:hover .mc-player-name {
+  color: var(--primary) !important;
+  text-decoration: underline !important;
+}
+
+/* 3. 라이트 모드 가독성 강화 */
+[data-theme="light"] .match-accordion-detail {
+  background: #FFFFFF !important;
+  border-top-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .acc-team-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .acc-team-header.blue {
+  background: #EFF6FF !important;
+  border-bottom-color: #DBEAFE !important;
+}
+
+[data-theme="light"] .acc-team-header.red {
+  background: #FEF2F2 !important;
+  border-bottom-color: #FEE2E2 !important;
+}
+
+[data-theme="light"] .acc-team-badge.blue { color: #1D4ED8 !important; }
+[data-theme="light"] .acc-team-badge.red { color: #DC2626 !important; }
+
+[data-theme="light"] .acc-stat-pill strong { color: #0F172A !important; }
+
+[data-theme="light"] .acc-team-table th {
+  background: #F8FAFC !important;
+  color: #475569 !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .acc-team-table td {
+  border-bottom-color: #F1F5F9 !important;
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .acc-player-row:hover td {
+  background: #F8FAFC !important;
+}
+
+[data-theme="light"] .acc-player-row.is-me {
+  background: #EFF6FF !important;
+}
+
+[data-theme="light"] .acc-player-link {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .acc-kda-nums {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .acc-damage-num {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .acc-damage-bar {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .acc-damage-fill.blue { background: #2563EB !important; }
+[data-theme="light"] .acc-damage-fill.red { background: #DC2626 !important; }
+
+[data-theme="light"] .acc-cs-num {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .acc-item-slot {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .mc-item-slot {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .mc-player-chip.is-me .mc-player-name {
+  color: #0F172A !important;
+}
+
+/* 4. 인게임 탭 최소화 & 가시성 */
+.ingame-empty-state {
+  padding: 3.5rem 1rem !important;
+  text-align: center !important;
+  color: var(--text-muted) !important;
+}
+
+.ingame-empty-icon {
+  font-size: 2.2rem !important;
+  margin-bottom: 0.6rem !important;
+  display: block !important;
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .ingame-empty-icon {
+  color: #64748B !important;
+}
+
+.ingame-empty-title {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+}
+
+[data-theme="light"] .ingame-empty-title {
+  color: #0F172A !important;
+}
+
+.ingame-live-container {
+  padding: 12px !important;
+}
+
+.ingame-live-top-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.ingame-live-mode {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.ingame-live-time {
+  font-size: 0.82rem !important;
+  color: var(--text-muted) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.ingame-live-teams-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.ingame-live-team-col {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+[data-theme="light"] .ingame-live-team-col {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.ingame-live-team-header {
+  padding: 8px 12px !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.ingame-live-team-header.blue {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #3B82F6 !important;
+}
+
+.ingame-live-team-header.red {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #EF4444 !important;
+}
+
+[data-theme="light"] .ingame-live-team-header.blue {
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+  border-bottom-color: #DBEAFE !important;
+}
+
+[data-theme="light"] .ingame-live-team-header.red {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border-bottom-color: #FEE2E2 !important;
+}
+
+.ingame-live-players-list {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.ingame-live-player-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 10px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  transition: background 0.15s ease !important;
+}
+
+.ingame-live-player-card:last-child {
+  border-bottom: none !important;
+}
+
+.ingame-live-player-card:hover {
+  background: var(--bg-input) !important;
+}
+
+[data-theme="light"] .ingame-live-player-card:hover {
+  background: #F8FAFC !important;
+}
+
+.ingame-live-player-card.is-me {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.ingame-live-champ-img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  border: 1px solid var(--border-color) !important;
+  flex-shrink: 0 !important;
+}
+
+.ingame-live-spells-col,
+.ingame-live-runes-col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.ingame-live-spell-icon {
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 3px !important;
+  display: block !important;
+  object-fit: cover !important;
+}
+
+.ingame-live-spell-icon-empty {
+  display: inline-block !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.ingame-live-player-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.ingame-live-player-name-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+.ingame-live-player-name {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  cursor: pointer !important;
+}
+
+.ingame-live-player-name:hover {
+  color: var(--primary) !important;
+  text-decoration: underline !important;
+}
+
+[data-theme="light"] .ingame-live-player-name {
+  color: #0F172A !important;
+}
+
+.ingame-live-player-tag {
+  font-size: 0.68rem !important;
+  color: var(--text-muted) !important;
+}
+
+.ingame-live-tier-badge {
+  font-size: 0.66rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  margin-left: auto !important;
+  white-space: nowrap !important;
+}
+
+.ingame-live-player-extra {
+  font-size: 0.7rem !important;
+  color: var(--text-muted) !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.ingame-live-bans-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  margin-top: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+[data-theme="light"] .ingame-live-bans-bar {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+.ingame-live-bans-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 0.74rem !important;
+}
+
+.bans-label.blue {
+  color: #3B82F6 !important;
+  font-weight: 700 !important;
+}
+
+.bans-label.red {
+  color: #EF4444 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .bans-label.blue { color: #1D4ED8 !important; }
+[data-theme="light"] .bans-label.red { color: #DC2626 !important; }
+
+.ingame-live-footer-note {
+  margin-top: 8px !important;
+  font-size: 0.7rem !important;
+  color: var(--text-muted) !important;
+  text-align: right !important;
+}
+
+/* 5. 모바일 640px & 390px 완벽 반응형 */
+@media (max-width: 640px) {
+  .match-card-main {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "meta action"
+      "champ kda"
+      "items cs" !important;
+    gap: 6px 10px !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+  }
+
+  .mc-meta {
+    grid-area: meta !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    padding-bottom: 4px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    width: 100% !important;
+  }
+
+  .mc-action-col {
+    grid-area: action !important;
+    justify-content: flex-end !important;
+  }
+
+  .mc-champ-spells {
+    grid-area: champ !important;
+  }
+
+  .mc-kda-info {
+    grid-area: kda !important;
+    text-align: right !important;
+    align-items: flex-end !important;
+  }
+
+  .mc-items-grid {
+    grid-area: items !important;
+    display: flex !important;
+    gap: 3px !important;
+    margin-top: 4px !important;
+    width: auto !important;
+  }
+
+  .mc-item-slot {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .mc-item-slot.trinket-slot {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    margin-left: 2px !important;
+  }
+
+  .mc-cs-info {
+    grid-area: cs !important;
+    text-align: right !important;
+    align-items: flex-end !important;
+  }
+
+  .mc-players-list {
+    display: none !important;
+  }
+
+  /* 펼침 상세 모바일 최적화 (390px 가로 스크롤 완전 방지) */
+  .match-accordion-detail {
+    padding: 8px 6px !important;
+  }
+
+  .acc-team-header {
+    padding: 6px 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .acc-team-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+
+  .acc-team-table th.col-pos,
+  .acc-team-table td.col-pos,
+  .acc-team-table th.col-cs,
+  .acc-team-table td.col-cs,
+  .acc-team-table th.col-ward,
+  .acc-team-table td.col-ward {
+    display: none !important;
+  }
+
+  .acc-team-table th,
+  .acc-team-table td {
+    padding: 5px 4px !important;
+  }
+
+  .acc-champ-wrap {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .acc-champ-img {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .acc-spell-img,
+  .acc-rune-img {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .acc-player-link {
+    max-width: 65px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .acc-player-tag,
+  .acc-tier-line {
+    display: none !important;
+  }
+
+  .acc-damage-bar-wrap {
+    min-width: 50px !important;
+  }
+
+  .acc-damage-num {
+    font-size: 0.68rem !important;
+  }
+
+  .acc-item-slot {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .acc-items-row {
+    gap: 1px !important;
+  }
+
+  /* 인게임 탭 모바일 1열 */
+  .ingame-live-teams-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==============================================================================
+   5차 다듬기 (Polish 5) — 메이저 사이트(lol.ps / op.gg) 대비 완성도 극대화
+   1. 챔피언 표 모바일(390px) 텍스트 잘림 및 KDA 열 이탈 완전 방지 (3열 고정폭 38%/33%/29%)
+   2. 경기 목록 카드 KDA 비율 정돈 (중복 등급 배지 제거 및 색상 가독성 완성)
+   3. 큐 필터 바 '전체' 상태에서 상단 요약 위젯과의 20전 승률 중복 제거
+   4. OP 스코어 가독성 배지 및 라이트 모드 명도 대비 100% 확보
+   ============================================================================== */
+
+#playerDetailModal .queue-filter-stat-info,
+#viewSummoner .queue-filter-stat-info {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme="light"] #playerDetailModal .queue-filter-stat-info,
+[data-theme="light"] #viewSummoner .queue-filter-stat-info {
+  color: #334155;
+}
+
+#playerDetailModal .mc-kda-ratio,
+#viewSummoner .mc-kda-ratio {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+#playerDetailModal .mc-op-score,
+#viewSummoner .mc-op-score {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+[data-theme="light"] #playerDetailModal .mc-op-score,
+[data-theme="light"] #viewSummoner .mc-op-score {
+  color: #64748B;
+}
+
+#playerDetailModal .mcc-wr-pct,
+#viewSummoner .mcc-wr-pct {
+  font-variant-numeric: tabular-nums;
+}
+
+#playerDetailModal .mcc-record-text,
+#viewSummoner .mcc-record-text {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 모바일 640px & 390px 정밀 반응형 보정 */
+@media (max-width: 640px) {
+  #playerDetailModal .most-champs-table-wrap,
+  #viewSummoner .most-champs-table-wrap {
+    overflow-x: hidden !important; /* 390px 가로 스크롤 방지 */
+    width: 100% !important;
+  }
+
+  #playerDetailModal .most-champs-table,
+  #viewSummoner .most-champs-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+
+  #playerDetailModal .most-champs-table th,
+  #playerDetailModal .most-champs-table td,
+  #viewSummoner .most-champs-table th,
+  #viewSummoner .most-champs-table td {
+    padding: 6px 3px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 3열 구조: 챔피언(38%) | 승률(33%) | KDA(29%) — CS는 숨김 */
+  #playerDetailModal .most-champs-table th:nth-child(1),
+  #playerDetailModal .most-champs-table td:nth-child(1),
+  #viewSummoner .most-champs-table th:nth-child(1),
+  #viewSummoner .most-champs-table td:nth-child(1) {
+    width: 38% !important;
+    text-align: left !important;
+  }
+
+  #playerDetailModal .most-champs-table th:nth-child(2),
+  #playerDetailModal .most-champs-table td:nth-child(2),
+  #viewSummoner .most-champs-table th:nth-child(2),
+  #viewSummoner .most-champs-table td:nth-child(2) {
+    width: 33% !important;
+    text-align: left !important;
+  }
+
+  #playerDetailModal .most-champs-table th:nth-child(3),
+  #playerDetailModal .most-champs-table td:nth-child(3),
+  #viewSummoner .most-champs-table th:nth-child(3),
+  #viewSummoner .most-champs-table td:nth-child(3) {
+    width: 29% !important;
+    text-align: center !important;
+    display: table-cell !important;
+  }
+
+  #playerDetailModal .most-champs-table th:nth-child(4),
+  #playerDetailModal .most-champs-table td:nth-child(4),
+  #viewSummoner .most-champs-table th:nth-child(4),
+  #viewSummoner .most-champs-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  #playerDetailModal .mcc-champ-col,
+  #viewSummoner .mcc-champ-col {
+    gap: 5px !important;
+    min-width: 0 !important;
+  }
+
+  #playerDetailModal .mcc-rank-num,
+  #viewSummoner .mcc-rank-num {
+    width: 10px !important;
+    font-size: 0.7rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  #playerDetailModal .mcc-champ-img,
+  #viewSummoner .mcc-champ-img {
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #playerDetailModal .mcc-champ-name-wrap,
+  #viewSummoner .mcc-champ-name-wrap {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #playerDetailModal .mcc-champ-name,
+  #viewSummoner .mcc-champ-name {
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #playerDetailModal .mcc-champ-play-games,
+  #viewSummoner .mcc-champ-play-games {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+  }
+
+  #playerDetailModal .mcc-winrate-col,
+  #viewSummoner .mcc-winrate-col {
+    min-width: 0 !important;
+    gap: 2px !important;
+    width: 100% !important;
+  }
+
+  #playerDetailModal .mcc-wr-text-row,
+  #viewSummoner .mcc-wr-text-row {
+    font-size: 0.72rem !important;
+    gap: 3px !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+
+  #playerDetailModal .mcc-wr-pct,
+  #viewSummoner .mcc-wr-pct {
+    font-size: 0.76rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  #playerDetailModal .mcc-record-text,
+  #viewSummoner .mcc-record-text {
+    font-size: 0.66rem !important;
+    white-space: nowrap !important;
+  }
+
+  #playerDetailModal .mcc-wr-bar-track,
+  #viewSummoner .mcc-wr-bar-track {
+    height: 4px !important;
+  }
+
+  #playerDetailModal .mcc-kda-col,
+  #viewSummoner .mcc-kda-col {
+    gap: 1px !important;
+    min-width: 0 !important;
+  }
+
+  #playerDetailModal .mcc-kda-ratio,
+  #viewSummoner .mcc-kda-ratio {
+    font-size: 0.76rem !important;
+    white-space: nowrap !important;
+  }
+
+  #playerDetailModal .mcc-kda-kda-row,
+  #viewSummoner .mcc-kda-kda-row {
+    font-size: 0.64rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* 경기 카드 모바일 압축 최적화 */
+  #playerDetailModal .mc-items-grid,
+  #viewSummoner .mc-items-grid {
+    gap: 2px !important;
+  }
+
+  #playerDetailModal .mc-item-slot,
+  #viewSummoner .mc-item-slot {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  #playerDetailModal .mc-cs-val,
+  #viewSummoner .mc-cs-val {
+    font-size: 0.74rem !important;
+  }
+
+  #playerDetailModal .mc-meta-sub,
+  #viewSummoner .mc-meta-sub {
+    font-size: 0.66rem !important;
+    white-space: nowrap !important;
+  }
+
+  #playerDetailModal .queue-filter-btn,
+  #viewSummoner .queue-filter-btn {
+    padding: 5px 9px !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* 챔피언 숙련도 줄 (랭크 카드 아래) */
+#viewSummoner .profile-mastery-strip {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#viewSummoner .pm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+  position: relative;
+}
+
+#viewSummoner .pm-item:hover { border-color: var(--primary); }
+
+#viewSummoner .pm-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+#viewSummoner .pm-lvl {
+  position: absolute;
+  top: 38px;
+  min-width: 20px;
+  padding: 0 4px;
+  border-radius: 6px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #fff;
+  background: #7C3AED;
+}
+
+#viewSummoner .pm-pts {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 경기: 팀 내 피해량 비중, 다시하기 */
+#viewSummoner .mc-dmg-share {
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+#viewSummoner .match-card.remake {
+  border-left-color: #94A3B8 !important;
+  opacity: 0.75;
+}
+
+#viewSummoner .mc-result-badge.remake {
+  color: #94A3B8 !important;
+}
+
+/* ==============================================================================
+   17. Polish 6 — 최종 점검 & 모바일 390px/데스크톱 완벽 최적화
+   ============================================================================== */
+
+/* --- 17.1 모스트 챔피언 테이블 4열(데스크톱) / 3열(모바일) 완벽 정렬 --- */
+#viewSummoner .most-champs-table,
+#playerDetailModal .most-champs-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+
+#viewSummoner .most-champs-table th,
+#playerDetailModal .most-champs-table th {
+  padding: 8px 10px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  background: transparent !important;
+}
+
+#viewSummoner .most-champs-table td,
+#playerDetailModal .most-champs-table td {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  vertical-align: middle !important;
+}
+
+/* 데스크톱 열 너비 분배 (32% / 28% / 24% / 16%) */
+#viewSummoner .most-champs-table th.col-champ,
+#viewSummoner .most-champs-table td.col-champ,
+#playerDetailModal .most-champs-table th.col-champ,
+#playerDetailModal .most-champs-table td.col-champ {
+  width: 32% !important;
+  text-align: left !important;
+}
+
+#viewSummoner .most-champs-table th.col-wr,
+#viewSummoner .most-champs-table td.col-wr,
+#playerDetailModal .most-champs-table th.col-wr,
+#playerDetailModal .most-champs-table td.col-wr {
+  width: 28% !important;
+  text-align: left !important;
+}
+
+#viewSummoner .most-champs-table th.col-kda,
+#viewSummoner .most-champs-table td.col-kda,
+#playerDetailModal .most-champs-table th.col-kda,
+#playerDetailModal .most-champs-table td.col-kda {
+  width: 24% !important;
+  text-align: center !important;
+}
+
+#viewSummoner .most-champs-table th.col-cs,
+#viewSummoner .most-champs-table td.col-cs,
+#playerDetailModal .most-champs-table th.col-cs,
+#playerDetailModal .most-champs-table td.col-cs {
+  width: 16% !important;
+  text-align: right !important;
+}
+
+/* --- 17.2 KDA 트렌드 그래프 컴팩트화 & 평균 뱃지 --- */
+#viewSummoner .kda-trend-graph-card,
+#playerDetailModal .kda-trend-graph-card {
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+}
+
+#viewSummoner .trend-card-title,
+#playerDetailModal .trend-card-title {
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.84rem !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+}
+
+#viewSummoner .trend-avg-pill,
+#playerDetailModal .trend-avg-pill {
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  padding: 1px 7px !important;
+  border-radius: 9999px !important;
+  margin-left: 8px !important;
+  font-variant-numeric: tabular-nums !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+#viewSummoner .kda-svg-chart,
+#playerDetailModal .kda-svg-chart {
+  height: 110px !important;
+  width: 100% !important;
+}
+
+#viewSummoner .kda-chart-legend,
+#playerDetailModal .kda-chart-legend {
+  margin-top: 6px !important;
+  padding-top: 6px !important;
+  gap: 12px !important;
+  font-size: 0.72rem !important;
+}
+
+/* --- 17.3 챔피언 숙련도 카드 (데스크톱 및 공통) --- */
+#viewSummoner .profile-mastery-strip,
+#playerDetailModal .profile-mastery-strip {
+  display: flex !important;
+  gap: 8px !important;
+  margin: 12px 0 6px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+#viewSummoner .profile-mastery-strip::-webkit-scrollbar,
+#playerDetailModal .profile-mastery-strip::-webkit-scrollbar {
+  display: none !important;
+}
+
+#viewSummoner .pm-item,
+#playerDetailModal .pm-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 2px !important;
+  min-width: 64px !important;
+  padding: 8px 6px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-card) !important;
+  cursor: pointer !important;
+  position: relative !important;
+  transition: border-color 0.15s ease, transform 0.15s ease !important;
+}
+
+#viewSummoner .pm-item:hover,
+#playerDetailModal .pm-item:hover {
+  border-color: var(--primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+#viewSummoner .pm-item img,
+#playerDetailModal .pm-item img {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  object-fit: cover !important;
+}
+
+#viewSummoner .pm-lvl,
+#playerDetailModal .pm-lvl {
+  position: absolute !important;
+  top: 38px !important;
+  min-width: 20px !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  background: #7C3AED !important;
+}
+
+#viewSummoner .pm-pts,
+#playerDetailModal .pm-pts {
+  margin-top: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* --- 17.4 경기 목록 데스크톱 7열 레이아웃 최적화 --- */
+#viewSummoner .match-card-main,
+#playerDetailModal .match-card-main {
+  display: grid !important;
+  grid-template-columns: 88px 94px 120px 105px 105px minmax(170px, 1fr) 28px !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+}
+
+/* --- 17.5 라이트 모드 가독성 및 대비(4.5:1 이상) 완성 --- */
+[data-theme="light"] #viewSummoner .tier-dual-name,
+[data-theme="light"] #playerDetailModal .tier-dual-name {
+  filter: brightness(0.78) saturate(1.25) !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .tier-dual-lp,
+[data-theme="light"] #playerDetailModal .tier-dual-lp {
+  color: #1E293B !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .wins-text,
+[data-theme="light"] #playerDetailModal .wins-text {
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] #viewSummoner .losses-text,
+[data-theme="light"] #playerDetailModal .losses-text {
+  color: #DC2626 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] #viewSummoner .winrate-badge.is-good,
+[data-theme="light"] #playerDetailModal .winrate-badge.is-good {
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+  border-color: #A7F3D0 !important;
+}
+
+[data-theme="light"] #viewSummoner .winrate-badge.is-bad,
+[data-theme="light"] #playerDetailModal .winrate-badge.is-bad {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border-color: #FECACA !important;
+}
+
+[data-theme="light"] #viewSummoner .trend-avg-pill,
+[data-theme="light"] #playerDetailModal .trend-avg-pill {
+  background: #FFFBEB !important;
+  color: #B45309 !important;
+  border-color: #FDE68A !important;
+}
+
+[data-theme="light"] #viewSummoner .kda-avg-text,
+[data-theme="light"] #playerDetailModal .kda-avg-text {
+  fill: #B45309 !important;
+}
+
+[data-theme="light"] #viewSummoner .kda-chart-axis-line,
+[data-theme="light"] #playerDetailModal .kda-chart-axis-line {
+  color: #E2E8F0 !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-champ-name,
+[data-theme="light"] #playerDetailModal .mcc-champ-name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-champ-play-games,
+[data-theme="light"] #playerDetailModal .mcc-champ-play-games {
+  color: #64748B !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-record-text,
+[data-theme="light"] #playerDetailModal .mcc-record-text {
+  color: #64748B !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-kda-ratio,
+[data-theme="light"] #playerDetailModal .mcc-kda-ratio {
+  filter: brightness(0.85) !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-kda-kda-row,
+[data-theme="light"] #playerDetailModal .mcc-kda-kda-row {
+  color: #64748B !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-cs-main,
+[data-theme="light"] #playerDetailModal .mcc-cs-main {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #viewSummoner .mcc-cs-sub,
+[data-theme="light"] #playerDetailModal .mcc-cs-sub {
+  color: #64748B !important;
+}
+
+[data-theme="light"] #viewSummoner .pm-item,
+[data-theme="light"] #playerDetailModal .pm-item {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] #viewSummoner .pm-item:hover,
+[data-theme="light"] #playerDetailModal .pm-item:hover {
+  border-color: #3B82F6 !important;
+}
+
+[data-theme="light"] #viewSummoner .pm-pts,
+[data-theme="light"] #playerDetailModal .pm-pts {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-meta-queue,
+[data-theme="light"] #playerDetailModal .mc-meta-queue {
+  color: #1E293B !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-kda-score,
+[data-theme="light"] #playerDetailModal .mc-kda-score {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-cs-val,
+[data-theme="light"] #playerDetailModal .mc-cs-val {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-dmg-share,
+[data-theme="light"] #playerDetailModal .mc-dmg-share {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #viewSummoner .summary-mates-row span,
+[data-theme="light"] #playerDetailModal .summary-mates-row span {
+  color: #334155 !important;
+}
+
+[data-theme="light"] #viewSummoner .summary-mates-row span:first-child,
+[data-theme="light"] #playerDetailModal .summary-mates-row span:first-child {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-player-name,
+[data-theme="light"] #playerDetailModal .mc-player-name {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-player-chip.is-me .mc-player-name,
+[data-theme="light"] #playerDetailModal .mc-player-chip.is-me .mc-player-name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-queue-type,
+[data-theme="light"] #playerDetailModal .mc-queue-type {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] #viewSummoner .mc-duration,
+[data-theme="light"] #playerDetailModal .mc-duration,
+[data-theme="light"] #viewSummoner .mc-time-ago,
+[data-theme="light"] #playerDetailModal .mc-time-ago {
+  color: #64748B !important;
+}
+
+/* 빈 컨테이너 여백 방지 */
+#viewSummoner .tier-summary-grid:empty,
+#playerDetailModal .tier-summary-grid:empty,
+#viewSummoner .past-seasons-section:empty,
+#playerDetailModal .past-seasons-section:empty,
+#viewSummoner .tier-graph-section:empty,
+#playerDetailModal .tier-graph-section:empty {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* --- 17.6 모바일 (640px 이하 & 390px 폭) 완벽 반응형 정리 --- */
+@media (max-width: 640px) {
+  /* 소환사 화면 가로 스크롤 완전 차단 및 여백 최적화 */
+  #viewSummoner,
+  #playerDetailModal,
+  #playerDetailModal.as-page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #viewSummoner .modal-card,
+  #playerDetailModal .modal-card,
+  #playerDetailModal.as-page .modal-card {
+    padding: 10px 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  #viewSummoner .modal-body,
+  #playerDetailModal .modal-body,
+  #playerDetailModal.as-page .modal-body {
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 챔피언 숙련도 카드 5열 그리드: minmax(0, 1fr)로 390px 안에서 5개 모두 완벽 정돈 */
+  #viewSummoner .profile-mastery-strip,
+  #playerDetailModal .profile-mastery-strip {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: 8px 0 6px !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  #viewSummoner .pm-item,
+  #playerDetailModal .pm-item {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 5px 2px !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+  }
+
+  #viewSummoner .pm-item img,
+  #playerDetailModal .pm-item img {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+  }
+
+  #viewSummoner .pm-lvl,
+  #playerDetailModal .pm-lvl {
+    top: 26px !important;
+    font-size: 0.6rem !important;
+    padding: 0 3px !important;
+    line-height: 1.2 !important;
+  }
+
+  #viewSummoner .pm-pts,
+  #playerDetailModal .pm-pts {
+    margin-top: 5px !important;
+    font-size: 0.66rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* 모스트 챔피언 표: 챔피언(38%) | 승률(32%) | KDA(30%) — 3열 모두 완전 가시화 */
+  #viewSummoner .most-champs-table-wrap,
+  #playerDetailModal .most-champs-table-wrap {
+    width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  #viewSummoner .most-champs-table,
+  #playerDetailModal .most-champs-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+
+  #viewSummoner .most-champs-table th,
+  #viewSummoner .most-champs-table td,
+  #playerDetailModal .most-champs-table th,
+  #playerDetailModal .most-champs-table td {
+    padding: 6px 3px !important;
+    box-sizing: border-box !important;
+  }
+
+  #viewSummoner .most-champs-table th.col-champ,
+  #viewSummoner .most-champs-table td.col-champ,
+  #playerDetailModal .most-champs-table th.col-champ,
+  #playerDetailModal .most-champs-table td.col-champ {
+    width: 38% !important;
+    text-align: left !important;
+  }
+
+  #viewSummoner .most-champs-table th.col-wr,
+  #viewSummoner .most-champs-table td.col-wr,
+  #playerDetailModal .most-champs-table th.col-wr,
+  #playerDetailModal .most-champs-table td.col-wr {
+    width: 32% !important;
+    text-align: left !important;
+  }
+
+  #viewSummoner .most-champs-table th.col-kda,
+  #viewSummoner .most-champs-table td.col-kda,
+  #playerDetailModal .most-champs-table th.col-kda,
+  #playerDetailModal .most-champs-table td.col-kda {
+    width: 30% !important;
+    text-align: center !important;
+    display: table-cell !important;
+  }
+
+  #viewSummoner .most-champs-table th.col-cs,
+  #viewSummoner .most-champs-table td.col-cs,
+  #playerDetailModal .most-champs-table th.col-cs,
+  #playerDetailModal .most-champs-table td.col-cs {
+    display: none !important;
+  }
+
+  #viewSummoner .mcc-champ-col,
+  #playerDetailModal .mcc-champ-col {
+    gap: 4px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #viewSummoner .mcc-rank-num,
+  #playerDetailModal .mcc-rank-num {
+    width: 10px !important;
+    font-size: 0.7rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  #viewSummoner .mcc-champ-img,
+  #playerDetailModal .mcc-champ-img {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 5px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #viewSummoner .mcc-champ-name-wrap,
+  #playerDetailModal .mcc-champ-name-wrap {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    flex: 1 1 auto !important;
+  }
+
+  #viewSummoner .mcc-champ-name,
+  #playerDetailModal .mcc-champ-name {
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #viewSummoner .mcc-champ-play-games,
+  #playerDetailModal .mcc-champ-play-games {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+  }
+
+  #viewSummoner .mcc-winrate-col,
+  #playerDetailModal .mcc-winrate-col {
+    min-width: 0 !important;
+    width: 100% !important;
+    gap: 2px !important;
+    overflow: hidden !important;
+  }
+
+  #viewSummoner .mcc-wr-text-row,
+  #playerDetailModal .mcc-wr-text-row {
+    font-size: 0.7rem !important;
+    gap: 2px !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+
+  #viewSummoner .mcc-wr-pct,
+  #playerDetailModal .mcc-wr-pct {
+    font-size: 0.74rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  #viewSummoner .mcc-record-text,
+  #playerDetailModal .mcc-record-text {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+  }
+
+  #viewSummoner .mcc-wr-bar-track,
+  #playerDetailModal .mcc-wr-bar-track {
+    height: 4px !important;
+  }
+
+  #viewSummoner .mcc-kda-col,
+  #playerDetailModal .mcc-kda-col {
+    min-width: 0 !important;
+    width: 100% !important;
+    gap: 1px !important;
+  }
+
+  #viewSummoner .mcc-kda-ratio,
+  #playerDetailModal .mcc-kda-ratio {
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+  }
+
+  #viewSummoner .mcc-kda-kda-row,
+  #playerDetailModal .mcc-kda-kda-row {
+    font-size: 0.64rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* KDA 트렌드 그래프 모바일 높이 */
+  #viewSummoner .kda-svg-chart,
+  #playerDetailModal .kda-svg-chart {
+    height: 90px !important;
+  }
+
+  /* 경기 카드 모바일 폰트 및 슬롯 최적화 */
+  #viewSummoner .mc-items-grid,
+  #playerDetailModal .mc-items-grid {
+    gap: 2px !important;
+  }
+
+  #viewSummoner .mc-item-slot,
+  #playerDetailModal .mc-item-slot {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  #viewSummoner .mc-cs-val,
+  #playerDetailModal .mc-cs-val {
+    font-size: 0.74rem !important;
+  }
+
+  #viewSummoner .mc-meta-sub,
+  #playerDetailModal .mc-meta-sub {
+    font-size: 0.66rem !important;
+    white-space: nowrap !important;
+  }
+
+  #viewSummoner .queue-filter-btn,
+  #playerDetailModal .queue-filter-btn {
+    padding: 5px 9px !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* 휴대폰 경기 카드: [결과·시간 | 펼침] / [챔피언 | KDA | CS] / [아이템] 3줄로 정리 */
+@media (max-width: 640px) {
+  #viewSummoner .match-card .match-card-main {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-areas: "meta meta action" "champ kda cs" "items items items" !important;
+    gap: 8px 10px !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+  }
+  #viewSummoner .match-card .mc-meta { grid-area: meta; display: flex !important; flex-direction: row !important; flex-wrap: wrap; align-items: baseline; gap: 6px !important; width: auto !important; }
+  #viewSummoner .match-card .mc-meta > * { margin: 0 !important; }
+  #viewSummoner .match-card .mc-action-col { grid-area: action; width: auto !important; }
+  #viewSummoner .match-card .mc-champ-spells { grid-area: champ; width: auto !important; }
+  #viewSummoner .match-card .mc-kda-info { grid-area: kda; width: auto !important; align-items: flex-start !important; text-align: left !important; }
+  #viewSummoner .match-card .mc-cs-info { grid-area: cs; width: auto !important; text-align: right !important; align-items: flex-end !important; }
+  #viewSummoner .match-card .mc-items-grid { grid-area: items; display: flex !important; flex-wrap: nowrap; gap: 4px !important; width: auto !important; }
+  #viewSummoner .match-card .mc-items-grid img,
+  #viewSummoner .match-card .mc-items-grid > * { width: 28px !important; height: 28px !important; flex: 0 0 28px; }
+  #viewSummoner .match-card .mc-players-list { display: none !important; }
+}

@@ -1,0 +1,242 @@
+/* ==============================================================================
+   28-meta-board.css — 홈 메타 보드 (#metaBoard, 20-meta-board.js)
+   승률 / 픽률 / 밴률 상위 5 · 라인 아이콘 필터. 모든 규칙은 #viewSearch .meta-board 아래로 한정.
+   ============================================================================== */
+
+#viewSearch .meta-board {
+  --mb-bg: var(--bg-card, #151922);
+  --mb-border: var(--border-color, #273142);
+  --mb-row-hover: rgba(255, 255, 255, 0.05);
+  --mb-text: var(--text-primary, #F8FAFC);
+  --mb-muted: #94A3B8;
+  --mb-btn-bg: rgba(255, 255, 255, 0.04);
+  --mb-btn-active: var(--primary, #4F80E2);
+  --mb-up: #10B981;
+  --mb-down: #E84057;
+
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto 1rem;
+  padding: 14px 18px 12px;
+  box-sizing: border-box;
+  background: var(--mb-bg);
+  border: 1px solid var(--mb-border);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  color: var(--mb-text);
+  min-width: 0;
+}
+
+[data-theme="light"] #viewSearch .meta-board {
+  --mb-bg: #FFFFFF;
+  --mb-border: #E2E8F0;
+  --mb-row-hover: #F1F5F9;
+  --mb-text: #0F172A;
+  --mb-muted: #475569;
+  --mb-btn-bg: #F1F5F9;
+  --mb-btn-active: #3B72DE;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+#viewSearch .meta-board *,
+#viewSearch .meta-board *::before,
+#viewSearch .meta-board *::after {
+  box-sizing: border-box;
+}
+
+#viewSearch .meta-board .meta-board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+#viewSearch .meta-board .meta-board-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--mb-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+#viewSearch .meta-board .meta-board-title i {
+  color: var(--mb-btn-active);
+}
+
+#viewSearch .meta-board .meta-board-lanes {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+#viewSearch .meta-board .meta-lane-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--mb-border);
+  border-radius: 8px;
+  background: var(--mb-btn-bg);
+  color: var(--mb-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+#viewSearch .meta-board .meta-lane-btn img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+#viewSearch .meta-board .meta-lane-btn:hover {
+  border-color: var(--mb-btn-active);
+}
+
+#viewSearch .meta-board .meta-lane-btn.active {
+  background: var(--mb-btn-active);
+  border-color: var(--mb-btn-active);
+  color: #FFFFFF;
+}
+
+#viewSearch .meta-board .meta-lane-btn:focus-visible,
+#viewSearch .meta-board .meta-row:focus-visible {
+  outline: 2px solid var(--mb-btn-active);
+  outline-offset: 1px;
+}
+
+/* 라인 아이콘(금색)이 흰 배경에서 안 보이는 문제: 티어표와 같은 보정 */
+[data-theme="light"] #viewSearch .meta-board .meta-lane-btn img {
+  filter: brightness(0.2) contrast(1.2);
+}
+
+[data-theme="light"] #viewSearch .meta-board .meta-lane-btn.active img {
+  filter: brightness(0) invert(1);
+}
+
+#viewSearch .meta-board .meta-board-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#viewSearch .meta-board .meta-board-col {
+  min-width: 0;
+}
+
+#viewSearch .meta-board .meta-col-title {
+  margin: 0 0 6px;
+  padding-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mb-muted);
+  border-bottom: 1px solid var(--mb-border);
+}
+
+#viewSearch .meta-board .meta-col-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#viewSearch .meta-board .meta-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mb-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+#viewSearch .meta-board .meta-row:hover {
+  background: var(--mb-row-hover);
+}
+
+#viewSearch .meta-board .meta-rank {
+  flex: 0 0 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--mb-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#viewSearch .meta-board .meta-champ-img {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+#viewSearch .meta-board .meta-champ-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#viewSearch .meta-board .meta-value {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+#viewSearch .meta-board .meta-value.is-up {
+  color: var(--mb-up);
+}
+
+#viewSearch .meta-board .meta-value.is-down {
+  color: var(--mb-down);
+}
+
+#viewSearch .meta-board .meta-row-empty {
+  padding: 8px 4px;
+  font-size: 0.8rem;
+  color: var(--mb-muted);
+}
+
+#viewSearch .meta-board .meta-board-note {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: var(--mb-muted);
+  word-break: keep-all;
+}
+
+#viewSearch .meta-board .meta-board-note:empty {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #viewSearch .meta-board {
+    padding: 12px 14px 10px;
+    margin: 0 auto 1rem;
+  }
+
+  #viewSearch .meta-board .meta-board-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #viewSearch .meta-board .meta-lane-btn {
+    width: 32px;
+    height: 32px;
+  }
+}

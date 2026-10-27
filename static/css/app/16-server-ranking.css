@@ -1,0 +1,608 @@
+/* ==========================================================================
+   16-server-ranking.css
+   서버 랭킹 (디스코드 멤버 라이엇 계정 순위표) 스타일
+   ========================================================================== */
+
+.server-ranking-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 상단 헤더 */
+.server-ranking-header {
+  margin-bottom: 4px;
+}
+
+.server-ranking-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px 0;
+}
+
+.server-ranking-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* 내 계정 카드 공통 */
+.sr-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.sr-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 내 계정 카드: 로그인 필요 */
+.sr-card-login {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.1), var(--bg-card));
+  border-color: rgba(88, 101, 242, 0.35);
+}
+
+.sr-login-icon {
+  font-size: 1.75rem;
+}
+
+.sr-login-text {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sr-login-text strong {
+  color: var(--text-heading);
+  font-size: 0.98rem;
+}
+
+.sr-sub-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* 내 계정 카드: 연결됨 */
+.sr-card-linked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), var(--bg-card));
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.sr-linked-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+}
+
+.sr-label {
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sr-name-highlight {
+  color: var(--text-heading);
+}
+
+.sr-linked-gn {
+  font-weight: 700;
+}
+
+.sr-linked-tag {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.sr-discord-tag {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: rgba(88, 101, 242, 0.12);
+  border: 1px solid rgba(88, 101, 242, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* 내 계정 카드: 연결 안 됨 */
+.sr-card-unlinked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.sr-unlinked-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.sr-connect-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 420px;
+  min-width: 220px;
+}
+
+.sr-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-main, #0b0e14);
+  color: var(--text-main, #f1f5f9);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.sr-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 128, 226, 0.25);
+}
+
+/* 버튼 스타일 */
+.sr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+
+.sr-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sr-btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.sr-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.sr-btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sr-btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.sr-btn-discord {
+  background: #5865f2;
+  color: #ffffff;
+}
+
+.sr-btn-discord:hover {
+  background: #4752c4;
+}
+
+/* 순위표 컨테이너 */
+.sr-board-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sr-board-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--bg-main, rgba(0, 0, 0, 0.15));
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.sr-board-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 순위표 줄 (Flex 카드형) */
+.sr-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sr-row:last-child {
+  border-bottom: none;
+}
+
+.sr-row:hover {
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.04));
+}
+
+.sr-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* 열 너비 및 배치 */
+.sr-col-rank {
+  width: 52px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sr-rank-num {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.sr-col-player {
+  flex: 1.6;
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  overflow: hidden;
+}
+
+.sr-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--bg-main, #0b0e14);
+}
+
+.sr-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sr-riot-id {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-game-name {
+  color: var(--text-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-tag {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.sr-discord-name {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-col-tier {
+  flex: 1.2;
+  min-width: 110px;
+  padding: 0 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-lp {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.sr-col-record {
+  flex: 1;
+  min-width: 100px;
+  padding: 0 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sr-wr {
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.sr-col-delta {
+  width: 72px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* 7일 변화 색상 */
+.sr-delta-up {
+  color: #10b981;
+}
+
+.sr-delta-down {
+  color: #ef4444;
+}
+
+.sr-delta-zero,
+.sr-delta-null {
+  color: var(--text-muted);
+}
+
+/* 1, 2, 3위 강조 */
+.sr-top-1 {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, transparent 60%);
+  border-left: 3px solid #f59e0b;
+}
+
+.sr-top-1 .sr-rank-num {
+  color: #f59e0b;
+  font-size: 1.05rem;
+}
+
+.sr-top-1 .sr-avatar {
+  border-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.sr-top-2 {
+  background: linear-gradient(90deg, rgba(203, 213, 225, 0.09) 0%, transparent 60%);
+  border-left: 3px solid #94a3b8;
+}
+
+.sr-top-2 .sr-rank-num {
+  color: #cbd5e1;
+}
+
+.sr-top-2 .sr-avatar {
+  border-color: #94a3b8;
+}
+
+.sr-top-3 {
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.08) 0%, transparent 60%);
+  border-left: 3px solid #d97706;
+}
+
+.sr-top-3 .sr-rank-num {
+  color: #d97706;
+}
+
+.sr-top-3 .sr-avatar {
+  border-color: #d97706;
+}
+
+.sr-medal-icon {
+  font-size: 0.8rem;
+}
+
+/* 빈 상태 */
+.sr-empty-board {
+  text-align: center;
+  padding: 48px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sr-empty-icon {
+  font-size: 2.2rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.sr-empty-text {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* 모바일 반응형 (390px 가로 스크롤 완전 방지) */
+@media (max-width: 600px) {
+  .server-ranking-container {
+    padding: 16px 8px 40px;
+    gap: 14px;
+  }
+
+  .server-ranking-title {
+    font-size: 1.25rem;
+  }
+
+  .sr-card {
+    padding: 14px 12px;
+  }
+
+  .sr-connect-form {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* 좁은 화면에서는 승패 칸 숨김 */
+  .sr-col-record {
+    display: none !important;
+  }
+
+  .sr-board-header,
+  .sr-row {
+    padding: 10px 8px;
+  }
+
+  .sr-col-rank {
+    width: 30px;
+  }
+
+  .sr-col-player {
+    min-width: 100px;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .sr-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .sr-game-name {
+    font-size: 0.84rem;
+  }
+
+  .sr-col-tier {
+    min-width: 75px;
+    font-size: 0.8rem;
+    padding: 0 4px;
+  }
+
+  .sr-col-delta {
+    width: 48px;
+    font-size: 0.78rem;
+  }
+}
+
+/* 이번 주 MVP */
+#viewServerRanking .sr-mvp-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.14), transparent 70%), var(--bg-card);
+  cursor: pointer;
+}
+
+#viewServerRanking .sr-mvp-icon { font-size: 1.6rem; color: #F59E0B; }
+#viewServerRanking .sr-mvp-main { flex: 1 1 auto; min-width: 0; }
+#viewServerRanking .sr-mvp-label { font-size: 0.72rem; font-weight: 800; color: #D97706; }
+#viewServerRanking .sr-mvp-name { font-size: 1.05rem; font-weight: 900; color: var(--text-heading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#viewServerRanking .sr-mvp-riot { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+#viewServerRanking .sr-mvp-lp { font-size: 1.1rem; font-weight: 900; color: #10B981; white-space: nowrap; }
+
+/* 같이 한 게임 */
+#viewServerRanking .sr-duo-card {
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+#viewServerRanking .sr-duo-title { font-weight: 800; color: var(--text-heading); margin-bottom: 8px; }
+#viewServerRanking .sr-duo-sub { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-left: 6px; }
+
+#viewServerRanking .sr-duo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.86rem;
+}
+
+#viewServerRanking .sr-duo-names { flex: 1 1 auto; min-width: 0; font-weight: 700; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#viewServerRanking .sr-duo-plus { color: var(--text-muted); font-weight: 400; }
+#viewServerRanking .sr-duo-wr { font-weight: 800; font-variant-numeric: tabular-nums; }
+#viewServerRanking .sr-duo-wr.is-good { color: #10B981; }
+#viewServerRanking .sr-duo-wr.is-bad { color: #E84057; }
+#viewServerRanking .sr-duo-games { width: 44px; text-align: right; color: var(--text-muted); font-size: 0.78rem; }
+
+/* 휴대폰: 순위표를 화면 폭에 맞춤 (승패 열 숨김, 티어·LP는 줄바꿈 없이 말줄임) */
+@media (max-width: 640px) {
+  #viewServerRanking .sr-board-header, #viewServerRanking .sr-row { min-width: 0 !important; width: 100% !important; gap: 8px !important; }
+  #viewServerRanking .sr-col-record { display: none !important; }
+  #viewServerRanking .sr-col-player { flex: 1 1 auto !important; min-width: 0 !important; }
+  #viewServerRanking .sr-col-tier { flex: 0 0 auto !important; max-width: 40%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #viewServerRanking .sr-col-delta { flex: 0 0 36px !important; width: 36px !important; text-align: right; }
+  #viewServerRanking .sr-board-wrapper { overflow-x: hidden !important; }
+  #viewServerRanking .sr-mvp-card { padding: 12px; gap: 10px; }
+}
+@media (max-width: 640px) {
+  #viewServerRanking .sr-row .sr-tag { display: none !important; }
+  #viewServerRanking .sr-identity, #viewServerRanking .sr-riot-id, #viewServerRanking .sr-game-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

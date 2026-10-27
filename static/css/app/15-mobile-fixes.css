@@ -1,0 +1,110 @@
+/* 좁은 화면(휴대폰)에서 페이지가 옆으로 밀리지 않게 하는 보정 (2026-10-25, 390px 폭에서 확인) */
+
+@media (max-width: 640px) {
+  /* 티어표 포지션 탭: 넘치면 탭 줄 안에서만 가로 스크롤 */
+  .position-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .position-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .position-tabs > * {
+    flex: 0 0 auto;
+  }
+
+  /* 듀오 구하기 포지션 필터: 줄바꿈 */
+  .df-filter-group {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* 하단 내비게이션: 버튼이 화면 폭 안에서 나눠 갖도록 */
+  .dock-container {
+    max-width: 100%;
+  }
+
+  .dock-container > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* 소환사 상세 창 머리: 닉네임이 한 단어씩 줄바꿈되지 않게 */
+  .player-modal-profile {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .player-modal-crest-wrap {
+    display: none;
+  }
+
+  .player-modal-info {
+    min-width: 0;
+    flex: 1 1 160px;
+  }
+
+  .player-modal-name {
+    font-size: 1.25rem;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-nav-tab {
+    white-space: nowrap;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* 듀오 구인글 양식: 화면보다 길면 창 안에서 스크롤, 제목줄(× 버튼)은 위에 고정 */
+/* 휴대폰 하단 메뉴(z-index 1000)보다 위에 띄운다 */
+#createDuoPostModal {
+  z-index: 1100;
+}
+
+#createDuoPostModal .modal-card {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+#createDuoPostModal .modal-header {
+  position: sticky;
+  top: -32px; /* 카드 위쪽 여백까지 덮어 스크롤된 입력칸이 제목 위로 비치지 않게 */
+  z-index: 2;
+  margin: -32px -32px 16px;
+  padding: 24px 32px 12px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 보조 버튼(취소 등): 정의가 없어 브라우저 기본 회색 버튼으로 보이던 것 */
+.btn-secondary {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-heading);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--nav-tab-hover-bg);
+}
+
+/* 소환사 최근 20경기: KDA 그래프는 한 줄 전체, 포지션 퍼센트가 잘리지 않게 */
+.opgg-kda-trend-dashboard {
+  grid-template-columns: 1fr !important;
+}
+
+.role-bar-pct {
+  min-width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+

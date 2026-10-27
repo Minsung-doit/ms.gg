@@ -1,0 +1,1611 @@
+/* ==============================================================================
+   23-polish-home.css
+   다듬기 작업 A: 홈(검색) · 서버 랭킹 · 듀오 구하기 · 휴대폰 메뉴
+   - WCAG AA 명도 대비 준수 (화이트/다크 모드 가독성 강화)
+   - 모바일 390px 폭 단어 줄바꿈(word-break: keep-all) 및 넘침/잘림 방지
+   - 숫자 고정폭(font-variant-numeric: tabular-nums) 정렬
+   - 라이엇 API/실제 데이터 기반 승률 컬러 시스템 (50% 초과: #10B981, 50% 이하: #E84057)
+   ============================================================================== */
+
+/* ==============================================================================
+   1. 홈 (검색) — 라인별 1위 OP 챔피언 위젯 (#mainQuickOpChamps)
+   ============================================================================== */
+.main-quick-op-champs {
+  max-width: 720px;
+  width: 100%;
+  margin: 1.25rem auto 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 14px 18px 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .main-quick-op-champs {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.quick-op-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap !important;
+}
+
+.quick-op-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+/* 라인별 1위 배지: 390px 화면에서도 어색하게 꺾이지 않도록 nowrap & flex-shrink: 0 강제 */
+.quick-op-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .quick-op-badge {
+  background: #FFFBEB;
+  color: #D97706;
+  border-color: #FCD34D;
+}
+
+.quick-op-title {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  word-break: keep-all;
+}
+
+[data-theme="light"] .quick-op-title {
+  color: #64748B;
+}
+
+.btn-quick-op-more {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.btn-quick-op-more:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(79, 128, 226, 0.08);
+}
+
+[data-theme="light"] .btn-quick-op-more {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  color: #475569;
+}
+
+[data-theme="light"] .btn-quick-op-more:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  color: #2563EB;
+}
+
+/* 카드 그리드 */
+.quick-op-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.quick-op-card {
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  user-select: none;
+}
+
+.quick-op-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 4px 14px rgba(79, 128, 226, 0.2);
+}
+
+[data-theme="light"] .quick-op-card {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .quick-op-card:hover {
+  background: #FFFFFF;
+  border-color: #3B82F6;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.12);
+}
+
+.quick-op-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.quick-op-pos-tag {
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+}
+
+.quick-op-tier-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+}
+
+.quick-op-tier-badge.tier-op {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+.quick-op-tier-badge.tier-1 {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+}
+
+.quick-op-avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+}
+
+.quick-op-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  display: block;
+}
+
+.quick-op-build-btn {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  transition: all 0.15s ease;
+}
+
+.quick-op-build-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.quick-op-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-bottom: 2px;
+}
+
+.quick-op-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  width: 100%;
+}
+
+.quick-op-stats strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* 승률 색상: 50% 초과 #10B981, 50% 이하 #E84057 */
+.quick-op-winrate.win-high strong {
+  color: #10B981;
+}
+
+.quick-op-winrate.win-low strong {
+  color: #E84057;
+}
+
+/* ==============================================================================
+   2. 홈 최근 검색 바 — 빈 상태 안내 문구 모바일 잘림 수정
+   ============================================================================== */
+.recent-chips-list:has(.recent-empty-hint),
+.recent-chips-list.is-empty {
+  white-space: normal !important;
+  overflow-x: visible !important;
+}
+
+.recent-empty-hint {
+  white-space: normal !important;
+  word-break: keep-all !important;
+  line-height: 1.45 !important;
+  font-size: 0.78rem !important;
+  padding: 4px 2px !important;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="light"] .recent-empty-hint {
+  color: #64748B;
+}
+
+/* ==============================================================================
+   3. 홈 챌린저 TOP 10 (#homeTrendingSection) — 화이트 모드 대비 & 숫자 고정폭
+   ============================================================================== */
+.home-trending-section {
+  max-width: 1060px;
+  width: 100%;
+  margin: 2.25rem auto 1.5rem;
+}
+
+.home-trending-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-trending-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.home-trending-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.home-trending-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(79, 128, 226, 0.16);
+}
+
+[data-theme="light"] .home-trending-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .home-trending-card:hover {
+  border-color: #3B82F6;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+
+/* 순위 숫자 배지 */
+.htc-rank {
+  font-size: 0.95rem;
+  font-weight: 800;
+  min-width: 22px;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.htc-rank.top-1 {
+  color: #F59E0B;
+}
+
+/* 화이트 모드에서 2위 실버 배지가 보이지 않는 치명적 대비 문제 수정 */
+.htc-rank.top-2 {
+  color: #CBD5E1;
+}
+
+[data-theme="light"] .htc-rank.top-2 {
+  color: #475569 !important;
+}
+
+.htc-rank.top-3 {
+  color: #D97706;
+}
+
+.htc-emblem {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.htc-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.htc-name-line {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.htc-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.htc-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.htc-sub-line {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.htc-sub-line b {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.htc-wr {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.htc-wr-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.htc-wr-val {
+  font-size: 0.86rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.htc-record {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.htc-wr-bar {
+  width: 70px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+[data-theme="light"] .htc-wr-bar {
+  background: #E2E8F0;
+}
+
+.htc-wr-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ==============================================================================
+   4. 서버 랭킹 (#viewServerRanking) — 가독성, 화이트 모드 대비 & 숫자 고정폭
+   ============================================================================== */
+.server-ranking-container {
+  max-width: 980px;
+}
+
+.server-ranking-subtitle {
+  word-break: keep-all !important;
+  line-height: 1.45;
+}
+
+/* 라이트 모드에서 2위 은색 배지가 안 보이는 문제 보정 */
+[data-theme="light"] .sr-top-2 .sr-rank-num {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .sr-top-2 .sr-avatar {
+  border-color: #64748B !important;
+}
+
+/* 라이트 모드 라이엇 계정 입력칸 배경/글자 명도 보정 */
+[data-theme="light"] .sr-input {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .sr-input::placeholder {
+  color: #94A3B8;
+}
+
+/* 순위표 숫자 tabular-nums 적용 */
+.sr-rank-num,
+.sr-lp,
+.sr-col-delta,
+.sr-delta,
+.sr-wr,
+.sr-col-record {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 승률 색상 클래스 (RULES.md: 50% 초과 #10B981, 50% 이하 #E84057) */
+.sr-wr.sr-wr-high {
+  color: #10B981 !important;
+  font-weight: 800;
+}
+
+.sr-wr.sr-wr-low {
+  color: #E84057 !important;
+  font-weight: 800;
+}
+
+/* 빈 순위표 안내 */
+.sr-empty-board {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  word-break: keep-all;
+  line-height: 1.5;
+}
+
+.sr-empty-text {
+  word-break: keep-all !important;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ==============================================================================
+   5. 듀오 구하기 (#viewDuoFinder) — 필터 레이아웃 & 빈 상태 다듬기
+   ============================================================================== */
+.duofinder-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.df-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px 6px;
+  flex-wrap: wrap;
+}
+
+[data-theme="light"] .df-filter-group {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+}
+
+.df-filter-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.df-queue-btn,
+.df-pos-btn,
+.df-voice-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.df-queue-btn:hover,
+.df-pos-btn:hover,
+.df-voice-btn:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .df-queue-btn:hover,
+[data-theme="light"] .df-pos-btn:hover,
+[data-theme="light"] .df-voice-btn:hover {
+  background: #F1F5F9;
+  color: #1E293B;
+}
+
+.df-queue-btn.active,
+.df-pos-btn.active,
+.df-voice-btn.active {
+  background: rgba(79, 128, 226, 0.16);
+  border-color: rgba(79, 128, 226, 0.4);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+[data-theme="light"] .df-queue-btn.active,
+[data-theme="light"] .df-pos-btn.active,
+[data-theme="light"] .df-voice-btn.active {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #2563EB;
+}
+
+.df-tier-select {
+  background: transparent;
+  border: none;
+  color: var(--text-heading);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+.df-tier-select option {
+  background: var(--bg-card);
+  color: var(--text-heading);
+}
+
+[data-theme="dark"] .df-tier-select option {
+  background: #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+[data-theme="light"] .df-tier-select option {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+/* 빈 구인글 안내 블록 다듬기 */
+.df-empty-posts {
+  grid-column: 1 / -1;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  word-break: keep-all !important;
+  line-height: 1.6;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+}
+
+[data-theme="light"] .df-empty-posts {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #64748B;
+}
+
+/* ==============================================================================
+   6. 모바일 메뉴 시트 (#mobileMenuSheet) & 하단 내비게이션 독
+   ============================================================================== */
+/* 메뉴 시트 3열 그리드: 서버랭킹 버튼 추가 시 완전한 3열 배분 유지 */
+.mobile-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.sheet-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.sheet-grid-item:hover,
+.sheet-grid-item:active {
+  background: rgba(79, 128, 226, 0.12);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .sheet-grid-item {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .sheet-grid-item:hover,
+[data-theme="light"] .sheet-grid-item:active {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}
+
+.sheet-item-icon {
+  font-size: 1.35rem;
+  color: var(--text-heading);
+}
+
+.sheet-grid-item[data-tab="serverranking"] .sheet-item-icon {
+  color: #5865F2; /* 디스코드 시그니처 컬러 */
+}
+
+.sheet-item-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
+/* 하단 내비게이션 독 글자 잘림 방지 */
+.dock-label {
+  font-size: 0.68rem !important;
+  line-height: 1.1;
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
+/* ==============================================================================
+   7. 390px 폭 모바일 반응형 완벽 보정 (Media Queries max-width: 640px)
+   ============================================================================== */
+@media (max-width: 640px) {
+  /* 라인별 1위 헤더: 배지와 버튼이 어색하게 겹치지 않고 자연스럽게 한 줄 정렬 */
+  .quick-op-header {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .quick-op-badge {
+    font-size: 0.74rem;
+    padding: 3px 8px;
+  }
+
+  /* 모바일(390px) 좁은 폭에서는 부가설명 문구를 줄이거나 감춰 버튼과 배지가 한 줄에 안착 */
+  .quick-op-title {
+    display: none;
+  }
+
+  .btn-quick-op-more {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+
+  /* 5개 라인 카드: 모바일에서 가로 스크롤 가능하게 하거나 컴팩트 5열 유지 */
+  .quick-op-cards-grid {
+    gap: 4px;
+  }
+
+  .quick-op-card {
+    padding: 6px 3px;
+    border-radius: 8px;
+  }
+
+  .quick-op-avatar-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .quick-op-name {
+    font-size: 0.72rem;
+  }
+
+  .quick-op-stats {
+    font-size: 0.64rem;
+  }
+
+  /* 홈 챌린저 TOP 10 모바일 1열 전환 */
+  .home-trending-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .home-trending-card {
+    padding: 8px 10px;
+  }
+
+  /* 서버 랭킹 모바일 레이아웃 */
+  .server-ranking-container {
+    padding: 16px 12px 60px;
+    gap: 14px;
+  }
+
+  .server-ranking-title {
+    font-size: 1.25rem;
+  }
+
+  .server-ranking-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .sr-card {
+    padding: 14px 12px;
+  }
+
+  .sr-connect-form {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .sr-board-header {
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+
+  .sr-row {
+    padding: 10px;
+  }
+
+  .sr-col-rank {
+    width: 36px;
+  }
+
+  .sr-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sr-col-tier {
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
+
+  .sr-col-record {
+    font-size: 0.74rem;
+  }
+
+  .sr-col-delta {
+    width: 50px;
+    font-size: 0.78rem;
+  }
+
+  /* 듀오 구하기 필터 그룹 모바일 줄바꿈 정돈 */
+  .df-filter-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .df-queue-btn,
+  .df-pos-btn,
+  .df-voice-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ==============================================================================
+   8. 2차 다듬기 (Polish 2) — 홈(검색) · 서버 랭킹 · 듀오 구하기 · 모바일 390px
+   ============================================================================== */
+
+/* (1) 홈 라인별 1위 카드: 모바일(390px) 가로 스크롤 카드 & 라인 배지 꺾임 완전 방지 */
+@media (max-width: 640px) {
+  .main-quick-op-champs {
+    padding: 12px 14px 14px !important;
+    margin: 1rem auto !important;
+  }
+
+  .quick-op-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .quick-op-title-wrap {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .quick-op-badge {
+    font-size: 0.74rem !important;
+    padding: 3px 8px !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    flex-shrink: 0 !important;
+  }
+
+  .quick-op-title {
+    display: none !important; /* 390px 폭에서 배지와 버튼이 한 줄에 깔끔히 배치 */
+  }
+
+  .btn-quick-op-more {
+    font-size: 0.72rem !important;
+    padding: 3px 8px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 390px 화면에서 카드가 찌그러지지 않도록 가로 스크롤 컨테이너로 전환 */
+  .quick-op-cards-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    padding: 2px 2px 8px !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .quick-op-cards-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 카드 폭을 108px로 고정하여 배지와 텍스트 완벽 보존 */
+  .quick-op-card {
+    flex: 0 0 108px !important;
+    min-width: 108px !important;
+    max-width: 115px !important;
+    width: 108px !important;
+    scroll-snap-align: start !important;
+    padding: 10px 6px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .quick-op-card-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* 라인 배지 글자("서포터", "정글" 등)가 세로로 꺾이지 않도록 nowrap & keep-all 강제 */
+  .quick-op-pos-tag {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    flex-shrink: 0 !important;
+    font-size: 0.72rem !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+  }
+
+  /* OP 배지 잘림 방지 */
+  .quick-op-tier-badge {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.68rem !important;
+    padding: 1px 4px !important;
+    line-height: 1.1 !important;
+  }
+
+  .quick-op-avatar-wrap {
+    width: 44px !important;
+    height: 44px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .quick-op-name {
+    font-size: 0.78rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .quick-op-stats {
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+/* (2) 최근 검색 바 모바일 안내 문구 잘림 및 줄바꿈 정리 */
+.recent-chips-list {
+  min-height: 32px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.recent-chips-list::-webkit-scrollbar {
+  display: none;
+}
+
+.recent-empty-hint {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 0.78rem !important;
+  color: var(--text-muted) !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  line-height: 1.45 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 4px 0 !important;
+}
+
+.recent-empty-hint span {
+  min-width: 0 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  line-height: 1.45 !important;
+  flex: 1 1 auto !important;
+}
+
+[data-theme="light"] .recent-empty-hint {
+  color: #64748B !important;
+}
+
+@media (max-width: 640px) {
+  .recent-searches-bar {
+    padding: 10px 12px !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .recent-bar-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 8px !important;
+  }
+
+  .recent-tabs-filter {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .recent-filter-tab {
+    padding: 3px 8px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+  }
+
+  .btn-clear-recent {
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* (3) 서버 랭킹 (#viewServerRanking) 모바일 테이블 가로 스크롤 & 라이트 모드 가독성 */
+.server-ranking-container {
+  padding-top: 1.25rem;
+}
+
+.sr-board-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .sr-board-header,
+  .sr-row {
+    min-width: 480px; /* 390px 화면에서도 5열 데이터가 찌그러지지 않고 좌우 스와이프 가능 */
+  }
+}
+
+/* (4) 듀오 구하기 (#viewDuoFinder) 모바일 필터 행 스크롤 및 모달 라이트 모드 대비 */
+@media (max-width: 640px) {
+  .duofinder-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    margin-bottom: 12px !important;
+  }
+
+  .duofinder-title {
+    font-size: 1.25rem !important;
+    white-space: nowrap !important;
+  }
+
+  #btnOpenCreateDuoModal {
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .duofinder-filters {
+    gap: 6px !important;
+  }
+
+  .df-filter-group {
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 4px 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .df-filter-group::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .df-queue-btn,
+  .df-pos-btn,
+  .df-voice-btn {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .df-tier-select {
+    font-size: 0.78rem !important;
+  }
+
+  /* 듀오 구인글 모달 폼 모바일 세로 배치 */
+  #createDuoPostModal .form-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+}
+
+/* 듀오 구인글 모달 라이트 모드 가독성 강화 */
+[data-theme="light"] #createDuoPostModal .modal-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15) !important;
+}
+
+[data-theme="light"] #createDuoPostModal .modal-header {
+  background: #FFFFFF !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] #createDuoPostModal .form-input {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #createDuoPostModal .form-input:focus {
+  background: #FFFFFF !important;
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+[data-theme="light"] #createDuoPostModal .m-pos-chip,
+[data-theme="light"] #createDuoPostModal .m-voice-chip {
+  background: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] #createDuoPostModal .m-pos-chip.active,
+[data-theme="light"] #createDuoPostModal .m-voice-chip.active {
+  background: #EFF6FF !important;
+  border-color: #3B82F6 !important;
+  color: #2563EB !important;
+}
+
+/* 듀오 구인글 카드 라이트 모드 가독성 */
+[data-theme="light"] .duo-post-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .duo-post-card:hover {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.12) !important;
+}
+
+[data-theme="light"] .dp-author-name {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .dp-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .dp-desc {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .dp-time {
+  color: #94A3B8 !important;
+}
+
+/* (5) 모바일 바텀시트 메뉴 아이템 활성 상태 */
+.sheet-grid-item.active {
+  background: rgba(79, 128, 226, 0.16) !important;
+  border-color: var(--primary) !important;
+}
+
+[data-theme="light"] .sheet-grid-item.active {
+  background: #EFF6FF !important;
+  border-color: #3B82F6 !important;
+}
+
+.sheet-grid-item.active .sheet-item-title {
+  color: var(--primary) !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .sheet-grid-item.active .sheet-item-title {
+  color: #2563EB !important;
+}
+
+/* ==============================================================================
+   (6) 구인 허브 게임 탭 & 디스코드 닉네임 & 빈 상태 (#viewDuoFinder, #createDuoPostModal)
+   ============================================================================== */
+#viewDuoFinder .duofinder-game-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+#viewDuoFinder .duofinder-game-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+#viewDuoFinder .df-game-tab-btn {
+  padding: 7px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+#viewDuoFinder .df-game-tab-btn:hover {
+  color: var(--text-heading);
+  border-color: var(--primary);
+}
+
+#viewDuoFinder .df-game-tab-btn.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="light"] #viewDuoFinder .df-game-tab-btn {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #64748B;
+}
+
+[data-theme="light"] #viewDuoFinder .df-game-tab-btn:hover {
+  color: #0F172A;
+  border-color: #3B82F6;
+}
+
+[data-theme="light"] #viewDuoFinder .df-game-tab-btn.active {
+  background: #3B82F6;
+  color: #FFFFFF;
+  border-color: #3B82F6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+/* 글 카드 디스코드 작성자 닉네임 배지 */
+#viewDuoFinder .dp-discord-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(88, 101, 242, 0.15);
+  color: #7983F5;
+  border: 1px solid rgba(88, 101, 242, 0.35);
+  padding: 1px 7px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#viewDuoFinder .dp-discord-author i {
+  color: #5865F2;
+  font-size: 0.78rem;
+}
+
+[data-theme="light"] #viewDuoFinder .dp-discord-author {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-color: #C7D2FE;
+}
+
+[data-theme="light"] #viewDuoFinder .dp-discord-author i {
+  color: #4F46E5;
+}
+
+/* 빈 상태 (Empty State) */
+#viewDuoFinder .df-empty-posts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+}
+
+#viewDuoFinder .df-empty-posts i {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+#viewDuoFinder .df-empty-msg {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+#viewDuoFinder .df-empty-create-btn {
+  padding: 7px 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+[data-theme="light"] #viewDuoFinder .df-empty-posts {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+[data-theme="light"] #viewDuoFinder .df-empty-msg {
+  color: #64748B;
+}
+
+/* 모달 파티 인원 표시 배지 */
+#createDuoPostModal .df-party-size-badge {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+[data-theme="light"] #createDuoPostModal .df-party-size-badge {
+  color: #2563EB;
+}
+
+@media (max-width: 640px) {
+  #viewDuoFinder .duofinder-game-tabs {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  #viewDuoFinder .df-game-tab-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* 구인 카드: 인원 표시는 이름 옆 한 곳만 (방 줄 오른쪽 중복 숨김), 롤 외 게임은 티어 글자 */
+#viewDuoFinder .dp-room-bar > span:last-child { display: none !important; }
+#viewDuoFinder .dp-tier-text {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-heading);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* ==============================================================================
+   (7) 구인 카드 '같이해요' 버튼 & 참가자 목록 (#viewDuoFinder)
+   ============================================================================== */
+#viewDuoFinder .dp-joiners-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 6px 0 10px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+#viewDuoFinder .dp-joiners-bar i {
+  color: #10B981;
+  font-size: 0.74rem;
+  flex-shrink: 0;
+}
+
+#viewDuoFinder .dp-joiners-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+[data-theme="light"] #viewDuoFinder .dp-joiners-bar {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  color: #475569;
+}
+
+#viewDuoFinder .btn-duo-join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid #10B981;
+  background: #10B981;
+  color: #FFFFFF;
+  transition: all 0.18s ease;
+  flex: 0.85;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+#viewDuoFinder .btn-duo-join:hover:not(:disabled) {
+  background: #059669;
+  border-color: #059669;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+#viewDuoFinder .btn-duo-join:disabled,
+#viewDuoFinder .btn-duo-join.btn-duo-join-closed {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.75;
+}
+
+[data-theme="light"] #viewDuoFinder .btn-duo-join {
+  background: #059669;
+  border-color: #047857;
+  color: #FFFFFF;
+}
+
+[data-theme="light"] #viewDuoFinder .btn-duo-join:hover:not(:disabled) {
+  background: #047857;
+  border-color: #065F46;
+}
+
+[data-theme="light"] #viewDuoFinder .btn-duo-join:disabled,
+[data-theme="light"] #viewDuoFinder .btn-duo-join.btn-duo-join-closed {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #64748B;
+  opacity: 0.9;
+}
+
+/* 참가한 글: '참가함 ✓' (회색 테두리) 및 마우스 올리면/누르면 '취소' 동작 */
+#viewDuoFinder .btn-duo-join.btn-duo-joined {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  box-shadow: none;
+  transform: none;
+}
+
+#viewDuoFinder .btn-duo-join.btn-duo-joined .duo-leave-label {
+  display: none;
+  white-space: nowrap;
+}
+
+#viewDuoFinder .btn-duo-join.btn-duo-joined .duo-joined-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+#viewDuoFinder .btn-duo-join.btn-duo-joined:hover:not(:disabled),
+#viewDuoFinder .btn-duo-join.btn-duo-joined:active:not(:disabled) {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #EF4444;
+  color: #EF4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+#viewDuoFinder .btn-duo-join.btn-duo-joined:hover:not(:disabled) .duo-joined-label,
+#viewDuoFinder .btn-duo-join.btn-duo-joined:active:not(:disabled) .duo-joined-label {
+  display: none;
+}
+
+#viewDuoFinder .btn-duo-join.btn-duo-joined:hover:not(:disabled) .duo-leave-label,
+#viewDuoFinder .btn-duo-join.btn-duo-joined:active:not(:disabled) .duo-leave-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+[data-theme="light"] #viewDuoFinder .btn-duo-join.btn-duo-joined {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #334155;
+  box-shadow: none;
+}
+
+[data-theme="light"] #viewDuoFinder .btn-duo-join.btn-duo-joined:hover:not(:disabled),
+[data-theme="light"] #viewDuoFinder .btn-duo-join.btn-duo-joined:active:not(:disabled) {
+  background: #FEF2F2;
+  border-color: #EF4444;
+  color: #DC2626;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+#viewDuoFinder .dp-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#viewDuoFinder .dp-footer-actions > * {
+  min-width: 0;
+}
+
+#viewDuoFinder .dp-footer-actions > div {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#viewDuoFinder .dp-footer-actions > div > span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 640px) {
+  #viewDuoFinder .dp-footer-actions {
+    gap: 6px !important;
+  }
+  #viewDuoFinder .btn-host-room-join {
+    flex: 1.3 !important;
+    min-width: 0 !important;
+    padding: 0 6px !important;
+  }
+  #viewDuoFinder .btn-host-room-title {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  #viewDuoFinder .btn-duo-join {
+    flex: 0.85 !important;
+    min-width: 0 !important;
+    padding: 0 6px !important;
+    font-size: 0.74rem !important;
+  }
+  #viewDuoFinder .btn-view-profile {
+    flex: 0.55 !important;
+    min-width: 0 !important;
+    padding: 0 5px !important;
+    font-size: 0.74rem !important;
+  }
+  #viewDuoFinder .btn-toggle-duo-cap {
+    flex: 0.55 !important;
+    min-width: 0 !important;
+    padding: 0 5px !important;
+    font-size: 0.74rem !important;
+  }
+}
+
+/* 휴대폰: 구인 카드 배지가 글자 단위로 꺾이던 문제 → 배지는 한 줄, 줄 전체가 접힘 */
+#viewDuoFinder .dp-positions-bar { flex-wrap: wrap !important; row-gap: 6px; }
+#viewDuoFinder .dp-positions-bar > *, #viewDuoFinder .dp-pos-badge, #viewDuoFinder .host-room-status-badge, #viewDuoFinder .dp-time { white-space: nowrap !important; flex-shrink: 0; }
+#viewDuoFinder .host-room-status-badge { margin-left: 0 !important; }

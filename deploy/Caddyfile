@@ -1,0 +1,6 @@
+# Caddy: HTTPS 인증서를 자동으로 받아 오고, 들어온 요청을 사이트(127.0.0.1:3000)로 넘긴다.
+# YOUR_DOMAIN 을 실제 주소로 바꿔서 /etc/caddy/Caddyfile 에 넣는다 (예: jangin.duckdns.org).
+YOUR_DOMAIN {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

@@ -1,0 +1,2746 @@
+/* ==============================================================================
+   🌟 14.20 Level 1~18 Skill Sequence Chips & Situational Items
+============================================================================== */
+.champ-v2-level-seq-wrap {
+  background: #0B1120;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+[data-theme="light"] .champ-v2-level-seq-wrap {
+  background: #F1F5F9;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.champ-v2-level-seq-header {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #E2E8F0;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+[data-theme="light"] .champ-v2-level-seq-header {
+  color: #1E293B;
+}
+
+.v2-seq-hint {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.v2-level-sequence-chips {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(0, 1fr));
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+@media (max-width: 768px) {
+  .v2-level-sequence-chips {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 4px;
+  }
+}
+
+.v2-lvl-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 6px;
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  cursor: default;
+}
+
+.v2-lvl-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.v2-lvl-chip .v2-lvl-num {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94A3B8;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.v2-lvl-chip .v2-lvl-key {
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #FFFFFF;
+}
+
+.v2-lvl-chip.chip-q {
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(37, 99, 235, 0.5);
+}
+.v2-lvl-chip.chip-q .v2-lvl-key {
+  color: #60A5FA;
+}
+
+.v2-lvl-chip.chip-w {
+  background: rgba(5, 150, 105, 0.18);
+  border-color: rgba(5, 150, 105, 0.5);
+}
+.v2-lvl-chip.chip-w .v2-lvl-key {
+  color: #34D399;
+}
+
+.v2-lvl-chip.chip-e {
+  background: rgba(217, 119, 6, 0.18);
+  border-color: rgba(217, 119, 6, 0.5);
+}
+.v2-lvl-chip.chip-e .v2-lvl-key {
+  color: #FBBF24;
+}
+
+.v2-lvl-chip.chip-r {
+  background: rgba(219, 39, 119, 0.22);
+  border-color: rgba(219, 39, 119, 0.65);
+}
+.v2-lvl-chip.chip-r .v2-lvl-key {
+  color: #F472B6;
+}
+
+.v2-lvl-chip.chip-r-ultimate {
+  background: linear-gradient(135deg, rgba(219, 39, 119, 0.35), rgba(147, 51, 234, 0.35));
+  border-color: #EC4899;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.35);
+}
+.v2-lvl-chip.chip-r-ultimate .v2-lvl-key {
+  color: #FDF2F8;
+  text-shadow: 0 0 6px rgba(244, 114, 182, 0.8);
+}
+
+/* 4대 상황별 아이템 그리드 (방관, 대AP, 치감, 생존) */
+.champ-v2-sit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .champ-v2-sit-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .champ-v2-sit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.champ-v2-sit-col {
+  background: #0B1120;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-theme="light"] .champ-v2-sit-col {
+  background: #F8FAFC;
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.champ-v2-sit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.champ-v2-sit-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.champ-v2-sit-header-left i {
+  font-size: 1rem;
+}
+
+.champ-v2-sit-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #F1F5F9;
+  line-height: 1.2;
+}
+
+[data-theme="light"] .champ-v2-sit-title {
+  color: #0F172A;
+}
+
+.champ-v2-sit-subtitle {
+  font-size: 0.68rem;
+  color: #94A3B8;
+  margin-top: 1px;
+}
+
+.champ-v2-sit-count-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.champ-v2-sit-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.champ-v2-sit-item-card {
+  background: #111C33;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+[data-theme="light"] .champ-v2-sit-item-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.champ-v2-sit-item-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.champ-v2-sit-item-card.is-rec {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, #111C33 100%);
+}
+
+[data-theme="light"] .champ-v2-sit-item-card.is-rec {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, #FFFFFF 100%);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.champ-v2-sit-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.champ-v2-sit-thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.champ-v2-sit-thumb-wrap .v2-item-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: block;
+}
+
+.champ-v2-sit-rec-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #F59E0B;
+  color: #0F172A;
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.champ-v2-sit-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.champ-v2-sit-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.champ-v2-sit-item-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="light"] .champ-v2-sit-item-name {
+  color: #0F172A;
+}
+
+.champ-v2-sit-item-gold {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #F59E0B;
+  white-space: nowrap;
+}
+
+.champ-v2-sit-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+}
+
+.champ-v2-sit-desc {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+  font-size: 0.7rem;
+  color: #CBD5E1;
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+[data-theme="light"] .champ-v2-sit-desc {
+  color: #475569;
+  border-top-color: #E2E8F0;
+}
+
+.champ-v2-sit-desc i {
+  margin-top: 2px;
+  flex-shrink: 0;
+  font-size: 0.68rem;
+}
+
+/* Modal Situational Items Styling */
+.modal-situational-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .modal-situational-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .modal-situational-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-sit-col {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.modal-sit-col-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-sit-col-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-sit-item-card {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: transform 0.15s ease;
+}
+
+.modal-sit-item-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.modal-sit-item-card.is-rec {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.modal-sit-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.modal-sit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-sit-name-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.modal-sit-name {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-sit-cost {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #F59E0B;
+  flex-shrink: 0;
+}
+
+.modal-sit-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.modal-sit-win {
+  color: #10B981;
+  font-weight: 700;
+}
+
+.modal-sit-pick {
+  color: #60A5FA;
+}
+
+.modal-sit-guide {
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+  line-height: 1.25;
+}
+
+
+
+
+/* ==========================================================================
+   [Session 7] Tier Distribution & LP Heatmap Visualizer Engine Styles
+   ========================================================================== */
+.td-section-card {
+  background: var(--bg-card, #1E232A);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: visible;
+}
+
+.td-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.td-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.td-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+}
+
+.td-view-switch {
+  display: none !important; /* Hide redundant switch button for cleaner SaaS look */
+}
+
+.td-switch-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94A3B8);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.td-switch-btn:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.td-switch-btn.active {
+  background: #3B82F6;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* KPI Grid */
+.td-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.td-kpi-box {
+  background: var(--bg-card-sub, rgba(15, 23, 42, 0.45));
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.td-kpi-box.td-kpi-highlight {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.td-kpi-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.td-kpi-val {
+  font-size: 0.98rem;
+  color: var(--text-heading);
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.td-kpi-highlight .td-kpi-val {
+  color: #F87171;
+}
+
+/* Chart Wrapper - Sleek, calm, high-contrast OP.GG style */
+.td-chart-wrapper {
+  background: var(--bg-surface, rgba(11, 15, 22, 0.5));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.9rem 1.15rem;
+  position: relative;
+}
+
+/* Hide distracting rainbow heat pills and chaotic 27 bars */
+.td-chart-legend {
+  display: none !important;
+}
+
+/* Continuous Spectrum Bar - Clean Minimalist Tier Proportion */
+.td-spectrum-bar {
+  display: flex;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.td-spectrum-seg {
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  position: relative;
+}
+
+.td-spectrum-seg:hover {
+  transform: scaleY(1.18);
+  filter: brightness(1.25);
+  z-index: 5;
+}
+
+/* Histogram 27 Bars Grid - Hidden to remove visual clutter per user request */
+.td-bars-grid {
+  display: none !important;
+}
+
+/* Light Mode Overrides for Leaderboard Tier Distribution */
+[data-theme="light"] .td-section-card {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .td-kpi-box {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+[data-theme="light"] .td-kpi-label {
+  color: #64748B;
+}
+[data-theme="light"] .td-kpi-val {
+  color: #0F172A;
+}
+[data-theme="light"] .td-kpi-highlight {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+}
+[data-theme="light"] .td-kpi-highlight .td-kpi-val {
+  color: #DC2626;
+}
+[data-theme="light"] .td-chart-wrapper {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+[data-theme="light"] .td-title {
+  color: #0F172A;
+}
+[data-theme="light"] .td-subtitle {
+  color: #64748B;
+}
+
+.td-bar-col:hover .td-bar-fill {
+  filter: brightness(1.35);
+  transform: scaleY(1.04);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.td-bar-lbl {
+  font-size: 0.65rem;
+  color: var(--text-muted, #94A3B8);
+  font-weight: 700;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+/* 10 Group Cards */
+.td-group-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.td-group-card {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.td-group-card:hover {
+  border-color: rgba(96, 165, 250, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+.td-gc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.td-gc-tier {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.td-gc-badge {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.td-gc-count {
+  font-size: 0.82rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.td-gc-pct {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+/* Floating Tooltip */
+.td-floating-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 260px;
+  max-width: 320px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+  transform: translate(-50%, -105%);
+  transition: opacity 0.12s ease;
+}
+
+.td-tip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.td-tip-badge {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #fff;
+}
+
+.td-tip-heat-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.td-tip-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  margin-bottom: 8px;
+}
+
+.td-tip-stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.td-tip-k {
+  color: var(--text-muted, #94A3B8);
+}
+
+.td-tip-v {
+  font-weight: 700;
+  color: #fff;
+}
+
+.td-tip-hotspots-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #FBBF24;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.td-tip-hotspots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.td-hotspot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.68rem;
+  padding: 2px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+
+.td-hotspot-range {
+  font-weight: 700;
+  color: #E2E8F0;
+}
+
+.td-hotspot-pct {
+  font-weight: 800;
+}
+
+
+/* ==========================================================================
+   실시간 관전 30초 자동 새로고침 & LIVE 네온 펄스 애니메이션 (ORD-2026-1019-DES-SPEC 4.1 / 5.1)
+   ========================================================================== */
+.spec-autorefresh-toggle {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-live-bg-active, rgba(16, 185, 129, 0.12)) !important;
+  border: 1px solid var(--color-live-border-active, rgba(16, 185, 129, 0.4)) !important;
+  color: var(--color-live-emerald, #10B981) !important;
+  padding: 6px 14px !important;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  user-select: none;
+}
+
+.spec-autorefresh-toggle:hover {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: var(--color-live-emerald, #10B981) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.spec-autorefresh-toggle:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.spec-autorefresh-toggle.paused {
+  background: var(--color-paused-bg, rgba(148, 163, 184, 0.1)) !important;
+  border-color: var(--color-paused-border, rgba(148, 163, 184, 0.25)) !important;
+  color: var(--color-paused-slate, #94A3B8) !important;
+  box-shadow: none !important;
+}
+
+.spec-autorefresh-toggle.paused:hover {
+  background: rgba(148, 163, 184, 0.18) !important;
+  border-color: var(--color-paused-slate, #94A3B8) !important;
+}
+
+.spec-live-neon-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-live-emerald, #10B981);
+  display: inline-block;
+  box-shadow: 0 0 8px var(--color-live-emerald, #10B981);
+  animation: specLivePulse 1.6s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+.spec-autorefresh-toggle.paused .spec-live-neon-dot {
+  background: var(--color-paused-dim, #64748B);
+  box-shadow: none;
+  animation: none;
+}
+
+/* 4단계 정밀 키프레임 에메랄드 네온 펄스 애니메이션 (Design Spec 5.1) */
+@keyframes specLivePulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 12px 3px rgba(16, 185, 129, 0.85);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.0);
+    box-shadow: 0 0 16px 6px rgba(16, 185, 129, 0.2);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    opacity: 0.9;
+  }
+}
+
+.spec-autorefresh-text {
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+.spec-countdown-badge {
+  background: rgba(0, 0, 0, 0.38);
+  color: #E2E8F0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  letter-spacing: -0.2px;
+  min-width: 28px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   소환사 전적 최근 20게임 KDA 변동 트렌드 & 모스트 챔피언 승률 차트 대시보드
+   (ORD-2026-1019-DES-SPEC 4.2 / 4.3 / 5.2)
+   ========================================================================== */
+.opgg-kda-trend-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg-card-sub, #1A2234);
+  border: 1px solid var(--border-color, #2D3748);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+@media (max-width: 992px) {
+  .opgg-kda-trend-dashboard {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+.kda-trend-graph-card,
+.most-champ-chart-card {
+  background: var(--bg-card, #151922);
+  border: 1px solid var(--border-color, #273142);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color, #273142);
+  padding-bottom: 0.6rem;
+}
+
+.trend-card-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-heading, #FFFFFF);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trend-card-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+  font-weight: 600;
+}
+
+.kda-svg-wrapper {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.kda-svg-chart {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* SVG Line Drawing & Area Fade-in Animations (Design Spec 5.2) */
+.kda-svg-chart polyline {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: kdaLineDraw 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes kdaLineDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.kda-svg-chart polygon {
+  opacity: 0;
+  animation: kdaAreaFade 0.7s ease-out 0.4s forwards;
+}
+
+@keyframes kdaAreaFade {
+  to {
+    opacity: 1;
+  }
+}
+
+.kda-point-dot {
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), r 0.2s ease, stroke-width 0.2s ease;
+  transform-origin: center;
+}
+
+.kda-point-dot:hover {
+  r: 7;
+  stroke: #FFFFFF;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+}
+
+.kda-chart-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.65rem;
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+.kda-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kda-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.kda-legend-dot.win { background: #3B82F6; }
+.kda-legend-dot.loss { background: #EF4444; }
+.kda-legend-dot.avg { background: #F59E0B; }
+
+/* 모스트 챔피언 승률 & KDA 비주얼 차트 카드 (Design Spec 4.3) */
+.most-champ-chart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.mcc-bar-row,
+.mcc-champ-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 65px 60px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.mcc-bar-row:hover,
+.mcc-champ-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mcc-champ-brief,
+.mcc-champ-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.mcc-brief-img,
+.mcc-champ-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mcc-brief-name,
+.mcc-champ-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-heading, #FFFFFF);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcc-bar-track-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mcc-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-loss-red-bg, rgba(239, 68, 68, 0.25));
+  overflow: hidden;
+  position: relative;
+  margin: 2px 0;
+}
+
+.mcc-bar-fill-win {
+  height: 100%;
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(90deg, #2563EB, #38BDF8);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mcc-bar-meta-text,
+.mcc-champ-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted, #94A3B8);
+  display: flex;
+  justify-content: space-between;
+}
+
+.mcc-wr-badge,
+.mcc-winrate-badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: right;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.mcc-winrate-badge.winrate-high,
+.mcc-wr-badge.winrate-high {
+  color: var(--color-live-emerald, #10B981);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.mcc-winrate-badge.winrate-low,
+.mcc-wr-badge.winrate-low {
+  color: var(--color-loss-red, #EF4444);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.mcc-winrate-badge.winrate-mid,
+.mcc-wr-badge.winrate-mid {
+  color: var(--color-win-blue, #3B82F6);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.mcc-kda-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-align: right;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* 절전 모드 및 브라우저 탭 비활성화 시 애니메이션 일시정지 (Design Spec 5.3) */
+body.tab-hidden .spec-live-neon-dot,
+body.tab-hidden .kda-svg-chart polyline,
+body.tab-hidden .kda-svg-chart polygon {
+  animation-play-state: paused !important;
+}
+
+/* ==============================================================================
+   🔥 24H Live Sync Indicator & Home Trending Top 10 Showcase
+============================================================================== */
+.sync-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #10B981;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sync-live-indicator:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #10B981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.sync-live-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+  animation: syncPulseDot 1.8s infinite;
+}
+
+@keyframes syncPulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.home-trending-section {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  background: var(--bg-card, #0F172A);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.home-trending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  margin-bottom: 1rem;
+}
+
+.home-trending-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-trending-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  box-shadow: 0 0 10px #EF4444;
+  animation: syncPulseDot 1.6s infinite;
+}
+
+.home-trending-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main, #F1F5F9);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-trending-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-trending-badge-live {
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.home-trending-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+.home-trending-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+}
+
+.home-trending-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-trending-card:hover {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.htc-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.htc-rank-badge {
+  font-size: 0.85rem;
+  font-weight: 900;
+  min-width: 24px;
+  text-align: center;
+  color: var(--text-muted, #94A3B8);
+}
+
+.htc-rank-badge.rank-1 { color: #F59E0B; text-shadow: 0 0 6px rgba(245, 158, 11, 0.5); }
+.htc-rank-badge.rank-2 { color: #CBD5E1; text-shadow: 0 0 6px rgba(203, 213, 225, 0.5); }
+.htc-rank-badge.rank-3 { color: #B45309; text-shadow: 0 0 6px rgba(180, 83, 9, 0.5); }
+
+.htc-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.htc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: block;
+}
+
+.htc-tier-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card, #0F172A);
+  background: #00F5D4;
+}
+
+.htc-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.htc-name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.htc-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main, #F1F5F9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.htc-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+.htc-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted, #94A3B8);
+  margin-top: 2px;
+}
+
+.htc-tier-text {
+  font-weight: 700;
+  color: #00F5D4;
+}
+
+.htc-lp-text {
+  color: var(--text-main, #F1F5F9);
+  font-weight: 600;
+}
+
+.htc-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.htc-champs-row {
+  display: flex;
+  gap: 3px;
+}
+
+.htc-mini-champ {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.htc-winrate {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #10B981;
+}
+
+.home-trending-loading {
+  grid-column: 1 / -1;
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--text-muted, #94A3B8);
+  font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   ORD-2026-1019-DES-ERROR-REMEDIATION-SPEC: Hextech Dark & 60 FPS Animations
+   ========================================================================== */
+
+/* 1. 활성 노드 및 라이브 인게임 펄스 글로우 */
+@keyframes hextechPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6);
+    border-color: rgba(14, 165, 233, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px rgba(14, 165, 233, 0.3);
+    border-color: rgba(56, 189, 248, 1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+    border-color: rgba(14, 165, 233, 0.8);
+  }
+}
+
+/* 2. 스켈레톤 로딩 쉬머 광택 */
+@keyframes shimmerSkeleton {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(28, 42, 66, 0.6) 25%,
+    rgba(56, 189, 248, 0.15) 50%,
+    rgba(28, 42, 66, 0.6) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSkeleton 1.8s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+/* 3. 토스트 슬라이드 인/아웃 */
+@keyframes toastSlideIn {
+  from {
+    transform: translate3d(100%, 0, 0) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(100%, 0, 0) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* 4. 아코디언 매치 카드 확장 */
+.match-accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.match-accordion-content.expanded {
+  grid-template-rows: 1fr;
+}
+
+.match-accordion-inner {
+  overflow: hidden;
+}
+
+/* 5. 버튼 햅틱 클릭 인터랙션 */
+.btn-hextech {
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 150ms ease,
+              background-color 150ms ease;
+  will-change: transform;
+}
+
+.btn-hextech:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.btn-hextech:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 6. 디스코드 라이브 네온 뱃지 (Duo Finder) */
+.dp-discord-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* 7. 헥스테크 다크 엠프티 스테이트 */
+.hextech-empty-state {
+  border: 1px solid var(--border-color);
+  background: radial-gradient(circle at 50% 20%, rgba(14, 165, 233, 0.08) 0%, var(--bg-card) 70%);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* 8. 토스트 팝업 향상 스타일 (Design Spec 4.6) */
+.toast-warning {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25) !important;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.95rem;
+  margin-left: 8px;
+  transition: color var(--transition-fast);
+}
+
+.toast-close:hover {
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   OPGG 7대 핵심 유저 경험 혁신 & 고대비 디자인 시스템 (ORD-2026-1019-DES-CORE-SPEC-02)
+   ========================================================================== */
+
+/* ── 1. 라이엇 공식 10대 티어 엠블럼 에셋 스타일 (FR-05) ── */
+.tier-emblem-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
+  display: inline-block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  transition: transform 0.15s ease, filter 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tier-emblem-img.sm {
+  width: 30px;
+  height: 30px;
+  margin-right: 6px;
+}
+
+.tier-emblem-img.md {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.tier-emblem-img.lg {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+}
+
+/* 티어별 상징 글로우 (다크모드) */
+[data-theme="dark"] .tier-emblem-img[src*="challenger"] {
+  filter: drop-shadow(0 0 6px rgba(244, 196, 48, 0.55));
+}
+[data-theme="dark"] .tier-emblem-img[src*="grandmaster"] {
+  filter: drop-shadow(0 0 6px rgba(232, 64, 87, 0.55));
+}
+[data-theme="dark"] .tier-emblem-img[src*="master"] {
+  filter: drop-shadow(0 0 6px rgba(157, 78, 221, 0.55));
+}
+[data-theme="dark"] .tier-emblem-img[src*="diamond"] {
+  filter: drop-shadow(0 0 5px rgba(83, 131, 232, 0.5));
+}
+[data-theme="dark"] .tier-emblem-img[src*="emerald"] {
+  filter: drop-shadow(0 0 5px rgba(46, 196, 182, 0.45));
+}
+[data-theme="dark"] .tier-emblem-img[src*="platinum"] {
+  filter: drop-shadow(0 0 5px rgba(72, 202, 228, 0.4));
+}
+[data-theme="dark"] .tier-emblem-img[src*="gold"] {
+  filter: drop-shadow(0 0 4px rgba(244, 162, 97, 0.4));
+}
+[data-theme="dark"] .tier-emblem-img[src*="silver"] {
+  filter: drop-shadow(0 0 4px rgba(168, 218, 220, 0.35));
+}
+[data-theme="dark"] .tier-emblem-img[src*="bronze"] {
+  filter: drop-shadow(0 0 4px rgba(205, 127, 50, 0.35));
+}
+[data-theme="dark"] .tier-emblem-img[src*="iron"] {
+  filter: drop-shadow(0 0 3px rgba(108, 117, 125, 0.3));
+}
+
+/* 화이트모드 선명도 필터 */
+[data-theme="light"] .tier-emblem-img {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
+}
+
+/* ── 2. 듀오 시너지 파트너 카드 그리드 & 보이드 글로우 (FR-01) ── */
+.champ-duo-synergy-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+}
+
+.champ-duo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.champ-duo-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.champ-duo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.champ-duo-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s ease;
+  will-change: transform, box-shadow;
+  cursor: pointer;
+  user-select: none;
+}
+
+.champ-duo-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-duo-synergy);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.28);
+}
+
+[data-theme="light"] .champ-duo-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .champ-duo-card:hover {
+  border-color: #9333EA;
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.18);
+}
+
+.champ-duo-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--color-duo-synergy);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.champ-duo-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.champ-duo-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text-heading);
+}
+
+.champ-duo-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.15);
+  color: #C084FC;
+}
+
+[data-theme="light"] .champ-duo-badge {
+  background: rgba(126, 34, 206, 0.1);
+  color: #7E22CE;
+}
+
+.champ-duo-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
+
+.champ-duo-wr {
+  color: #10B981;
+  font-weight: 700;
+}
+
+.champ-duo-bonus {
+  color: #C084FC;
+  font-weight: 800;
+}
+
+[data-theme="light"] .champ-duo-bonus {
+  color: #7E22CE;
+}
+
+/* ── 3. 1:1 맞대결 상성 매치업 다이렉트 뷰 애니메이션 & 게이지 (FR-02) ── */
+@keyframes matchupDirectFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.matchup-result-card.active {
+  animation: matchupDirectFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── 4. 스카이스크래퍼 배너 부드러운 위치 보간 & 거터 밀착 (FR-04) ── */
+.ad-skyscraper-wing {
+  position: fixed;
+  top: 120px;
+  z-index: 100;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, left 0.2s ease, right 0.2s ease;
+  will-change: left, right, opacity;
+}
+
+/* ── 5. 소환사 랭킹 4대 미니멀 KPI 메트릭 카드 덱 (FR-07) ── */
+.td-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 992px) {
+  .td-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .td-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.td-kpi-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.td-kpi-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.td-kpi-box.td-kpi-highlight {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-card) 100%);
+}
+
+.td-kpi-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.td-kpi-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.td-kpi-subtext {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── 6. 화이트 모드 고대비 전면 오버라이드 (FR-03) ── */
+[data-theme="light"] {
+  --text-muted: #475569;
+  --text-dim: #64748B;
+  --border-color: #DCE3ED;
+  --border-subtle: #EEF2F6;
+}
+
+[data-theme="light"] .td-kpi-box {
+  background: #FFFFFF;
+  border: 1px solid #DCE3ED;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .td-kpi-val {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .td-kpi-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .td-kpi-subtext {
+  color: #64748B !important;
+}
+
+/* 화이트 모드 테이블, 카드, 헤더 글자 증발 완전 차단 */
+[data-theme="light"] .leaderboard-table th,
+[data-theme="light"] .masters-table th,
+[data-theme="light"] .tier-list-table th,
+[data-theme="light"] .mu-table th {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-bottom: 2px solid #DCE3ED !important;
+}
+
+[data-theme="light"] .leaderboard-table td,
+[data-theme="light"] .masters-table td,
+[data-theme="light"] .tier-list-table td,
+[data-theme="light"] .mu-table td {
+  color: #1E293B !important;
+  border-bottom: 1px solid #EEF2F6 !important;
+}
+
+[data-theme="light"] .lb-player-name,
+[data-theme="light"] .lb-name,
+[data-theme="light"] .master-name,
+[data-theme="light"] .tl-champ-name,
+[data-theme="light"] .player-card-name,
+[data-theme="light"] .game-name {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .modal-title,
+[data-theme="light"] .card-title,
+[data-theme="light"] .section-title,
+[data-theme="light"] .pn-section-title,
+[data-theme="light"] .masters-page-title,
+[data-theme="light"] .leaderboard-page-title,
+[data-theme="light"] .saas-hero-title,
+[data-theme="light"] .matchup-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .pn-feed-card {
+  background: #FFFFFF !important;
+  border: 1px solid #DCE3ED !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .pn-feed-name {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .pn-feed-desc {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .pn-meta-card {
+  background: #FFFFFF !important;
+  border: 1px solid #DCE3ED !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* ==============================================================================
+   🌟 HIGH-CONTRAST LIGHT & DARK MODE TOTAL HARMONIZATION (ORD-2026-1019-CONTRAST)
+   ============================================================================== */
+
+/* ── 1. 다크 모드 (Black Mode): 심해 캔버스 & 초선명 고대비 화이트/아이보리 ── */
+[data-theme="dark"] body {
+  background-color: #0B0E14 !important;
+  color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .game-name,
+[data-theme="dark"] .lb-name,
+[data-theme="dark"] .master-name,
+[data-theme="dark"] .auto-name,
+[data-theme="dark"] .player-modal-name {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .tag-line,
+[data-theme="dark"] .lb-tag-note,
+[data-theme="dark"] .master-tag,
+[data-theme="dark"] .auto-tag {
+  color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .level-badge,
+[data-theme="dark"] .lb-level-tag,
+[data-theme="dark"] .master-level {
+  background: #11151E !important;
+  color: #CBD5E1 !important;
+  border-color: #273142 !important;
+}
+
+[data-theme="dark"] .player-card,
+[data-theme="dark"] .leaderboard-table-wrapper,
+[data-theme="dark"] .master-row,
+[data-theme="dark"] .champ-v2-card,
+[data-theme="dark"] .modal-card,
+[data-theme="dark"] .td-section-card {
+  background: #131D2E !important;
+  border-color: #273142 !important;
+}
+
+[data-theme="dark"] .td-kpi-box {
+  background: #182235 !important;
+  border-color: #273142 !important;
+}
+
+[data-theme="dark"] .td-kpi-label {
+  color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .td-kpi-val {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .td-kpi-highlight .td-kpi-val {
+  color: #F59E0B !important;
+}
+
+/* ── 2. 화이트 모드 (Light Mode): 눈부심 없는 프리미엄 슬레이트 & 딥블랙 ── */
+[data-theme="light"] body {
+  background-color: #F3F5F9 !important;
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .game-name,
+[data-theme="light"] .lb-name,
+[data-theme="light"] .master-name,
+[data-theme="light"] .auto-name,
+[data-theme="light"] .player-modal-name,
+[data-theme="light"] .sfc-title,
+[data-theme="light"] .champ-v2-sit-title,
+[data-theme="light"] .champ-v2-sit-item-name,
+[data-theme="light"] .champ-duo-title,
+[data-theme="light"] .master-winrate-text,
+[data-theme="light"] .master-kda-score,
+[data-theme="light"] .pn-section-title,
+[data-theme="light"] .td-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .tag-line,
+[data-theme="light"] .lb-tag-note,
+[data-theme="light"] .master-tag,
+[data-theme="light"] .auto-tag,
+[data-theme="light"] .sfc-desc,
+[data-theme="light"] .queue-type-badge,
+[data-theme="light"] .lb-record-sub,
+[data-theme="light"] .master-record-text,
+[data-theme="light"] .record-text,
+[data-theme="light"] .td-subtitle,
+[data-theme="light"] .td-kpi-label,
+[data-theme="light"] .champ-v2-sit-subtitle,
+[data-theme="light"] .champ-v2-sit-desc {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .level-badge,
+[data-theme="light"] .lb-level-tag,
+[data-theme="light"] .master-level {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .player-card,
+[data-theme="light"] .leaderboard-table-wrapper,
+[data-theme="light"] .master-row,
+[data-theme="light"] .champ-v2-card,
+[data-theme="light"] .champ-duo-card,
+[data-theme="light"] .modal-card,
+[data-theme="light"] .td-section-card,
+[data-theme="light"] .saas-feature-card,
+[data-theme="light"] .matchup-selector-card,
+[data-theme="light"] .matchup-result-card,
+[data-theme="light"] .champ-v2-hero-card {
+  background: #FFFFFF !important;
+  border-color: #DCE3ED !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .leaderboard-table-header,
+[data-theme="light"] .champ-sidebar-header {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .td-kpi-box {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .td-kpi-val {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .td-kpi-highlight {
+  background: #FFFBEB !important;
+  border-color: #FDE68A !important;
+}
+
+[data-theme="light"] .td-kpi-highlight .td-kpi-val {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .search-input {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .search-input::placeholder {
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .saas-chip {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .saas-chip:hover {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .pn-version-tab {
+  background: #F1F5F9 !important;
+  color: #334155 !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] .pn-version-tab.active {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #2563EB !important;
+}
+
+[data-theme="light"] .pn-header-banner {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .pn-tag-pill {
+  background: rgba(15, 23, 42, 0.04) !important;
+}
+
+/* ── 3. 미니멀 티어 분포 스펙트럼 바 & 엠블럼 스타일 ── */
+.td-minimal-chart {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--bg-card-sub, rgba(0, 0, 0, 0.2));
+  border: 1px solid var(--border-color);
+}
+
+.td-spectrum-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.td-spectrum-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.td-spectrum-hint {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+
+.td-spectrum-bar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  background: var(--bg-surface, #1e293b);
+  border: 1px solid var(--border-color);
+}
+
+.td-spectrum-seg {
+  height: 100%;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.td-spectrum-seg:hover {
+  transform: scaleY(1.3);
+  z-index: 5;
+  filter: brightness(1.2);
+}
+
+/* Authentic Riot Ranked Tier Emblem Styling - Standardized 36~44px 규격화 */
+.tier-emblem-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  vertical-align: middle;
+  display: inline-block;
+  margin-right: 8px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  flex-shrink: 0;
+}
+
+.tier-emblem-img.sm {
+  width: 30px;
+  height: 30px;
+  margin-right: 6px;
+}
+
+.tier-emblem-img.md {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.tier-emblem-img.lg {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+}
+
+.tier-emblem-img.xl {
+  width: 72px;
+  height: 72px;
+}
+
+/* ==============================================================================
+   🌟 HIGH-CONTRAST LIGHT & DARK MODE ACCORDION ENHANCEMENTS
+   ============================================================================== */
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .brand-title {
+  color: #F8FAFC !important;
+}
+
+[data-theme="dark"] .navbar-top {
+  background-color: #10141D !important;
+  border-bottom: 1px solid #1E293B !important;
+}
+
+[data-theme="dark"] .navbar-bottom {
+  background-color: #161D29 !important;
+  border-bottom: 1px solid #1E293B !important;
+}
+
+[data-theme="dark"] .nav-tab {
+  color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .nav-tab:hover {
+  color: #F8FAFC !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="dark"] .nav-tab.active {
+  color: #FFFFFF !important;
+  background: #2563EB !important;
+}
+
+[data-theme="dark"] .btn-nav-action,
+[data-theme="dark"] .btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #F1F5F9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .matchup-title,
+[data-theme="dark"] .mu-champ-name,
+[data-theme="dark"] .champ-ov-name,
+[data-theme="dark"] .mu-counter-target-name,
+[data-theme="dark"] .champ-v2-name,
+[data-theme="dark"] .champ-v2-card-title,
+[data-theme="dark"] .v2-item-name,
+[data-theme="dark"] .champ-duo-name span,
+[data-theme="dark"] .leaderboard-page-title,
+[data-theme="dark"] .masters-page-title,
+[data-theme="dark"] .td-title,
+[data-theme="dark"] .td-spectrum-title {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .matchup-label {
+  color: #CBD5E1 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .matchup-champ-input {
+  background: #131D2E !important;
+  color: #F8FAFC !important;
+  border: 1px solid #273142 !important;
+}
+
+[data-theme="dark"] .mu-champ-title {
+  color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .mu-bar-center-title {
+  color: #F8FAFC !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .mu-bar-subtext-row span {
+  color: #94A3B8 !important;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .brand-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .navbar-top {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .navbar-bottom {
+  background-color: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .nav-tab {
+  color: #1E293B !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .nav-tab:hover {
+  color: #0F172A !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .nav-tab.active {
+  color: #FFFFFF !important;
+  background: #2563EB !important;
+}
+
+[data-theme="light"] .btn-nav-action,
+[data-theme="light"] .btn-theme-toggle {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .matchup-title,
+[data-theme="light"] .mu-champ-name,
+[data-theme="light"] .champ-ov-name,
+[data-theme="light"] .mu-counter-target-name,
+[data-theme="light"] .champ-v2-name,
+[data-theme="light"] .champ-v2-card-title,
+[data-theme="light"] .v2-item-name,
+[data-theme="light"] .champ-duo-name span,
+[data-theme="light"] .leaderboard-page-title,
+[data-theme="light"] .masters-page-title,
+[data-theme="light"] .td-title,
+[data-theme="light"] .td-spectrum-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .matchup-label {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .matchup-champ-input {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1.5px solid #CBD5E1 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .matchup-champ-input::placeholder {
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .mu-champ-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .mu-bar-center-title {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .mu-bar-subtext-row span {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .matchup-selector-card,
+[data-theme="light"] .mu-comparison-bars-card,
+[data-theme="light"] .mu-timeline-card,
+[data-theme="light"] .champ-overview-header-card,
+[data-theme="light"] .mu-counter-box {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .leaderboard-table-header,
+[data-theme="light"] .masters-table-header {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  border-bottom: 2px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] .lb-lp-text,
+[data-theme="light"] .master-lp-text {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .td-spectrum-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .td-spectrum-hint {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .td-kpi-subtext {
+  color: #64748B !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .td-kpi-box {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .td-kpi-val {
+  color: #0F172A !important;
+  font-weight: 900 !important;
+}
+
+/* ==============================================================================
+   👑 CHAMPION MASTERS SHOWCASE SECTION (CHAMPION SEARCH BOTTOM)
+   - Gamer standard grid: [Rank - Avatar/Level - Name#Tag - Tier Emblem - Score/LP/Winrate]
+   - 100% Contrast Parity for Dark and Light Modes
+   ============================================================================== */
+.champ-masters-showcase-section {
+  margin-top: 2rem;
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.5rem;
+  transition: all 0.25s ease;
+}
+
+.champ-masters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+}
+
+.champ-masters-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.champ-masters-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.champ-masters-badge-live {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.champ-masters-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.champ-master-horizontal-row {
+  display: grid;
+  grid-template-columns: 48px 52px 1fr 60px 140px;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.champ-master-horizontal-row:hover {
+  transform: translateY(-2px);
+}
+
+.champ-master-rank-col {
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.champ-master-rank-col.top-1 {
+  color: #F59E0B;
+}
+
+.champ-master-rank-col.top-2 {
+  color: #94A3B8;
+}
+
+.champ-master-rank-col.top-3 {
+  color: #D97706;
+}
+
+.champ-master-avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.champ-master-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.champ-master-level-tag {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #0F172A;
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.champ-master-name-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 10px;
+  overflow: hidden;
+}
+
+.champ-master-game-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.champ-master-tag-line {
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.champ-master-tier-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.champ-master-score-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: right;
+}
+
+.champ-master-lp-val {
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.champ-master-record-val {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* 홈 챌린저 TOP 10: 프로필 아이콘이 없어 아이콘 대신 순위·티어 엠블럼·승률 막대로 보여주는 간결한 목록 */
+.home-trending-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+}
+
+.home-trending-card {
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  min-height: 0;
+}
+
+.htc-rank {
+  flex: 0 0 26px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text-muted, #94A3B8);
+  font-variant-numeric: tabular-nums;
+}
+
+.htc-rank.top-1 { color: #F59E0B; }
+.htc-rank.top-2 { color: #CBD5E1; }
+.htc-rank.top-3 { color: #D97706; }
+
+.htc-emblem {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.htc-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.htc-name-line {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+}
+
+.htc-name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main, #F1F5F9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.htc-tag {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+.htc-sub-line {
+  margin-top: 2px;
+  font-size: 0.76rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+.htc-sub-line b {
+  color: var(--text-main, #F1F5F9);
+  font-weight: 700;
+}
+
+.htc-wr {
+  flex: 0 0 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.htc-wr-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.htc-wr-val {
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.htc-record {
+  font-size: 0.7rem;
+  color: var(--text-muted, #94A3B8);
+  white-space: nowrap;
+}
+
+.htc-wr-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+}
+
+.htc-wr-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+@media (max-width: 640px) {
+  .home-trending-section { padding: 1rem 0.75rem; }
+  .home-trending-grid { grid-template-columns: 1fr; }
+  .home-trending-card { gap: 10px; padding: 9px 10px; }
+  .htc-emblem { flex-basis: 28px; width: 28px; height: 28px; }
+  .htc-wr { flex-basis: 72px; gap: 3px; }
+  .htc-wr-top { flex-direction: column; align-items: flex-end; gap: 0; }
+}
+

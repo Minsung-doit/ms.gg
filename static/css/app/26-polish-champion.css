@@ -1,0 +1,618 @@
+/* ==========================================================================
+   26-polish-champion.css — 다듬기 작업 D 전용 스타일 시트
+   (챔피언 페이지 · 1:1 매치업 · 멀티서치 · 인게임 관전 가시성 최적화)
+   ========================================================================== */
+
+/* 1. 1:1 매치업 입력칸 이중 테두리 제거 */
+[data-theme="dark"] .matchup-champ-input,
+[data-theme="light"] .matchup-champ-input,
+.matchup-pick-slot .matchup-champ-input,
+#matchupChamp1Input,
+#matchupChamp2Input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+/* 2. 모바일(390px) 챔피언 이름 잘림 방지 (피..., 애..., 탈... -> 세로 1열 전체 너비 확보) */
+@media (max-width: 640px) {
+  .cp-mu-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .cp-mu-row {
+    padding: 6px 4px !important;
+    gap: 8px !important;
+  }
+  .cp-mu-name {
+    font-size: 0.85rem !important;
+  }
+  .cp-mu-wr {
+    font-size: 0.82rem !important;
+    min-width: 44px !important;
+    font-variant-numeric: tabular-nums;
+  }
+  .cp-mu-games {
+    font-size: 0.72rem !important;
+    min-width: 36px !important;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* 3. 집단지성 카운터 보드 & 멀티서치 라이트 테마 가독성 & 명도 대비(WCAG) 개선 */
+[data-theme="light"] #btnShareDiscordMulti {
+  background: #EEF2FF !important;
+  border-color: #C7D2FE !important;
+  color: #4F46E5 !important;
+}
+
+[data-theme="light"] .community-board-section {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-quick-filter-bar {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-filter-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .cb-pos-chip {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .cb-pos-chip:hover {
+  background: #F1F5F9 !important;
+  border-color: #94A3B8 !important;
+}
+
+[data-theme="light"] .cb-pos-chip.active {
+  background: #2563EB !important;
+  border-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="light"] .cb-cat-btn {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .cb-cat-btn:hover {
+  background: #F1F5F9 !important;
+}
+
+[data-theme="light"] .cb-cat-btn.active {
+  background: #2563EB !important;
+  border-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="light"] .cb-tip-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .cb-tip-card:hover {
+  border-color: #93C5FD !important;
+}
+
+[data-theme="light"] .cb-author-name {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .cb-tip-content {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .cb-time-text {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .cb-vote-btn {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #475569 !important;
+}
+
+/* 4. 관전 샘플 배너 화이트/다크 모드 가독성 */
+.spec-sample-banner,
+#specSampleBanner {
+  margin: 0 0 1rem;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #FBBF24;
+}
+
+[data-theme="light"] .spec-sample-banner,
+[data-theme="light"] #specSampleBanner {
+  background: #FEF3C7 !important;
+  border-color: #FCD34D !important;
+  color: #92400E !important;
+}
+
+/* 5. 관전 모바일 헤더 간결화 (4개 버튼 화면 과점 방지) */
+@media (max-width: 640px) {
+  .spec-dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px !important;
+  }
+  .spec-header-left {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .spec-header-right {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .spec-header-right .spec-dropdown-wrap {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+  }
+  .spec-header-right .spec-dropdown-wrap .spec-btn-control {
+    width: 100% !important;
+  }
+  .spec-header-right #btnRefreshSpecFeed {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    padding: 0 !important;
+  }
+  .spec-header-right #btnToggleSpecAutoRefresh {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .spec-sample-banner,
+  #specSampleBanner {
+    padding: 6px 10px !important;
+    font-size: 0.76rem !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+/* 6. 숫자 정렬 및 가독성 (고정폭 tabular-nums) */
+.cp-stat,
+.cp-mu-wr,
+.cp-mu-games,
+.cp-syn-num,
+.cp-item-cell span,
+.matchup-stat-val,
+.matchup-h2h-wr,
+.matchup-h2h-games,
+.ms-champ-stats,
+.ms-champ-wr,
+.ms-champ-games,
+.ms-record-wl,
+.ms-record-wr,
+.spec-elapsed-timer,
+.spec-time-badge,
+.spec-countdown-badge,
+.spec-team-avg-wr,
+.spec-champ-lvl,
+.cd-value-text,
+.cd-level-label,
+.cd-mana-cost-sub {
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-mu-wr,
+.cp-mu-games,
+.ms-champ-wr,
+.ms-champ-games,
+.ms-record-wr {
+  text-align: right;
+}
+
+/* 7. 상성 표 승률·게임 수 열 너비 고정 (데스크톱/태블릿/모바일 수직 일자 정렬) */
+.cp-mu-wr {
+  width: 52px !important;
+  min-width: 52px !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
+}
+
+.cp-mu-games {
+  width: 38px !important;
+  min-width: 38px !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
+}
+
+.ms-champ-wr {
+  min-width: 44px !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
+}
+
+.ms-champ-games {
+  min-width: 26px !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
+}
+
+/* 8. 0.68rem 미만 글자 크기 상향 및 시인성 보정 (가독성 기준 충족) */
+.cp-tier-chip {
+  font-size: 0.7rem !important;
+  line-height: 1.35 !important;
+  padding: 1px 4px !important;
+}
+
+.cp-sep {
+  font-size: 0.68rem !important;
+}
+
+.cp-skill .cp-icon + .cp-skill-key {
+  font-size: 0.68rem !important;
+  min-width: 16px !important;
+  height: 16px !important;
+}
+
+.cp-cols span {
+  font-size: 0.72rem !important;
+}
+
+.cp-mu-games {
+  font-size: 0.72rem !important;
+}
+
+.ms-level-badge {
+  font-size: 0.68rem !important;
+  padding: 1px 4px !important;
+  line-height: 1.1 !important;
+}
+
+.ms-streak-badge {
+  font-size: 0.7rem !important;
+  padding: 1px 5px !important;
+}
+
+.ms-champ-games {
+  font-size: 0.72rem !important;
+}
+
+.spec-bans-sep {
+  font-size: 0.68rem !important;
+}
+
+.spec-champ-lvl {
+  font-size: 0.68rem !important;
+  min-width: 14px !important;
+  text-align: center !important;
+  line-height: 1.15 !important;
+  padding: 0 2px !important;
+}
+
+.spec-player-tag {
+  font-size: 0.72rem !important;
+}
+
+.spec-h2h-stats {
+  font-size: 0.7rem !important;
+}
+
+/* 9. 1:1 매치업 입력칸 이중 테두리 방지 강화 및 아이콘 영역 일체화 */
+.matchup-champ-preview {
+  border: none !important;
+  background: transparent !important;
+}
+
+.matchup-champ-thumb {
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.matchup-pick-slot .matchup-champ-input,
+.matchup-champ-input:focus,
+#matchupChamp1Input:focus,
+#matchupChamp2Input:focus {
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 10. 화이트 모드([data-theme="light"]) 가시성 & 명도 대비 보정 */
+[data-theme="light"] .cp-tier-chip {
+  background: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .cp-sep {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .cp-sample {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="light"] .cp-icon.cp-shard {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15)) !important;
+}
+
+[data-theme="light"] .cp-lane {
+  opacity: 0.75 !important;
+}
+
+[data-theme="light"] .cp-lane.active {
+  opacity: 1 !important;
+  border-color: var(--primary) !important;
+  background: var(--nav-tab-active-bg) !important;
+}
+
+[data-theme="light"] .ms-player-tag {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="light"] .ms-tier-lp {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .ms-record-row {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .ms-champ-games {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .spec-pos-img {
+  opacity: 1 !important;
+  filter: contrast(1.15) brightness(0.95) !important;
+}
+
+[data-theme="light"] .spec-player-tag {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .spec-team-avg-wr {
+  color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .matchup-stat-val.val-winner {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .matchup-stat-val.val-loser {
+  color: #64748B !important;
+}
+
+.cb-empty-state {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="light"] .cb-empty-state {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .cb-btn-write-toggle {
+  background: #2563EB !important;
+  border-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+/* 11. 매치업 탭 '상대 맞춤 빌드' (mvb-*) 승률 우측 정렬 및 일자 정렬 */
+#viewMatchup .mvb-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 0 0 !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+#viewMatchup .mvb-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+#viewMatchup .mvb-multi {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+
+#viewMatchup .mvb-opt {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+#viewMatchup .mvb-opt .mvb-stat,
+#viewMatchup .mvb-stat {
+  margin-left: auto !important;
+  font-variant-numeric: tabular-nums !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  text-align: right !important;
+}
+
+#viewMatchup .mvb-wr {
+  font-variant-numeric: tabular-nums !important;
+  min-width: 48px !important;
+  text-align: right !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+}
+
+#viewMatchup .mvb-games {
+  font-variant-numeric: tabular-nums !important;
+  min-width: 42px !important;
+  text-align: right !important;
+  font-size: 0.72rem !important;
+  color: var(--text-muted) !important;
+}
+
+/* 12. 매치업 입력칸 이중 테두리 완벽 방지 */
+#viewMatchup .matchup-selector-card {
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+#viewMatchup .matchup-pick-slot {
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-input) !important;
+  border-radius: 8px;
+}
+
+#viewMatchup .matchup-pick-slot:focus-within {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+#viewMatchup .matchup-champ-preview {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#viewMatchup .matchup-champ-input,
+#viewMatchup #matchupChamp1Input,
+#viewMatchup #matchupChamp2Input {
+  border: none !important;
+  border-width: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+#viewMatchup .matchup-champ-input:focus,
+#viewMatchup #matchupChamp1Input:focus,
+#viewMatchup #matchupChamp2Input:focus {
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 13. 모바일(390px 이하 / 640px 이하) 하단 네비게이션 가림 방지 */
+@media (max-width: 640px) {
+  #viewMatchup .matchup-container {
+    padding: 12px 10px 90px !important;
+  }
+  #viewMultiSearch .multisearch-container {
+    padding: 12px 10px 90px !important;
+  }
+  #viewSpectator .spec-dashboard-container {
+    padding: 12px 8px 90px !important;
+  }
+  #viewMatchup .cp-mu-games {
+    font-size: 0.72rem !important;
+    min-width: 32px !important;
+  }
+}
+
+/* 14. 화이트 모드([data-theme="light"]) 추가 가시성 & 명도 대비 보정 */
+[data-theme="light"] #viewChampion .cp-note {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewChampion .cp-cols span {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewChampion .cp-stat.cp-muted {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewChampion .cp-mu-games {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewChampion .cp-pc-col .cp-mu-games {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewChampion .cp-pc-lbl {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] #viewMatchup .cp-mu-games {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewMatchup .mvb-games {
+  color: #475569 !important;
+}
+
+[data-theme="light"] #viewMatchup .mvb-label {
+  color: #334155 !important;
+}
+
+[data-theme="light"] #viewMatchup .mvb-total {
+  color: #475569 !important;
+}
+
+/* 15. 인게임 관전 드롭다운 및 모바일 소환사명 잘림 방지 */
+#viewSpectator .spec-dropdown-menu,
+#viewSpectator #specChampDropdown {
+  flex-direction: column !important;
+}
+
+#viewSpectator .spec-champ-search-input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media (max-width: 640px) {
+  #viewSpectator .spec-player-identity {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  #viewSpectator .spec-player-name {
+    max-width: none !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+  }
+  #viewChampion .cp-page {
+    padding-bottom: 90px !important;
+  }
+}
+
+/* 16. 챔피언 페이지 스킬 레벨 그리드 글자 크기 가독성 기준 충족 */
+#viewChampion .cp-sg-lv {
+  font-size: 0.68rem !important;
+}
+#viewChampion .cp-sg-cell {
+  font-size: 0.68rem !important;
+}
+
+
+

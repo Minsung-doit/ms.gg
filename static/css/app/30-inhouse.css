@@ -1,0 +1,851 @@
+/* ==============================================================================
+   30-inhouse.css — 서버 랭킹 내전 팀 짜기 카드 (#srInhouse, 22-inhouse.js)
+   모든 규칙은 #srInhouse 안으로 범위 제한.
+   ============================================================================== */
+
+#srInhouse {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+#srInhouse *,
+#srInhouse *::before,
+#srInhouse *::after {
+  box-sizing: border-box;
+}
+
+/* 카드 기본 컨테이너 */
+#srInhouse .ih-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+[data-theme="light"] #srInhouse .ih-card {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* 상단 헤더 */
+#srInhouse .ih-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+}
+
+#srInhouse .ih-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#srInhouse .ih-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#srInhouse .ih-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+#srInhouse .ih-count-badge strong {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+#srInhouse .ih-count-badge.ih-count-full {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+}
+
+#srInhouse .ih-count-badge.ih-count-full strong {
+  color: #10B981;
+}
+
+/* 섹션 공통 */
+#srInhouse .ih-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#srInhouse .ih-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#srInhouse .ih-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#srInhouse .ih-section-hint {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+#srInhouse .ih-btn-text {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+#srInhouse .ih-btn-text:hover {
+  color: var(--primary);
+}
+
+/* 1. 멤버 칩 목록 */
+#srInhouse .ih-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+#srInhouse .ih-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  max-width: 100%;
+}
+
+#srInhouse .ih-chip:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--bg-card-hover, rgba(79, 128, 226, 0.08));
+}
+
+#srInhouse .ih-chip.ih-selected {
+  border-color: var(--primary);
+  background: rgba(79, 128, 226, 0.15);
+  color: var(--text-heading);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+[data-theme="light"] #srInhouse .ih-chip.ih-selected {
+  background: rgba(59, 114, 222, 0.12);
+}
+
+#srInhouse .ih-chip.ih-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#srInhouse .ih-chip-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+#srInhouse .ih-chip-discord {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-chip-tier {
+  font-size: 0.74rem;
+  color: var(--primary);
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] #srInhouse .ih-chip-tier {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+#srInhouse .ih-loading-members,
+#srInhouse .ih-empty-box,
+#srInhouse .ih-error-notice {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#srInhouse .ih-error-notice {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #EF4444;
+}
+
+/* 2. 직접 추가 폼 */
+#srInhouse .ih-add-form {
+  width: 100%;
+}
+
+#srInhouse .ih-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+#srInhouse .ih-grow {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+#srInhouse .ih-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+#srInhouse .ih-input:focus {
+  border-color: var(--primary);
+}
+
+#srInhouse .ih-select {
+  height: 38px;
+  padding: 0 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+#srInhouse .ih-select:focus {
+  border-color: var(--primary);
+}
+
+#srInhouse .ih-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-btn-primary {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+#srInhouse .ih-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+#srInhouse .ih-btn-secondary {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+#srInhouse .ih-btn-secondary:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* 3. 참가자 명단 */
+#srInhouse .ih-participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+#srInhouse .ih-participant-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+#srInhouse .ih-part-num {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  width: 18px;
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-part-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#srInhouse .ih-part-name {
+  font-size: 0.88rem;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-part-discord {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-part-tier {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+#srInhouse .ih-part-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-select-pos {
+  height: 30px;
+  font-size: 0.8rem;
+  padding: 0 6px;
+}
+
+#srInhouse .ih-btn-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#srInhouse .ih-btn-remove:hover {
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 4. 액션 바 */
+#srInhouse .ih-action-bar {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+#srInhouse .ih-btn-balance {
+  width: 100%;
+  max-width: 320px;
+  height: 44px;
+  font-size: 1rem;
+  border-radius: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+#srInhouse .ih-btn-balance.ih-ready {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 128, 226, 0.35);
+}
+
+#srInhouse .ih-btn-balance.ih-ready:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* 5. 결과 영역 */
+#srInhouse .ih-result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+}
+
+#srInhouse .ih-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#srInhouse .ih-result-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#srInhouse .ih-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+#srInhouse .ih-stat-pill strong {
+  color: var(--text-heading);
+  font-weight: 800;
+}
+
+#srInhouse .ih-stat-warn {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+#srInhouse .ih-stat-warn strong {
+  color: #F59E0B;
+}
+
+#srInhouse .ih-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#srInhouse .ih-copied {
+  background: #10B981 !important;
+  border-color: #10B981 !important;
+  color: #FFFFFF !important;
+}
+
+/* 블루 / 레드 팀 그리드 */
+#srInhouse .ih-teams-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+#srInhouse .ih-team-card {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  background: var(--bg-input);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#srInhouse .ih-team-blue {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), var(--bg-input));
+}
+
+#srInhouse .ih-team-red {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), var(--bg-input));
+}
+
+[data-theme="light"] #srInhouse .ih-team-blue {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), #FFFFFF);
+}
+
+[data-theme="light"] #srInhouse .ih-team-red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), #FFFFFF);
+}
+
+#srInhouse .ih-team-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+#srInhouse .ih-team-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#srInhouse .ih-team-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#srInhouse .ih-dot-blue {
+  background: #3B82F6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+#srInhouse .ih-dot-red {
+  background: #EF4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+#srInhouse .ih-team-avg {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-team-players {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#srInhouse .ih-team-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  min-width: 0;
+}
+
+#srInhouse .ih-player-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+#srInhouse .ih-player-name {
+  font-size: 0.88rem;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-pos-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-pos-badge[data-pos="TOP"] {
+  color: #F97316;
+  border-color: rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+#srInhouse .ih-pos-badge[data-pos="JUNGLE"] {
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+#srInhouse .ih-pos-badge[data-pos="MID"] {
+  color: #A855F7;
+  border-color: rgba(168, 85, 247, 0.35);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+#srInhouse .ih-pos-badge[data-pos="ADC"] {
+  color: #38BDF8;
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+#srInhouse .ih-pos-badge[data-pos="SUPPORT"] {
+  color: #EC4899;
+  border-color: rgba(236, 72, 153, 0.35);
+  background: rgba(236, 72, 153, 0.1);
+}
+
+#srInhouse .ih-player-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-player-tier {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+#srInhouse .ih-badge-estimated {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+}
+
+/* ==============================================================================
+   반응형 미디어쿼리 (640px 이하, 390px 이하)
+   ============================================================================== */
+@media (max-width: 640px) {
+  #srInhouse .ih-card {
+    padding: 14px;
+    gap: 16px;
+  }
+
+  #srInhouse .ih-teams-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #srInhouse .ih-participants-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #srInhouse .ih-add-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #srInhouse .ih-add-row .ih-grow,
+  #srInhouse .ih-add-row .ih-select-wrap,
+  #srInhouse .ih-add-row .ih-select,
+  #srInhouse .ih-add-row .ih-btn {
+    width: 100%;
+  }
+
+  #srInhouse .ih-result-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #srInhouse .ih-result-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 390px) {
+  #srInhouse .ih-card {
+    padding: 12px 10px;
+  }
+
+  #srInhouse .ih-title {
+    font-size: 1.1rem;
+  }
+
+  #srInhouse .ih-participant-card {
+    padding: 6px 8px;
+  }
+
+  #srInhouse .ih-part-name {
+    max-width: 90px;
+  }
+
+  #srInhouse .ih-select-pos {
+    font-size: 0.75rem;
+    padding: 0 4px;
+  }
+
+  #srInhouse .ih-team-player-row {
+    padding: 6px 8px;
+  }
+
+  #srInhouse .ih-player-name {
+    max-width: 100px;
+  }
+
+  #srInhouse .ih-btn-balance {
+    font-size: 0.92rem;
+  }
+}
+
+/* ── 내전 기록: 진행 중 게임 · 승리 버튼 ───────────────────────── */
+#srInhouse .ih-game-action-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#srInhouse .ih-running-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
+#srInhouse .ih-running-badge,
+#srInhouse .ih-recorded-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+  border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-heading);
+}
+#srInhouse .ih-running-badge i { color: #F59E0B; }
+#srInhouse .ih-recorded-badge i { color: #10B981; }
+#srInhouse .ih-btn-win { color: #fff; border: none; font-weight: 700; }
+#srInhouse .ih-btn-win-blue { background: #2563EB; }
+#srInhouse .ih-btn-win-red { background: #DC2626; }
+#srInhouse .ih-btn-win:hover { filter: brightness(1.08); }
+#srInhouse .ih-btn-win:disabled { opacity: 0.6; cursor: default; }
+#srInhouse .ih-header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+#srInhouse .ih-input-wrap { display: flex; flex: 1 1 160px; min-width: 0; }
+
+/* ── 내전 전적 표 ───────────────────────────────────────────── */
+#srInhouse .ih-table-wrap { width: 100%; overflow-x: auto; }
+#srInhouse .ih-stats-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; color: var(--text-main); }
+#srInhouse .ih-stats-table th {
+  text-align: left; padding: 8px 10px; font-size: 0.76rem; font-weight: 600;
+  color: var(--text-muted); border-bottom: 1px solid var(--border-color); white-space: nowrap;
+}
+#srInhouse .ih-stats-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+#srInhouse .ih-stat-tr:last-child td { border-bottom: none; }
+#srInhouse .ih-stat-tr:hover { background: var(--bg-card-hover); }
+#srInhouse .ih-td-rank, #srInhouse .ih-th-rank { width: 44px; text-align: center; }
+#srInhouse .ih-td-name { max-width: 180px; }
+#srInhouse .ih-name-truncate { display: block; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: var(--text-heading); }
+#srInhouse .ih-td-wins { color: #10B981; }
+#srInhouse .ih-td-losses { color: #E84057; }
+#srInhouse .ih-td-rate, #srInhouse .ih-th-rate,
+#srInhouse .ih-td-wins, #srInhouse .ih-th-wins,
+#srInhouse .ih-td-losses, #srInhouse .ih-th-losses { text-align: right; }
+#srInhouse .ih-rank-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 800;
+  background: var(--bg-input); color: var(--text-muted);
+}
+#srInhouse .ih-rank-gold { background: #F59E0B; color: #fff; }
+#srInhouse .ih-rank-silver { background: #94A3B8; color: #fff; }
+#srInhouse .ih-rank-bronze { background: #B45309; color: #fff; }
+
+/* ── 최근 내전 ──────────────────────────────────────────────── */
+#srInhouse .ih-recent-list { display: flex; flex-direction: column; gap: 8px; }
+#srInhouse .ih-recent-card {
+  border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+  background: var(--bg-input); display: flex; flex-direction: column; gap: 8px; min-width: 0;
+}
+#srInhouse .ih-win-blue-card { border-left: 3px solid #3B82F6; }
+#srInhouse .ih-win-red-card { border-left: 3px solid #EF4444; }
+#srInhouse .ih-recent-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+#srInhouse .ih-recent-meta { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-muted); }
+#srInhouse .ih-recent-id { font-weight: 700; color: var(--text-heading); }
+#srInhouse .ih-recent-date i { margin-right: 3px; }
+#srInhouse .ih-recent-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 700; white-space: nowrap;
+}
+#srInhouse .ih-winner-blue { background: rgba(59, 130, 246, 0.14); color: #3B82F6; }
+#srInhouse .ih-winner-red { background: rgba(239, 68, 68, 0.14); color: #EF4444; }
+#srInhouse .ih-winner-pending { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); }
+#srInhouse .ih-recent-status { font-size: 0.78rem; color: var(--text-muted); }
+#srInhouse .ih-recent-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; }
+#srInhouse .ih-recent-divider { font-size: 0.74rem; font-weight: 800; color: var(--text-muted); align-self: center; }
+#srInhouse .ih-recent-team { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+#srInhouse .ih-recent-team-tag { font-size: 0.72rem; font-weight: 800; }
+#srInhouse .ih-team-side-blue .ih-recent-team-tag { color: #3B82F6; }
+#srInhouse .ih-team-side-red .ih-recent-team-tag { color: #EF4444; }
+#srInhouse .ih-recent-team-members { font-size: 0.82rem; color: var(--text-main); line-height: 1.5; word-break: break-all; }
+#srInhouse .ih-recent-player-name { white-space: nowrap; }
+#srInhouse .ih-highlight-winner .ih-recent-team-members { font-weight: 700; color: var(--text-heading); }
+#srInhouse .ih-dimmed-loser { opacity: 0.6; }
+
+@media (max-width: 520px) {
+  #srInhouse .ih-recent-body { grid-template-columns: 1fr; }
+  #srInhouse .ih-recent-divider { justify-self: start; }
+  #srInhouse .ih-td-name { max-width: 110px; }
+  #srInhouse .ih-stats-table th, #srInhouse .ih-stats-table td { padding: 7px 6px; }
+  #srInhouse .ih-running-wrap .ih-btn-win { flex: 1 1 40%; }
+}

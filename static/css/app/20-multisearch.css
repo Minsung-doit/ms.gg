@@ -1,0 +1,561 @@
+/* ==========================================================================
+   20-multisearch.css — carry.gg 멀티서치 전용 스타일 (lol.ps / op.gg 스타일)
+   ========================================================================== */
+
+/* 기본 컨테이너 */
+.multisearch-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+/* 상단 타이틀 & 액션 */
+.multisearch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.multisearch-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.multisearch-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-share-multisearch {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-share-multisearch:hover {
+  border-color: var(--primary);
+  color: var(--text-heading);
+}
+
+/* 입력 카드 */
+.multisearch-input-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.multisearch-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 68px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.multisearch-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(83, 131, 232, 0.2);
+}
+
+.multisearch-textarea::placeholder {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.multisearch-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.multisearch-btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.multisearch-btn-group .btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.multisearch-btn-group .btn-secondary:hover {
+  color: var(--text-heading);
+  border-color: var(--border-hover, var(--text-muted));
+}
+
+.multisearch-btn-group .btn-primary {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.multisearch-btn-group .btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+/* 안내 배너 (data.notice 시에만 표시) */
+.team-summary-banner {
+  margin-bottom: 14px;
+}
+
+/* 5열 카드 그리드 (lol.ps / op.gg 멀티서치 기준) */
+.multisearch-cards-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* 소환사 카드 */
+.ms-player-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ms-player-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.ms-player-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 미조회/오류 소환사 카드 */
+.ms-player-card.ms-player-notfound {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.ms-player-card.ms-player-notfound:hover {
+  border-color: var(--border-color);
+  transform: none;
+  box-shadow: none;
+}
+
+/* 카드 상단 (아바타 + 닉네임 + 태그) */
+.ms-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ms-avatar-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.ms-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  object-fit: cover;
+  display: block;
+}
+
+.ms-avatar-faint {
+  filter: grayscale(100%);
+}
+
+.ms-level-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 0 3px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.ms-player-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ms-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ms-player-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ms-player-tag {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ms-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 연승/연패 배지 */
+.ms-streak-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.ms-streak-badge.streak-win {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+.ms-streak-badge.streak-loss {
+  background: rgba(232, 64, 87, 0.15);
+  color: #E84057;
+}
+
+.ms-pos-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 티어 & 승률 영역 */
+.ms-tier-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, var(--border-color));
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ms-tier-emblem {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ms-tier-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ms-tier-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ms-tier-name {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ms-tier-lp {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ms-record-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.ms-record-wl {
+  white-space: nowrap;
+}
+
+/* 승률 색상: 50% 초과 초록(#10B981), 50% 이하 빨강(#E84057) */
+.ms-wr-good {
+  color: #10B981;
+  font-weight: 700;
+}
+
+.ms-wr-bad {
+  color: #E84057;
+  font-weight: 700;
+}
+
+/* 승률 바 */
+.ms-wr-bar {
+  width: 100%;
+  height: 3px;
+  background: #E84057;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.ms-wr-fill {
+  height: 100%;
+  background: #10B981;
+}
+
+/* 모스트 / 최근 챔피언 목록 (아이콘 + 승률 + 판수) */
+.ms-champs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-color);
+  min-width: 0;
+}
+
+.ms-champ-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  transition: background 0.12s ease;
+  min-width: 0;
+}
+
+.ms-champ-row:hover {
+  background: var(--bg-input);
+}
+
+.ms-champ-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ms-champ-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  object-fit: cover;
+}
+
+.ms-champ-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.ms-champ-games {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+/* 미조회 에러 메시지 */
+.ms-notfound-msg {
+  font-size: 0.74rem;
+  color: #E84057;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  background: rgba(232, 64, 87, 0.08);
+  border-radius: 4px;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   화이트 모드 보정 ([data-theme="light"])
+   ========================================================================== */
+[data-theme="light"] .ms-wr-good {
+  color: #059669;
+}
+
+[data-theme="light"] .ms-wr-bad {
+  color: #DC2626;
+}
+
+[data-theme="light"] .ms-wr-bar {
+  background: #DC2626;
+}
+
+[data-theme="light"] .ms-wr-fill {
+  background: #059669;
+}
+
+[data-theme="light"] .ms-streak-badge.streak-win {
+  background: rgba(5, 150, 105, 0.15);
+  color: #059669;
+}
+
+[data-theme="light"] .ms-streak-badge.streak-loss {
+  background: rgba(220, 38, 38, 0.15);
+  color: #DC2626;
+}
+
+[data-theme="light"] .ms-notfound-msg {
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* ==========================================================================
+   반응형 (태블릿 & 모바일 390px 무결성)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .multisearch-cards-list {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .multisearch-container {
+    padding: 12px 10px 32px;
+  }
+
+  .multisearch-header {
+    margin-bottom: 12px;
+  }
+
+  .multisearch-title {
+    font-size: 1.2rem;
+  }
+
+  /* 모바일(390px 포함) 1열 목록 */
+  .multisearch-cards-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ms-player-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .ms-avatar-wrap {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ms-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ms-tier-section {
+    padding: 6px 8px;
+  }
+
+  .ms-tier-emblem {
+    width: 30px;
+    height: 30px;
+  }
+
+  .ms-champ-row {
+    padding: 2px 3px;
+  }
+}

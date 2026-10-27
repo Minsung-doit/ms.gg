@@ -1,0 +1,129 @@
+"""
+디스코드 서버 멤버 전용 로그인 (app/member_auth.py)
+
+라이엇 개인(Personal) 키는 '소규모 비공개 커뮤니티'용이라, 사이트를 지정한 디스코드 서버 멤버에게만 연다.
+- MEMBER_LOGIN=discord 이면 켜진다 (로컬 개발은 기본 꺼짐).
+- 디스코드 OAuth2 (scope: identify guilds.members.read) → DISCORD_GUILD_ID 서버의 내 멤버 정보가 있으면 로그인 쿠키 발급.
+  (다른 서버 목록은 받지 않는다. 표시 이름은 그 서버 별명 → 전역 이름 → 사용자명 순)
+- 쿠키는 서명된 '<디스코드ID>.<만료>.<서명>' (7일). 서버를 나간 사람은 최대 7일 뒤 다시 로그인할 때 막힌다.
+- 설정이 빠졌는데 켜져 있으면 아무도 들여보내지 않는다 (실수로 공개되지 않게).
+"""
+import hashlib
+import hmac
+import os
+import secrets
+import time
+import urllib.parse
+from typing import Any, Dict, Optional
+
+import httpx
+from fastapi import Request
+
+DISCORD_API = "https://discord.com/api/v10"
+SESSION_COOKIE = "member_session"
+STATE_COOKIE = "discord_oauth_state"
+SESSION_TTL = 7 * 86400
+
+# 로그인 없이 열려 있어야 하는 주소 (로그인 화면·정적 파일·헬스 체크)
+PUBLIC_PREFIXES = ("/login", "/logout", "/auth/discord/", "/static/", "/api/health")
+PUBLIC_PATHS = {"/robots.txt", "/manifest.json", "/sw.js", "/favicon.ico"}
+
+
+def _env(key: str) -> str:
+    return os.getenv(key, "").strip()
+
+
+def login_enabled() -> bool:
+    return _env("MEMBER_LOGIN").lower() == "discord"
+
+
+def config_ok() -> bool:
+    return all(_env(k) for k in ("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "DISCORD_GUILD_ID"))
+
+
+def _secret() -> bytes:
+    from app.config import settings
+    # 별도 값이 없으면 관리자 토큰 비밀값에서 파생 (관리자 비밀값을 바꾸면 멤버 세션도 모두 끊긴다)
+    base = _env("MEMBER_SESSION_SECRET") or f"member:{settings.admin_token_secret}"
+    return base.encode("utf-8")
+
+
+def _sign(payload: str) -> str:
+    return hmac.new(_secret(), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def make_session(discord_id: str, ttl: int = SESSION_TTL) -> str:
+    payload = f"{discord_id}.{int(time.time()) + ttl}"
+    return f"{payload}.{_sign(payload)}"
+
+
+def session_user(request: Request) -> Optional[str]:
+    token = request.cookies.get(SESSION_COOKIE, "")
+    try:
+        discord_id, expires, sig = token.rsplit(".", 2)
+        if int(expires) < time.time() or not discord_id.isdigit():
+            return None
+    except (ValueError, AttributeError):
+        return None
+    return discord_id if hmac.compare_digest(sig, _sign(f"{discord_id}.{expires}")) else None
+
+
+def is_public_path(path: str) -> bool:
+    return path in PUBLIC_PATHS or path.startswith(PUBLIC_PREFIXES)
+
+
+def safe_next(next_path: Optional[str]) -> str:
+    """로그인 뒤 돌아갈 주소: 이 사이트 안의 경로만 (외부 주소로 보내는 오픈 리다이렉트 방지)"""
+    if not next_path or not next_path.startswith("/") or next_path.startswith("//") or "\\" in next_path:
+        return "/"
+    return next_path
+
+
+def redirect_uri(request: Request) -> str:
+    site = _env("SITE_URL").rstrip("/") or str(request.base_url).rstrip("/")
+    return _env("DISCORD_REDIRECT_URI") or f"{site}/auth/discord/callback"
+
+
+def authorize_url(request: Request, state: str) -> str:
+    q = urllib.parse.urlencode({
+        "client_id": _env("DISCORD_CLIENT_ID"),
+        "redirect_uri": redirect_uri(request),
+        "response_type": "code",
+        "scope": "identify guilds.members.read",
+        "state": state,
+        "prompt": "none",
+    })
+    return f"https://discord.com/oauth2/authorize?{q}"
+
+
+def new_state() -> str:
+    return secrets.token_urlsafe(24)
+
+
+async def check_membership(request: Request, code: str) -> Dict[str, Any]:
+    """인가 코드를 토큰으로 바꾸고, 사용자 ID와 지정 서버 가입 여부를 돌려준다."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        tok = await client.post(f"{DISCORD_API}/oauth2/token", data={
+            "client_id": _env("DISCORD_CLIENT_ID"),
+            "client_secret": _env("DISCORD_CLIENT_SECRET"),
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": redirect_uri(request),
+        }, headers={"Content-Type": "application/x-www-form-urlencoded"})
+        if tok.status_code != 200:
+            return {"ok": False, "reason": "token"}
+        headers = {"Authorization": f"Bearer {tok.json().get('access_token', '')}"}
+        me = await client.get(f"{DISCORD_API}/users/@me", headers=headers)
+        # 지정 서버의 내 멤버 정보: 200 이면 멤버(별명 포함), 404 면 멤버 아님
+        gm = await client.get(f"{DISCORD_API}/users/@me/guilds/{_env('DISCORD_GUILD_ID')}/member", headers=headers)
+    if me.status_code != 200 or gm.status_code not in (200, 404):
+        return {"ok": False, "reason": "profile"}
+    user = me.json()
+    member = gm.status_code == 200
+    nick = (gm.json() or {}).get("nick") if member else None
+    return {"ok": True, "member": member, "discord_id": str(user.get("id", "")),
+            "name": nick or user.get("global_name") or user.get("username") or ""}
+
+
+def cookie_secure() -> bool:
+    return _env("SITE_URL").startswith("https://")

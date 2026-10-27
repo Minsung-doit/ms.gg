@@ -1,0 +1,18 @@
+# --- Web server (required) ---
+fastapi>=0.115.0
+uvicorn>=0.30.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+jinja2>=3.1.0
+pydantic>=2.8.0
+
+# --- Tests (needed by scripts/run_all_tests.py) ---
+beautifulsoup4>=4.12.0  # scripts/validate_dom_integrity.py, test_admin_and_tab_endpoints.py
+
+# --- Tools & bots (optional) ---
+aiohttp>=3.9.0          # app/admin_proxy.py, scripts/discord_bot.py
+rich>=13.0.0            # run_company_pipeline.py, scripts/run_production_daemon.py
+websockets>=12.0        # Edge CDP browser test scripts
+google-genai>=1.0.0     # scripts/telegram_bot.py, company/intranet.py
+discord.py>=2.3.0       # scripts/discord_bot.py
+pywin32>=306; sys_platform == "win32"  # desktop shortcut scripts (Windows only)

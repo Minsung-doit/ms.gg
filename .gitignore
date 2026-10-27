@@ -1,0 +1,54 @@
+# ==============================================================================
+# OP.GG / carry.gg Enterprise Production .gitignore
+# ==============================================================================
+
+# 1. Environment Secrets & API Keys
+.env
+*.env
+!.env.example
+
+# 2. Riot Developer CDP Edge Session Profiles & Cache
+.riot_profile/
+.riot_profile*
+
+# 3. Database & WAL State Files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 4. Python Bytecode, Caches & Virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+env/
+
+# 5. Runtime Logs & Temporary Output
+*.log
+server.log
+logs/
+scratch/temp*
+
+# 6. OS & IDE Specific Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 7. User uploads
+uploads/
+
+# Claude Code worktrees
+.claude/
+
+# 서버 업로드용 묶음 (scripts/make_deploy_bundle.py)
+deploy_bundle/
