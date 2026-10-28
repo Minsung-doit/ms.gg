@@ -61,7 +61,7 @@ function aiCoachHead(sub) {
 async function openAiCoach(rawQuery) {
   const q = (rawQuery || "").trim();
   if (!q) {
-    showToast("소환사명#태그를 입력한 뒤 AI 코치를 눌러주세요. (예: Hide on bush#KR1)", "info", 3500);
+    showToast("소환사명#태그를 입력한 뒤 AI 코치를 눌러주세요. (예: 닉네임#KR1)", "info", 3500);
     const input = document.getElementById("searchInput");
     if (input) input.focus();
     return;

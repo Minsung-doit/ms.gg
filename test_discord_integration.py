@@ -272,5 +272,139 @@ def test_discord_integration():
     print("🎉 [Discord Integration Suite] 8개 전수 테스트 100% PASS 성공!")
     print("=" * 80)
 
+def test_bot_tournament_board_buttons():
+    """봇 대회 진행판을 실제 봇 코드로 눌러 본다 (디스코드 대신 가짜 상호작용, 봇의 HTTP 는 실제 서버 코드로 연결):
+    대회 시작 버튼(연 사람만) → 진행판 → 경기 시작 → 승리 → 다음 라운드 → 우승"""
+    import asyncio
+    import os
+    import random
+    os.environ["BOT_API_SECRET"] = "t" * 32
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts"))
+    import discord_bot as db
+    from app import team_builder
+    db.BOT_API_SECRET = "t" * 32
+    client = TestClient(app)
+
+    class Resp:
+        def __init__(self, r):
+            self.status = r.status_code
+            self._data = r.json()
+
+        async def json(self, content_type=None):
+            return self._data
+
+    class Ctx:
+        def __init__(self, resp):
+            self.resp = resp
+
+        async def __aenter__(self):
+            return self.resp
+
+        async def __aexit__(self, *a):
+            return False
+
+    class Session:
+        def post(self, url, json=None, headers=None, timeout=None):
+            return Ctx(Resp(client.post(url.replace(db.API_BASE_URL, ""), json=json, headers=headers)))
+
+        def get(self, url, params=None, headers=None, timeout=None):
+            return Ctx(Resp(client.get(url.replace(db.API_BASE_URL, ""), params=params, headers=headers)))
+
+    class Response:
+        def __init__(self, log):
+            self.log = log
+
+        async def send_message(self, content=None, **kw):
+            self.log.append(("send", content, kw))
+
+        async def edit_message(self, **kw):
+            self.log.append(("edit", None, kw))
+
+    class Followup:
+        def __init__(self, log):
+            self.log = log
+
+        async def send(self, content=None, **kw):
+            self.log.append(("followup", content, kw))
+
+    class Inter:
+        def __init__(self, uid, name):
+            self.log = []
+            self.user = type("U", (), {"id": uid, "display_name": name})()
+            self.guild_id = None
+            self.guild = None
+            self.response = Response(self.log)
+            self.followup = Followup(self.log)
+
+    random.seed(3)
+    people = [{"name": f"검수용봇{i}", "tier": "GOLD", "rank": "II", "lp": 10 * i} for i in range(20)]
+    plan = team_builder.plan(people, "tournament")
+
+    async def press(view, label_part, who):
+        btn = next(b for b in view.children if label_part in (b.label or ""))
+        await btn.callback(who)
+        return who.log[-1]
+
+    async def run():
+        db.bot.session = Session()
+        create = db.EventCreateView(creator_id=4001, mode="tournament", title="검수용 대회", teams=plan["teams"],
+                                    matches=plan["matches"])
+        stranger = Inter(4002, "검수용남")
+        kind, msg, _ = await press(create, "대회 시작", stranger)
+        assert kind == "send" and "연 사람만" in msg, msg
+        owner = Inter(4001, "검수용주최")
+        await press(create, "대회 시작", owner)
+        kinds = [k for k, _, _ in owner.log]
+        assert kinds == ["edit", "followup"], owner.log
+        board = owner.log[-1][2]["view"]
+        assert sum("▶" in (b.label or "") for b in board.children) == 2, [b.label for b in board.children]
+        for _ in range(3):  # 1라운드 2경기 + 결승
+            starts = [b for b in board.children if "▶" in (b.label or "")]
+            if not starts:
+                break
+            for _ in range(len(starts)):
+                who = Inter(4001, "검수용주최")
+                await press(board, "▶", who)
+                assert who.log[-1][0] == "edit", who.log
+                board = who.log[-1][2]["view"]
+                who = Inter(4001, "검수용주최")
+                win = next(b for b in board.children if (b.label or "").endswith(" 승"))
+                await win.callback(who)
+                assert who.log[-1][0] == "edit", who.log
+                board = who.log[-1][2]["view"]
+                embed = who.log[-1][2]["embed"]
+        assert "우승" in (embed.description or ""), embed.description
+        assert [b.label for b in board.children] == ["🔄 새로고침"]
+        intruder = Inter(4002, "검수용남")
+        other = db.EventBoardView(1, {"mode": "tournament", "teams": plan["teams"],
+                                      "matches": [{"round": 1, "a": 0, "b": 1, "game_id": None, "winner": None}]})
+        btn = next(b for b in other.children if "▶" in (b.label or ""))
+        await btn.callback(intruder)
+        assert "만든 사람만" in (intruder.log[-1][1] or ""), intruder.log
+
+    async def run_multi():
+        # /내전: 음성 채널 23명 → 5:5 2판(방마다 결과 버튼) + 3명 대기
+        db.bot.session = Session()
+        members = [type("M", (), {"id": 5000 + i, "bot": False, "display_name": f"검수용음성{i}"})() for i in range(23)]
+        channel = type("C", (), {"name": "검수용 내전방", "members": members, "category": None})()
+        who = Inter(5000, "검수용음성0")
+        who.user.voice = type("V", (), {"channel": channel})()
+
+        async def defer(**kw):
+            who.log.append(("defer", None, kw))
+        who.response.defer = defer
+        await db.cmd_inhouse.callback(who, None, None, None)
+        rooms = [x for x in who.log if x[0] == "followup"]
+        assert len(rooms) == 2, who.log
+        assert all(type(x[2].get("view")).__name__ == "InhouseResultView" for x in rooms), "방마다 결과 버튼"
+        assert "대기" in (rooms[0][2]["embed"].description or "")
+
+    asyncio.run(run())
+    asyncio.run(run_multi())
+    print("  [PASS] 봇 /내전 23명: 5:5 2판 방마다 결과 버튼 + 3명 대기 (실제 봇 코드)")
+    print("  [PASS] 봇 대회 진행판: 연 사람만 시작, 경기 시작→승리→다음 라운드→우승, 다른 사람은 진행 불가 (실제 봇 코드)")
+
+
 if __name__ == "__main__":
     test_discord_integration()
+    test_bot_tournament_board_buttons()

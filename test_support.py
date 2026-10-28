@@ -23,6 +23,16 @@ def use_temp_db() -> None:
 
     database.DB_PATH = Path(tempfile.mkdtemp(prefix="opgg_test_")) / "test.db"
     database.init_db()
+    no_real_riot_key()
+
+
+def no_real_riot_key() -> None:
+    """.env 의 진짜 라이엇 키를 테스트에서 쓰지 않는다 (riot_http 로 막지 않은 요청이 실제 한도를 쓰지 않게).
+    키가 필요한 테스트는 'RGAPI-test-key' 같은 가짜 키를 직접 넣는다."""
+    import os
+    from app.config import settings
+    settings.riot_api_key = ""
+    os.environ["RIOT_API_KEY"] = ""
 
 
 def admin_client(app, **kwargs) -> TestClient:

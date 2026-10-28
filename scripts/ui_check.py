@@ -58,8 +58,12 @@ def run(viewport: str, theme: str) -> list:
     for name, js in SCREENS:
         wait = "wait:7" if name == "summoner" else "wait:4"
         steps += [f"{js}; 1", wait, f"'@@{name}@@' + {PROBE}"]
-    r = subprocess.run([sys.executable, "-X", "utf8", "tests/frontend/cdp_smoke.py", *steps],
-                       capture_output=True, text=True, encoding="utf-8")
+    try:  # 크롬 하나가 멈춰도 전체가 끝없이 기다리지 않게
+        r = subprocess.run([sys.executable, "-X", "utf8", "tests/frontend/cdp_smoke.py", *steps],
+                           capture_output=True, text=True, encoding="utf-8", timeout=180)
+    except subprocess.TimeoutExpired:
+        return [f"[{viewport} {theme}] 시간 초과 (180초): 화면 점검을 끝내지 못함"]
+    print(f"  {viewport} {theme} 점검 완료", flush=True)
     problems = []
     for line in r.stdout.splitlines():
         if "EXC" in line or ("LOG error" in line and "vibrate" not in line):

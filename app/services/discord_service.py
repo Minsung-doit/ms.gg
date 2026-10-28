@@ -116,7 +116,7 @@ def send_discord_webhook(payload: Dict[str, Any], webhook_url: Optional[str] = N
 def _duo_embed(post: Dict[str, Any], deleted: bool = False, expired: bool = False) -> Dict[str, Any]:
     game_name = post.get("game_name", "소환사")
     tag_line = post.get("tag_line", "KR1")
-    tier_kr = post.get("tier_kr", "언랭크")
+    tier_kr = post.get("tier_label") or post.get("tier_kr", "언랭크")
     my_pos = post.get("my_position", "ALL")
     target_pos = post.get("target_position", "ALL")
     title = post.get("title", "듀오 구합니다")
@@ -134,7 +134,9 @@ def _duo_embed(post: Dict[str, Any], deleted: bool = False, expired: bool = Fals
     fields = [{"name": "작성자", "value": f"{who} ({tier_kr})", "inline": True},
               {"name": "큐", "value": f"{post.get('queue_type', '')} · {post.get('current_members', 1)}/{post.get('max_members', 2)}명", "inline": True}]
     if game["positions"]:
-        fields.append({"name": "포지션", "value": f"{names.get(my_pos, '상관없음')} → {names.get(target_pos, '상관없음')}", "inline": True})
+        def pos_label(v: str) -> str:  # "TOP,JUG" → "탑·정글"
+            return "·".join(names[c] for c in str(v).split(",") if c in names) or "상관없음"
+        fields.append({"name": "포지션", "value": f"{pos_label(my_pos)} → {pos_label(target_pos)}", "inline": True})
     state = "🗑️ 삭제됨 · " if deleted else ("⏰ 만료 · " if expired else ("🔴 마감 · " if post.get("is_full") else ""))
     deleted = deleted or expired  # 만료도 설명·참가자는 지우고 회색으로
     embed = {
@@ -160,10 +162,10 @@ def _duo_embed(post: Dict[str, Any], deleted: bool = False, expired: bool = Fals
     return embed
 
 
-def duo_webhook_url(game: Optional[str]) -> str:
-    """게임별 구인 채널 (예: DISCORD_WEBHOOK_URL_PUBG). 없으면 기본 DISCORD_WEBHOOK_URL"""
-    key = f"DISCORD_WEBHOOK_URL_{(game or 'lol').strip().upper()}"
-    return (os.getenv(key, "").strip() or settings.discord_webhook_url or "").strip()
+def duo_webhook_url(game: Optional[str], guild_id: Optional[str] = "") -> str:
+    """그 디스코드 서버(·게임)의 구인 채널 웹후크 (app/communities.py). 다른 서버 채널로는 보내지 않는다"""
+    from app import communities
+    return communities.webhook_url(guild_id or "", game or "lol")
 
 
 def send_duo_post_webhook(post: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -171,7 +173,7 @@ def send_duo_post_webhook(post: Optional[Dict[str, Any]] = None) -> Dict[str, An
     신규 구인글을 디스코드 채널에 올린다. 반환값의 message_id 로 나중에 '마감'·'삭제됨' 상태를 고친다.
     """
     post = post or {}
-    target = duo_webhook_url(post.get("game"))
+    target = duo_webhook_url(post.get("game"), post.get("guild_id"))
     if not target:
         return {"success": False, "message": "웹후크 URL 미설정"}
     embed = _duo_embed(post)
@@ -182,7 +184,7 @@ def send_duo_post_webhook(post: Optional[Dict[str, Any]] = None) -> Dict[str, An
     }
     # 구인 알림: 게임별 디스코드 역할을 멘션해 그 역할을 단 멤버에게 알림이 가게 한다.
     # 서버 관리자가 역할(@롤구인 등)을 만들고 .env 에 DUO_ALERT_ROLES=lol=역할ID,pubg=역할ID 로 넣으면 켜진다.
-    role_id = duo_alert_roles().get(post.get("game") or "lol")
+    role_id = duo_alert_roles(post.get("guild_id") or "").get(post.get("game") or "lol")
     if role_id:
         payload["content"] = f"<@&{role_id}>"
         payload["allowed_mentions"] = {"roles": [role_id]}
@@ -193,7 +195,7 @@ def send_duo_post_webhook(post: Optional[Dict[str, Any]] = None) -> Dict[str, An
 def update_duo_post_webhook(post: Dict[str, Any], deleted: bool = False, expired: bool = False) -> Dict[str, Any]:
     """처음 올린 디스코드 구인 메시지를 지금 상태(인원·마감·참가자·삭제)로 고친다"""
     mid = str(post.get("discord_message_id") or "")
-    target = duo_webhook_url(post.get("game"))
+    target = duo_webhook_url(post.get("game"), post.get("guild_id"))
     if not (mid.isdigit() and target.startswith(("https://discord.com/api/webhooks/", "https://discordapp.com/api/webhooks/"))):
         return {"success": False, "message": "고칠 메시지가 없습니다."}
     body = json.dumps({"embeds": [_duo_embed(post, deleted=deleted, expired=expired)], "allowed_mentions": {"parse": []}},
@@ -208,14 +210,10 @@ def update_duo_post_webhook(post: Dict[str, Any], deleted: bool = False, expired
         return {"success": False, "message": str(e)}
 
 
-def duo_alert_roles() -> Dict[str, str]:
-    """DUO_ALERT_ROLES='lol=123,pubg=456' → {'lol': '123', 'pubg': '456'} (숫자 ID만)"""
-    out: Dict[str, str] = {}
-    for part in os.getenv("DUO_ALERT_ROLES", "").split(","):
-        game, _, rid = part.partition("=")
-        if game.strip() and rid.strip().isdigit():
-            out[game.strip().lower()] = rid.strip()
-    return out
+def duo_alert_roles(guild_id: str = "") -> Dict[str, str]:
+    """구인 알림 역할 {'lol': '123'} (숫자 ID만). 봇 /알림역할 값이 먼저, 없으면 DUO_ALERT_ROLES(_<서버ID>)"""
+    from app import communities
+    return communities.alert_role_ids(guild_id)
 
 
 def send_player_share_webhook(player: Optional[Dict[str, Any]] = None, summary: Optional[Dict[str, Any]] = None, custom_msg: str = "") -> Dict[str, Any]:

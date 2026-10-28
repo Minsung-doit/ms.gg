@@ -812,7 +812,12 @@ async def fetch_live_game(player: Dict[str, Any]) -> Dict[str, Any]:
 # 챌린저 랭킹 (League-V4 + Account-V1)
 # ---------------------------------------------------------------------------
 
-LADDER_NAMED_TOP_N = 50  # 닉네임 조회에 1명당 API 1회가 들어가므로 상위 N명만 이름을 확인한다
+# 챌린저 상위 N명 (2026-10-28 사용자 결정: 50 → 300). 닉네임 조회는 1명당 1회라 확인한 이름을 7일 동안 저장해 두고
+# 새로 들어온 사람·7일 지난 이름만 다시 묻는다 (하루 약 1 + 신규 진입자 + 300/7 회)
+LADDER_NAMED_TOP_N = 300
+LADDER_NAME_TTL_SEC = 7 * 86400
+# 장인 숙련도는 예전 승인 범위(하루 약 50회) 그대로 상위 50명만
+LADDER_MASTERY_TOP_N = 50
 
 
 def init_ladder_table() -> None:
@@ -830,8 +835,46 @@ def init_ladder_table() -> None:
             updated_at INTEGER NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ladder_names (
+            puuid TEXT PRIMARY KEY,
+            game_name TEXT NOT NULL,
+            tag_line TEXT NOT NULL,
+            checked_at INTEGER NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
+
+
+def _cached_ladder_names(puuids: List[str]) -> Dict[str, Dict[str, str]]:
+    """7일 안에 확인한 닉네임 (puuid → {gameName, tagLine})"""
+    if not puuids:
+        return {}
+    conn = get_connection()
+    try:
+        out: Dict[str, Dict[str, str]] = {}
+        since = int(time.time()) - LADDER_NAME_TTL_SEC
+        for i in range(0, len(puuids), 500):
+            chunk = puuids[i:i + 500]
+            for p, gn, tag in conn.execute(
+                    f"SELECT puuid, game_name, tag_line FROM ladder_names WHERE checked_at >= ? AND puuid IN ({','.join('?' * len(chunk))})",
+                    (since, *chunk)).fetchall():
+                out[p] = {"gameName": gn, "tagLine": tag}
+        return out
+    finally:
+        conn.close()
+
+
+def _remember_ladder_names(rows: List[Dict[str, Any]]) -> None:
+    now = int(time.time())
+    conn = get_connection()
+    try:
+        conn.executemany("INSERT OR REPLACE INTO ladder_names (puuid, game_name, tag_line, checked_at) VALUES (?, ?, ?, ?)",
+                         [(r["puuid"], r["gameName"], r["tagLine"], now) for r in rows])
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def load_ladder(query: str = "") -> Dict[str, Any]:
@@ -865,8 +908,13 @@ async def sync_challenger_ladder(top_n: int = LADDER_NAMED_TOP_N) -> Dict[str, A
 
     entries = sorted(league.get("entries", []), key=lambda e: e.get("leaguePoints", 0), reverse=True)[:top_n]
     sem = asyncio.Semaphore(MATCH_FETCH_CONCURRENCY)
+    init_ladder_table()
+    known = _cached_ladder_names([e["puuid"] for e in entries if e.get("puuid")])
+    looked_up: List[Dict[str, Any]] = []
 
     async def resolve(rank: int, entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        if entry.get("puuid") in known:  # 7일 안에 확인한 이름은 다시 묻지 않는다
+            return {**entry, "rank": rank, **known[entry["puuid"]]}
         async with sem:
             try:
                 # 리그 엔트리에 puuid가 없으면(구 스키마) summonerId 로 소환사를 조회해 puuid를 얻는다
@@ -881,9 +929,13 @@ async def sync_challenger_ladder(top_n: int = LADDER_NAMED_TOP_N) -> Dict[str, A
                 return None
         if not account or not account.get("gameName"):
             return None  # 이름을 확인하지 못한 항목은 다른 이름으로 채우지 않고 제외
-        return {**entry, "puuid": puuid, "rank": rank, "gameName": account["gameName"], "tagLine": account.get("tagLine", "")}
+        row = {**entry, "puuid": puuid, "rank": rank, "gameName": account["gameName"], "tagLine": account.get("tagLine", "")}
+        looked_up.append(row)
+        return row
 
     resolved = [r for r in await asyncio.gather(*(resolve(i + 1, e) for i, e in enumerate(entries))) if r]
+    if looked_up:
+        _remember_ladder_names(looked_up)
     if not resolved:
         raise PlayerDataUnavailable(503, "챌린저 랭킹 닉네임을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.")
 
@@ -1001,7 +1053,7 @@ async def sync_ladder_masteries() -> Dict[str, int]:
     init_champion_mastery_table()
     conn = get_connection()
     try:
-        rows = conn.execute("SELECT puuid FROM ladder_real ORDER BY rank ASC").fetchall()
+        rows = conn.execute("SELECT puuid FROM ladder_real ORDER BY rank ASC LIMIT ?", (LADDER_MASTERY_TOP_N,)).fetchall()
     finally:
         conn.close()
 

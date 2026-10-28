@@ -203,13 +203,26 @@ def verify_duo_owner(post_id: int, token: str) -> bool:
     conn.close()
     return bool(row) and hmac.compare_digest(row[0], _token_hash(token))
 
+_TIER_ORDER = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"]
+
+
+def _tier_in_range(want: str, low: str, high: Optional[str]) -> bool:
+    """티어 필터: 범위 글(브론즈~다이아)은 그 사이 티어로 걸러도 보인다"""
+    if not high or want not in _TIER_ORDER or low not in _TIER_ORDER or high not in _TIER_ORDER:
+        return False
+    return _TIER_ORDER.index(low) <= _TIER_ORDER.index(want) <= _TIER_ORDER.index(high)
+
+
 def get_duo_posts(
     position: Optional[str] = None, 
     queue_type: Optional[str] = None,
     tier: Optional[str] = None,
     voice: Optional[str] = None,
     game: Optional[str] = None,
+    guild_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+    """guild_id 를 주면 그 디스코드 서버 글만 (None 이면 서버 구분 없이)"""
+    from app import communities
     game_key = (game or "lol").strip().lower()
     pos_aliases = None
     if position and position != "ALL":
@@ -231,12 +244,14 @@ def get_duo_posts(
 
     filtered = []
     for p in _load_posts():
+        if guild_id is not None and not communities.same(p.get("guild_id"), guild_id):
+            continue
         if game_key != "all" and (p.get("game") or "lol") != game_key:
             continue
         if pos_aliases:
-            my_p = p.get("my_position", "").upper()
-            tgt_p = p.get("target_position", "").upper()
-            if not (any(a in [my_p, tgt_p] for a in pos_aliases) or tgt_p == "ALL"):
+            # 포지션은 여러 개일 수 있다 ("TOP,JUG")
+            post_pos = set(str(p.get("my_position", "")).upper().split(",")) | set(str(p.get("target_position", "")).upper().split(","))
+            if not (any(a in post_pos for a in pos_aliases) or str(p.get("target_position", "")).upper() == "ALL"):
                 continue
         if q_clean:
             pq = p.get("queue_type", "")
@@ -245,7 +260,7 @@ def get_duo_posts(
         if t_upper:
             pt = p.get("tier", "").upper()
             pt_kr = p.get("tier_kr", "")
-            if not (pt == t_upper or pt_kr == tier.strip()):
+            if not (pt == t_upper or pt_kr == tier.strip() or _tier_in_range(t_upper, pt, p.get("tier_to"))):
                 continue
         if v_upper:
             p_voice = p.get("voice")
@@ -268,8 +283,13 @@ def get_duo_posts(
                 p.get("room_link")
             )
             p.update(ch_data)
+        # 예전 글의 '닉네임의 음성방' 은 실제 방 이름이 아니므로 일반 이름으로
+        fake_name = f"🔊 {p.get('game_name', '')}의 음성방"
+        for key in ("room_name", "discord_channel_name"):
+            if p.get(key) == fake_name:
+                p[key] = "🔊 디스코드 음성방"
         if "room_name" not in p or not p.get("room_name"):
-            p["room_name"] = p.get("discord_channel_name") or (f"🔊 {p.get('game_name', '호스트')}의 음성방" if p.get("voice") else "음성 미사용")
+            p["room_name"] = p.get("discord_channel_name") or ("🔊 디스코드 음성방" if p.get("voice") else "음성 미사용")
         if "room_link" not in p or not p.get("room_link"):
             p["room_link"] = p.get("discord_voice_url") or ""
         if "max_members" not in p:
@@ -324,6 +344,9 @@ def create_duo_post(
     is_full: Optional[bool] = False,
     game: Optional[str] = "lol",
     author: Optional[str] = None,
+    tier_to: Optional[str] = None,
+    tier_label: Optional[str] = None,
+    guild_id: str = "",
 ) -> Tuple[Dict[str, Any], str]:
     """새 구인글을 등록하고 (게시글, 작성자 토큰)을 반환"""
     tier_map = {
@@ -373,7 +396,7 @@ def create_duo_post(
     room_full_flag = is_full if is_full is not None else (cur_mem >= mx_mem)
 
     default_status = f"🔴 정원 마감 ({cur_mem}/{mx_mem}명)" if room_full_flag else (f"🟢 대기 중 ({cur_mem}/{mx_mem}명)" if voice else "마이크 미사용")
-    final_room_name = room_name or ch_info["room_name"] or (f"🔊 {game_name}의 음성방" if voice else "음성 미사용")
+    final_room_name = room_name or ch_info["room_name"] or ("🔊 디스코드 음성방" if voice else "음성 미사용")
     final_room_link = room_link or ch_info["room_link"] or ""
     final_room_status = room_status or default_status
     final_host_mic = host_mic if host_mic is not None else bool(voice)
@@ -395,7 +418,12 @@ def create_duo_post(
         "host_mic": final_host_mic,
         "tier": tier_code,
         "tier_kr": tier_kr or "다이아몬드",
+        # 범위 글 (자랭 '브론즈 ~ 다이아몬드'): tier 는 낮은 쪽, tier_to 는 높은 쪽 코드
+        "tier_to": tier_map.get(tier_to) if tier_to else None,
+        "tier_label": tier_label or tier_kr or "다이아몬드",
         "game": game or "lol",
+        # 어느 디스코드 서버 글인지 (app/communities.py, 빈 값은 기본 서버)
+        "guild_id": guild_id or "",
         "author": author,
         "tier_emblem": get_tier_emblem(tier_code),
         "my_position": my_position or "MID",

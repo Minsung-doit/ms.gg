@@ -1353,6 +1353,28 @@
   color: #64748B;
 }
 
+/* 모달 티어: 단계 · ~ 범위 (다이아 1 / 브론즈 ~ 다이아) */
+#createDuoPostModal .df-tier-extra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#createDuoPostModal .df-tier-extra #dfSelectDivision {
+  flex: 0 0 76px;
+}
+
+#createDuoPostModal .df-tier-extra #dfSelectTierTo {
+  flex: 1;
+  min-width: 0;
+}
+
+#createDuoPostModal .df-tier-tilde {
+  color: var(--text-secondary, #94A3B8);
+  font-weight: 700;
+}
+
 /* 모달 파티 인원 표시 배지 */
 #createDuoPostModal .df-party-size-badge {
   font-size: 0.75rem;

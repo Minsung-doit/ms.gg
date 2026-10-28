@@ -16,6 +16,11 @@ if ! command -v caddy >/dev/null; then
   apt-get update -y && apt-get install -y caddy
 fi
 
+# 관리자 포트가 1024 미만(기본 300)이면 일반 계정(carrygg)이 열 수 없어 사이트 전체가 재시작을 반복한다
+if ! grep -q '^ADMIN_PORT=' "$APP_DIR/.env"; then
+  echo "ADMIN_PORT=3300" >> "$APP_DIR/.env"
+fi
+
 echo "[2/5] 실행 계정·데이터 폴더"
 id carrygg >/dev/null 2>&1 || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin carrygg
 mkdir -p "$DATA_DIR/backups"
@@ -28,8 +33,15 @@ sudo -u carrygg "$APP_DIR/venv/bin/pip" install --quiet -r "$APP_DIR/requirement
 
 echo "[4/5] 서비스 등록"
 cp "$APP_DIR/deploy/carrygg.service" /etc/systemd/system/carrygg.service
+# 디스코드 봇: .env 에 봇 토큰이 있으면 같이 켠다
+if grep -q '^DISCORD_BOT_TOKEN=..*' "$APP_DIR/.env"; then
+  cp "$APP_DIR/deploy/carrygg-bot.service" /etc/systemd/system/carrygg-bot.service
+fi
 systemctl daemon-reload
 systemctl enable --now carrygg
+if [ -f /etc/systemd/system/carrygg-bot.service ]; then
+  systemctl enable --now carrygg-bot
+fi
 
 echo "[5/5] HTTPS (Caddy)"
 sed "s/YOUR_DOMAIN/$DOMAIN/" "$APP_DIR/deploy/Caddyfile" > /etc/caddy/Caddyfile

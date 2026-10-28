@@ -622,6 +622,536 @@ def test_member_gate_lets_only_bot_secret_through():
     ok("멤버 전용 사이트: 로그인 없으면 401, 봇 비밀값(API만)만 통과")
 
 
+
+def test_riot_sign_on_account_verification():
+    """라이엇 공식 로그인(RSO): state 위조 거부, 로그인한 본인 puuid 만 연결, 같은 계정의 이전 연결 해제, 닉네임 입력 연결 없음"""
+    import os
+    import httpx
+    from urllib.parse import parse_qs, urlparse
+    from app import community_rank
+    saved = {k: os.environ.get(k) for k in ("RSO_CLIENT_ID", "RSO_CLIENT_SECRET", "SITE_URL", "MEMBER_LOGIN")}
+    os.environ.pop("MEMBER_LOGIN", None)  # 로컬 모드: 멤버 ID = local-dev
+    real_puuid = "p" * 78
+    calls = []
+
+    def riot(req):
+        calls.append(req.url.path)
+        if req.url.host == "auth.riotgames.com" and req.url.path == "/token":
+            assert req.headers.get("authorization", "").startswith("Basic "), "클라이언트 비밀값은 Basic 인증으로"
+            return httpx.Response(200, json={"access_token": "user-tok"})
+        if req.url.path.endswith("/riot/account/v1/accounts/me"):
+            assert req.headers.get("authorization") == "Bearer user-tok"
+            return httpx.Response(200, json={"puuid": real_puuid, "gameName": "진짜주인", "tagLine": "KR1"})
+        return httpx.Response(404, json={})
+
+    try:
+        os.environ.pop("RSO_CLIENT_ID", None)
+        os.environ.pop("RSO_CLIENT_SECRET", None)
+        c = fresh_client(follow_redirects=False)
+        assert c.get("/auth/riot/login").headers["location"].endswith("riot_link=off"), "설정 없으면 꺼짐"
+        assert c.get("/api/me").json()["riot_login_enabled"] is False
+
+        # 같은 계정을 예전에 다른 디스코드 멤버(부계정 등)가 인증해 둔 상태
+        community_rank.link_account("old-discord", {"puuid": real_puuid, "game_name": "진짜주인", "tag_line": "KR1"})
+
+        os.environ.update(RSO_CLIENT_ID="carry-client", RSO_CLIENT_SECRET="s" * 32, SITE_URL="")
+        assert c.get("/api/me").json()["riot_login_enabled"] is True
+
+        start = c.get("/auth/riot/login")
+        loc = urlparse(start.headers["location"])
+        q = parse_qs(loc.query)
+        assert loc.netloc == "auth.riotgames.com" and q["client_id"] == ["carry-client"] and q["scope"] == ["openid"]
+        assert q["redirect_uri"][0].endswith("/auth/riot/callback")
+        state = q["state"][0]
+
+        bad = c.get("/auth/riot/callback", params={"code": "x", "state": "forged"})
+        assert bad.headers["location"].endswith("riot_link=state"), "state 위조 거부"
+        assert c.get("/auth/riot/callback", params={"error": "access_denied"}).headers["location"].endswith("riot_link=denied")
+
+        with riot_http(riot):
+            c.cookies.set("riot_oauth_state", state)
+            done = c.get("/auth/riot/callback", params={"code": "auth-code", "state": state})
+        assert done.headers["location"] == "/?tab=serverranking&riot_link=ok", done.headers
+        me = c.get("/api/me").json()["account"]
+        assert me == {"game_name": "진짜주인", "tag_line": "KR1", "verified": True}, me
+        assert not (community_rank.get_member("old-discord") or {}).get("puuid"), "한 계정은 한 멤버에게만"
+        board = community_rank.leaderboard()
+        assert board["total"] == 1 and board["members"][0]["verified"] is True
+        assert c.delete("/api/me/riot-account").status_code == 200
+        assert community_rank.leaderboard()["total"] == 0
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("라이엇 로그인 인증: state 위조·취소 처리, 본인 puuid 만 연결, 한 계정은 한 멤버에게만")
+
+
+def test_duo_multi_positions_queues_and_room_name():
+    """포지션 여러 개('TOP,JUG'), 포지션 없는 큐(아레나·TFT), 음성방 이름은 링크의 실제 디스코드 채널 이름"""
+    import httpx
+    r = fresh_client().post("/api/duo-posts", json=_duo_payload(my_position="jug,top,TOP", target_position="MID,SUP", voice=False))
+    assert r.status_code == 200, r.text
+    post = r.json()["post"]
+    assert post["my_position"] == "TOP,JUG" and post["target_position"] == "MID,SUP", post
+    assert fresh_client().post("/api/duo-posts", json=_duo_payload(my_position="TOP,HACK")).status_code == 422
+    assert fresh_client().post("/api/duo-posts", json=_duo_payload(my_position="ALL")).status_code == 422, "솔로랭크는 내 포지션 필수"
+    for q in ("아레나", "TFT"):
+        r = fresh_client().post("/api/duo-posts", json=_duo_payload(queue_type=q, my_position="ALL", voice=False))
+        assert r.status_code == 200 and r.json()["post"]["my_position"] == "ALL", (q, r.text)
+    for q in ("일반 (교차 선택)", "신속 대전"):
+        assert fresh_client().post("/api/duo-posts", json=_duo_payload(queue_type=q, voice=False)).status_code == 200, q
+    tft = lambda **kw: fresh_client().post("/api/duo-posts", json=_duo_payload(queue_type="TFT", my_position="ALL", voice=False, **kw))
+    assert tft().json()["post"]["max_members"] == 8, "TFT 기본 8명"
+    assert tft(max_members=3).json()["post"]["max_members"] == 3, "TFT 인원은 작성자가 고름"
+    solo = tft(max_members=1).json()["post"]
+    assert solo["max_members"] == 1 and solo["is_full"] is True, solo
+    assert tft(max_members=9).status_code == 422, "TFT 최대 8명"
+    assert fresh_client().post("/api/duo-posts", json=_duo_payload(max_members=1, voice=False)).status_code == 422, "다른 큐는 1명 불가"
+
+    def discord(req):
+        if req.url.path.endswith("/invites/abcDEF"):
+            return httpx.Response(200, json={"channel": {"name": "듀오방 1"}, "guild": {"name": "우리서버"}})
+        return httpx.Response(404, json={})
+    with riot_http(discord):
+        named = fresh_client().post("/api/duo-posts", json=_duo_payload(room_link="https://discord.gg/abcDEF", room_name="🔊 Tester의 음성방"))
+        unknown = fresh_client().post("/api/duo-posts", json=_duo_payload(room_link="https://discord.gg/zzzZZZ", room_name="가짜 방 이름"))
+    assert named.json()["post"]["room_name"] == "🔊 듀오방 1", named.json()["post"]
+    assert unknown.json()["post"]["room_name"] == "🔊 디스코드 음성방", "작성자가 적은 이름은 쓰지 않음"
+    ok("구인: 포지션 여러 개·잘못된 포지션 거부, 아레나·TFT 포지션 없음, TFT 인원 1~8, 새 큐, 음성방은 실제 채널 이름")
+
+
+
+def test_duo_queue_and_tier_shorthand():
+    """구인글: 큐 줄임말(솔랭·자랭·롤체·증칼), 티어 줄임말·단계(다1·에메2), 자랭 범위(브~다)와 범위 필터"""
+    post = lambda **kw: fresh_client().post("/api/duo-posts", json=_duo_payload(voice=False, **kw))
+    r = post(queue_type="솔랭", tier_kr="다1")
+    assert r.status_code == 200, r.text
+    p = r.json()["post"]
+    assert p["queue_type"] == "솔로랭크" and p["tier_kr"] == "다이아몬드" and p["tier_label"] == "다이아몬드 1" and p["tier"] == "DIAMOND", p
+    assert post(queue_type="롤체", my_position="ALL", tier_kr="에메2").json()["post"]["queue_type"] == "TFT"
+    assert post(queue_type="증칼", my_position="ALL").json()["post"]["queue_type"] == "증강 칼바람"
+    rng = post(queue_type="자랭", tier_kr="브~다", title="검수용 범위 글").json()["post"]
+    assert rng["tier"] == "BRONZE" and rng["tier_to"] == "DIAMOND" and rng["tier_label"] == "브론즈 ~ 다이아몬드", rng
+    listed = fresh_client().get("/api/duo-posts", params={"tier": "GOLD", "queue_type": "자유랭크"}).json()["posts"]
+    assert any(x["id"] == rng["id"] for x in listed), "골드로 걸러도 브론즈~다이아 글이 보임"
+    listed = fresh_client().get("/api/duo-posts", params={"tier": "MASTER", "queue_type": "자유랭크"}).json()["posts"]
+    assert not any(x["id"] == rng["id"] for x in listed), "범위 밖 티어로는 안 보임"
+    bad = post(tier_kr="다이아5")
+    assert bad.status_code == 422 and "티어를 알아보지 못했어요" in bad.text, bad.text
+    assert post(queue_type="아무큐").status_code == 422
+    assert post(queue_type="솔랭", tier_kr="다~마").status_code == 422, "솔로랭크 범위에 마스터가 끼면 거부"
+    ok("구인: 큐 줄임말(솔랭·롤체·증칼), 티어 줄임말·단계(다1), 범위(브~다)와 범위 필터, 잘못된 티어 안내")
+
+
+def test_multi_server_separation():
+    """여러 디스코드 서버: 구인글·내전 순위는 서버마다 따로, 다른 서버 글 참가·서버 선택 불가, 봇은 등록 서버만, 웹후크는 그 서버 채널로만"""
+    import os
+    import asyncio
+    import httpx
+    from app import community_rank, communities, member_auth
+    from app.config import settings
+    keys = ("MEMBER_LOGIN", "BOT_API_SECRET", "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "DISCORD_GUILD_ID",
+            "MEMBER_SESSION_SECRET", "COMMUNITY_GUILDS", "DISCORD_WEBHOOK_URL_222", "SITE_URL")
+    saved = {k: os.environ.get(k) for k in keys}
+    saved_hook = settings.discord_webhook_url
+    try:
+        os.environ.update(MEMBER_LOGIN="discord", DISCORD_CLIENT_ID="1", DISCORD_CLIENT_SECRET="x" * 20,
+                          MEMBER_SESSION_SECRET="y" * 40, BOT_API_SECRET="z" * 32, COMMUNITY_GUILDS="111:서버A,222:서버B",
+                          SITE_URL="https://example.test")
+        os.environ.pop("DISCORD_GUILD_ID", None)
+        settings.discord_webhook_url = ""
+
+        def member(did, guilds, pick=None):
+            community_rank.remember_member(did, f"검수용{did}")
+            community_rank.set_member_guilds(did, guilds)
+            c = fresh_client()
+            c.cookies.set(member_auth.SESSION_COOKIE, member_auth.make_session(did))
+            if pick:
+                c.cookies.set(communities.CURRENT_COOKIE, pick)
+            return c
+
+        b_only = member("9001", ["222"])
+        a_only = member("9002", ["111"])
+        both = member("9003", ["111", "222"], pick="111")
+        me = b_only.get("/api/me").json()
+        assert me["community"] == "222" and [c["id"] for c in me["communities"]] == ["222"], me
+        post = b_only.post("/api/duo-posts", json=_duo_payload(voice=False, title="검수용 서버B 글")).json()["post"]
+        assert post["guild_id"] == "222"
+        ids = lambda c: [p["id"] for p in c.get("/api/duo-posts").json()["posts"]]  # noqa: E731
+        assert post["id"] in ids(b_only) and post["id"] not in ids(a_only), "다른 서버 글은 안 보임"
+        assert a_only.post(f"/api/duo-posts/{post['id']}/join").status_code == 404, "다른 서버 글 참가 불가"
+        assert post["id"] not in ids(both)
+        assert both.post("/api/community", json={"guild_id": "333"}).status_code == 403
+        assert a_only.post("/api/community", json={"guild_id": "222"}).status_code == 403, "들어가 있지 않은 서버 선택 불가"
+        r = both.post("/api/community", json={"guild_id": "222"})
+        assert r.status_code == 200 and "community=222" in r.headers.get("set-cookie", ""), r.text
+        both.cookies.set(communities.CURRENT_COOKIE, "222")  # 테스트 클라이언트는 도메인 없는 쿠키를 따로 들고 있어 직접 바꾼다
+        assert post["id"] in ids(both), "서버를 바꾸면 그 서버 글"
+
+        bot = fresh_client()
+        h = {"X-Bot-Secret": "z" * 32}
+        bm = lambda g: {"discord_id": "9004", "discord_name": "검수용봇", "guild_id": g}  # noqa: E731
+        assert bot.post("/api/bot/duo-posts", headers=h, json={**_duo_payload(voice=False), "member": bm("333")}).status_code == 403
+        r = bot.post("/api/bot/duo-posts", headers=h, json={**_duo_payload(voice=False), "member": bm("111")})
+        assert r.status_code == 200 and r.json()["post"]["guild_id"] == "111", r.text
+        assert bot.post(f"/api/bot/duo-posts/{post['id']}/join", headers=h, json=bm("111")).status_code == 404
+
+        seats = [{"name": f"검수용멤버{i}"} for i in range(10)]
+        gid = b_only.post("/api/inhouse/games", json={"blue": seats[:5], "red": seats[5:]}).json()["id"]
+        assert b_only.post(f"/api/inhouse/games/{gid}/result", json={"winner": "blue"}).status_code == 200
+        names = lambda c: {p["name"] for p in c.get("/api/inhouse/ranking").json()["players"]}  # noqa: E731
+        assert "검수용멤버0" in names(b_only) and "검수용멤버0" not in names(a_only), "내전 순위도 서버마다"
+
+        settings.discord_webhook_url = "https://discord.com/api/webhooks/1/legacy"
+        assert communities.webhook_url("111") == settings.discord_webhook_url, "기본 서버는 예전 설정 사용"
+        assert communities.webhook_url("222") == "", "다른 서버 글이 기본 서버 채널로 새지 않음"
+        os.environ["DISCORD_WEBHOOK_URL_222"] = "https://discord.com/api/webhooks/2/b"
+        assert communities.webhook_url("222", "lol") == "https://discord.com/api/webhooks/2/b"
+
+        def discord(req):
+            if req.url.path.endswith("/oauth2/token"):
+                return httpx.Response(200, json={"access_token": "t"})
+            if req.url.path.endswith("/users/@me"):
+                return httpx.Response(200, json={"id": "9005", "username": "검수용"})
+            if req.url.path.endswith("/guilds/111/member"):
+                return httpx.Response(404, json={})
+            if req.url.path.endswith("/guilds/222/member"):
+                return httpx.Response(200, json={"nick": "검수용별명"})
+            return httpx.Response(500, json={})
+        with riot_http(discord):
+            res = asyncio.run(member_auth.check_membership(None, "code"))
+        assert res["member"] and res["guilds"] == ["222"] and res["name"] == "검수용별명", res
+    finally:
+        settings.discord_webhook_url = saved_hook
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("여러 서버: 구인글·내전 순위 서버별 분리, 다른 서버 글 참가·서버 선택 불가, 봇은 등록 서버만, 웹후크는 그 서버 채널만")
+
+
+def test_bot_tier_roles_registered_members():
+    """티어 역할: 봇 비밀값 필요, 닉네임 등록(미인증)·인증 계정 모두 티어가 나옴, 등록 안 된 서버 거부.
+    닉네임 등록은 다른 멤버가 인증한 계정을 가져갈 수 없고, 이미 인증한 멤버는 등록으로 덮어쓰지 않음"""
+    import os
+    from app import community_rank
+    from app.database import get_connection
+    saved = {k: os.environ.get(k) for k in ("BOT_API_SECRET", "COMMUNITY_GUILDS")}
+    try:
+        os.environ["BOT_API_SECRET"] = "z" * 32
+        os.environ.pop("COMMUNITY_GUILDS", None)
+        community_rank.remember_member("8801", "검수용인증")
+        community_rank.link_account("8801", {"puuid": "q" * 78, "game_name": "검수용인증", "tag_line": "KR1"})
+        conn = get_connection()
+        conn.execute("INSERT OR REPLACE INTO member_accounts (discord_id, discord_name, puuid, game_name, tag_line, verified) "
+                     "VALUES ('8802', '검수용미인증', ?, '검수용미인증', 'KR1', 0)", ("w" * 78,))
+        conn.commit()
+        conn.close()
+        orig = community_rank.get_player_by_riot_id
+        community_rank.get_player_by_riot_id = lambda gn, tag: {"puuid": ("q" if gn == "검수용인증" else "w") * 78, "tier": "GOLD"}
+        try:
+            assert fresh_client().get("/api/bot/tier-roles").status_code in (401, 403), "봇 비밀값 없으면 거부"
+            h = {"X-Bot-Secret": "z" * 32}
+            got = {m["discord_id"]: m["tier"] for m in fresh_client().get("/api/bot/tier-roles", headers=h).json()["members"]}
+            assert got.get("8801") == "GOLD" and got.get("8802") == "GOLD", got
+            assert community_rank.register_account("8803", {"puuid": "q" * 78, "game_name": "검수용인증", "tag_line": "KR1"}) == "taken"
+            assert community_rank.register_account("8801", {"puuid": "e" * 78, "game_name": "검수용다른", "tag_line": "KR1"}) == "verified_already"
+            os.environ["COMMUNITY_GUILDS"] = "111:검수용"
+            assert fresh_client().get("/api/bot/tier-roles", params={"guild_id": "999"}, headers=h).status_code == 403
+        finally:
+            community_rank.get_player_by_riot_id = orig
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("티어 역할: 봇만 조회, 등록·인증 멤버 모두 티어, 남의 인증 계정 등록 불가, 인증 멤버는 등록으로 덮어쓰지 않음")
+
+
+def test_bot_alert_role_setting():
+    """구인 알림 역할: 봇 /알림역할 로 정한 역할이 .env 보다 먼저, 끄면 .env 값도 안 씀, 서버마다 따로, 봇 비밀값 필요"""
+    import os
+    from app.services.discord_service import duo_alert_roles
+    saved = {k: os.environ.get(k) for k in ("BOT_API_SECRET", "COMMUNITY_GUILDS", "DUO_ALERT_ROLES", "DUO_ALERT_ROLES_222")}
+    try:
+        os.environ.update(BOT_API_SECRET="z" * 32, COMMUNITY_GUILDS="111:검수용A,222:검수용B", DUO_ALERT_ROLES="lol=5")
+        os.environ.pop("DUO_ALERT_ROLES_222", None)
+        h = {"X-Bot-Secret": "z" * 32}
+        m = lambda g: {"discord_id": "7701", "discord_name": "검수용관리자", "guild_id": g}  # noqa: E731
+        assert duo_alert_roles("111") == {"lol": "5"}, "설정 전에는 .env"
+        assert fresh_client().post("/api/bot/alert-role", json={"member": m("111"), "role_id": "77"}).status_code in (401, 403)
+        r = fresh_client().post("/api/bot/alert-role", headers=h, json={"member": m("111"), "game": "lol", "role_id": "77"})
+        assert r.status_code == 200 and r.json()["roles"] == {"lol": "77"}, r.text
+        assert duo_alert_roles("111") == {"lol": "77"} and duo_alert_roles("") == {"lol": "77"}, "기본 서버 글도 같은 역할"
+        assert duo_alert_roles("222") == {}, "다른 서버에는 영향 없음"
+        assert fresh_client().get("/api/bot/alert-role", params={"guild_id": "111"}, headers=h).json()["roles"] == {"lol": "77"}
+        fresh_client().post("/api/bot/alert-role", headers=h, json={"member": m("111"), "game": "lol", "role_id": None})
+        assert duo_alert_roles("111") == {}, "봇에서 끄면 .env 값도 쓰지 않음"
+        assert fresh_client().post("/api/bot/alert-role", headers=h, json={"member": m("999"), "role_id": "1"}).status_code == 403
+        assert fresh_client().post("/api/bot/alert-role", headers=h, json={"member": m("111"), "role_id": "<@&1>"}).status_code == 422
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("알림 역할: 봇 /알림역할 값 우선, 끄기, 서버별 분리, 봇 비밀값·등록 서버·숫자 ID만")
+
+
+def test_bot_tier_role_map_per_server():
+    """티어 역할 연결: 서버마다 기존 역할 ID 를 저장·조회, 여러 티어가 한 역할 공유 가능, 잘못된 코드·ID 거부"""
+    import os
+    saved = {k: os.environ.get(k) for k in ("BOT_API_SECRET", "COMMUNITY_GUILDS")}
+    try:
+        os.environ.update(BOT_API_SECRET="z" * 32, COMMUNITY_GUILDS="111:검수용A,222:검수용B")
+        h = {"X-Bot-Secret": "z" * 32}
+        m = lambda g: {"discord_id": "7702", "discord_name": "검수용관리자", "guild_id": g}  # noqa: E731
+        r = fresh_client().post("/api/bot/tier-role-map", headers=h,
+                                json={"member": m("111"), "roles": {"GOLD": "501", "MASTER": "900", "GRANDMASTER": "900"}})
+        assert r.status_code == 200 and r.json()["role_map"] == {"GOLD": "501", "MASTER": "900", "GRANDMASTER": "900"}, r.text
+        got = fresh_client().get("/api/bot/tier-roles", params={"guild_id": "111"}, headers=h).json()["role_map"]
+        assert got["MASTER"] == got["GRANDMASTER"] == "900", "마스터+ 처럼 한 역할 공유"
+        assert fresh_client().get("/api/bot/tier-roles", params={"guild_id": "222"}, headers=h).json()["role_map"] == {}, "서버별 분리"
+        assert fresh_client().post("/api/bot/tier-role-map", headers=h,
+                                   json={"member": m("111"), "roles": {"GOD": "1"}}).status_code == 422
+        assert fresh_client().post("/api/bot/tier-role-map", headers=h,
+                                   json={"member": m("111"), "roles": {"GOLD": "<@&1>"}}).status_code == 422
+        assert fresh_client().post("/api/bot/tier-role-map", json={"member": m("111"), "roles": {}}).status_code in (401, 403)
+        fresh_client().post("/api/bot/tier-role-map", headers=h, json={"member": m("111"), "roles": {}})
+        assert fresh_client().get("/api/bot/tier-roles", params={"guild_id": "111"}, headers=h).json()["role_map"] == {}, "비우면 해제"
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("티어 역할 연결: 서버별 기존 역할 저장, 한 역할 공유, 잘못된 값 거부, 봇만")
+
+
+def test_recruit_requires_real_riot_id():
+    """롤 구인글: 라이엇에 없는 닉네임은 422 (1번 묻고 기억), RECRUIT_REQUIRE_VERIFIED=1 이면 인증한 본인 계정만"""
+    import os
+    import httpx
+    from app import community_rank, main as main_mod
+    from app.riot_client import riot_client
+    saved_key, saved_flag = settings.riot_api_key, os.environ.get("RECRUIT_REQUIRE_VERIFIED")
+    settings.riot_api_key = "RGAPI-test-key"
+    riot_client.reset_key_status()
+    main_mod._RIOT_ID_SEEN.clear()
+    asked = []
+
+    def riot(req):
+        if "/accounts/by-riot-id/" in req.url.path:
+            asked.append(req.url.path)
+            if "%EA%B0%80%EC%A7%9C" in req.url.raw_path.decode() or "가짜" in req.url.path:
+                return httpx.Response(404, json={})
+            return httpx.Response(200, json={"puuid": "r" * 78, "gameName": "Tester", "tagLine": "KR1"})
+        return httpx.Response(404, json={})
+    try:
+        with riot_http(riot):
+            bad = fresh_client().post("/api/duo-posts", json=_duo_payload(game_name="가짜닉", voice=False))
+            assert bad.status_code == 422 and "라이엇에 없는 닉네임" in bad.text, bad.text
+            assert fresh_client().post("/api/duo-posts", json=_duo_payload(game_name="가짜닉", voice=False)).status_code == 422
+            assert len(asked) == 1, "같은 닉네임은 다시 묻지 않음"
+            assert fresh_client().post("/api/duo-posts", json=_duo_payload(voice=False)).status_code == 200
+            pubg = fresh_client().post("/api/duo-posts", json=_duo_payload(game="pubg", game_name="아무이름", tier_kr="골드",
+                                                                         queue_type="일반 스쿼드", my_position="ALL", target_position="ALL", voice=False))
+            assert pubg.status_code == 200, "배그는 검사 안 함"
+
+            os.environ["RECRUIT_REQUIRE_VERIFIED"] = "1"
+            community_rank.unlink_account("local-dev")
+            assert fresh_client().post("/api/duo-posts", json=_duo_payload(voice=False)).status_code == 403, "인증 안 하면 못 씀"
+            community_rank.link_account("local-dev", {"puuid": "r" * 78, "game_name": "Tester", "tag_line": "KR1"})
+            assert fresh_client().post("/api/duo-posts", json=_duo_payload(game_name="남의닉", voice=False)).status_code == 403
+            assert fresh_client().post("/api/duo-posts", json=_duo_payload(game_name="tester", voice=False)).status_code == 200
+    finally:
+        settings.riot_api_key = saved_key
+        riot_client.reset_key_status()
+        community_rank.unlink_account("local-dev")
+        if saved_flag is None:
+            os.environ.pop("RECRUIT_REQUIRE_VERIFIED", None)
+        else:
+            os.environ["RECRUIT_REQUIRE_VERIFIED"] = saved_flag
+    ok("구인글: 라이엇에 없는 롤 닉네임 거부(재조회 없음), 배그 제외, 승인 후 스위치로 인증 본인 계정만")
+
+
+def test_inhouse_plan_and_events():
+    """팀 짜기: 10명 5:5 / 23명 여러 판(남는 3명 대기) / 40명 토너먼트(8팀) / 리그. 토너먼트는 이긴 팀이 다음 라운드, 리그는 순위표"""
+    import random
+    from app import team_builder
+    random.seed(7)
+    tiers = ["SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND"]
+    lanes = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"]
+
+    def people(n):
+        return [{"name": f"검수용팀원{i}", "tier": tiers[i % 5], "rank": "II", "lp": 50, "main": lanes[i % 5]} for i in range(n)]
+    c = fresh_client()
+    one = c.post("/api/inhouse/plan", json={"players": people(10), "mode": "single"}).json()
+    opt = one["games"][0]["options"][0]
+    assert len(opt["blue"]["players"]) == 5 and len(opt["red"]["players"]) == 5
+    assert opt["lane_penalty"] == 0, "주 라인이 고르게 있으면 모두 주 라인"
+    assert sorted(p["lane"] for p in opt["blue"]["players"]) == sorted(lanes)
+    multi = c.post("/api/inhouse/plan", json={"players": people(23), "mode": "multi", "split": "tiered"}).json()
+    assert len(multi["games"]) == 2 and len(multi["waitlist"]) == 3, "20명 2판 + 3명 대기"
+    assert fresh_client().post("/api/inhouse/plan", json={"players": people(9)}).status_code == 422
+
+    tour = c.post("/api/inhouse/plan", json={"players": people(40), "mode": "tournament"}).json()
+    assert len(tour["teams"]) == 8 and len(tour["matches"]) == 4 and tour["team_spread"] < 300, tour["team_spread"]
+    body = {"mode": "tournament", "title": "검수용 대회",
+            "teams": [{"name": t["name"], "players": [{"name": p["name"], "lane": p["lane"]} for p in t["players"]]} for t in tour["teams"]],
+            "matches": tour["matches"]}
+    eid = c.post("/api/inhouse/events", json=body).json()["id"]
+    assert fresh_client().post(f"/api/inhouse/events/{eid}/matches/0/start").status_code == 403, "만든 사람만 시작"
+    for i in range(4):  # 1라운드 4경기: 모두 블루(a팀) 승
+        gid = c.post(f"/api/inhouse/events/{eid}/matches/{i}/start").json()["game_id"]
+        assert c.post(f"/api/inhouse/games/{gid}/result", json={"winner": "blue"}).status_code == 200
+    ev = c.get(f"/api/inhouse/events/{eid}").json()
+    second = [m for m in ev["matches"] if m["round"] == 2]
+    assert len(second) == 2 and "champion" not in ev, "이긴 팀끼리 2라운드"
+    for m in second + []:
+        idx = ev["matches"].index(m)
+        gid = c.post(f"/api/inhouse/events/{eid}/matches/{idx}/start").json()["game_id"]
+        c.post(f"/api/inhouse/games/{gid}/result", json={"winner": "red"})
+    ev = c.get(f"/api/inhouse/events/{eid}").json()
+    final = [m for m in ev["matches"] if m["round"] == 3]
+    gid = c.post(f"/api/inhouse/events/{eid}/matches/{ev['matches'].index(final[0])}/start").json()["game_id"]
+    c.post(f"/api/inhouse/games/{gid}/result", json={"winner": "blue"})
+    ev = c.get(f"/api/inhouse/events/{eid}").json()
+    assert ev["champion"] == final[0]["a"] and "created_by" not in ev
+
+    lg = c.post("/api/inhouse/plan", json={"players": people(15), "mode": "league"}).json()
+    assert len(lg["teams"]) == 3 and len(lg["matches"]) == 3, "3팀 풀리그 3경기"
+    lid = c.post("/api/inhouse/events", json={"mode": "league", "teams": [
+        {"name": t["name"], "players": [{"name": p["name"]} for p in t["players"]]} for t in lg["teams"]], "matches": lg["matches"]}).json()["id"]
+    gid = c.post(f"/api/inhouse/events/{lid}/matches/0/start").json()["game_id"]
+    c.post(f"/api/inhouse/games/{gid}/result", json={"winner": "blue"})
+    st = c.get(f"/api/inhouse/events/{lid}").json()["standings"]
+    assert st[0]["wins"] == 1 and st[-1]["losses"] in (0, 1)
+    assert fresh_client().post("/api/inhouse/events", json=dict(body, teams=body["teams"][:1])).status_code == 422
+    assert team_builder.best_lanes([{"main": "TOP"}, {"main": "TOP"}, {"main": "MID"}, {"main": "ADC"}, {"main": "SUPPORT"}])[0] > 0
+    ok("팀 짜기: 5:5·여러 판(대기)·토너먼트(진출·우승)·리그(순위), 라인 배정, 만든 사람만 경기 시작")
+
+
+def test_bot_event_flow():
+    """봇 대회: 저장(만든 멤버), 진행판 조회, 만든 사람만 경기 시작, 결과 → 다음 라운드, 다른 서버 대회는 안 보임"""
+    import os
+    saved = {k: os.environ.get(k) for k in ("BOT_API_SECRET", "COMMUNITY_GUILDS")}
+    try:
+        os.environ.update(BOT_API_SECRET="z" * 32, COMMUNITY_GUILDS="111:검수용A,222:검수용B")
+        h = {"X-Bot-Secret": "z" * 32}
+        owner = {"discord_id": "6601", "discord_name": "검수용주최", "guild_id": "111"}
+        other = {"discord_id": "6602", "discord_name": "검수용남", "guild_id": "111"}
+        far = {"discord_id": "6603", "discord_name": "검수용다른서버", "guild_id": "222"}
+        teams = [{"name": f"{t + 1}팀", "players": [{"name": f"검수용봇대회{t}-{i}"} for i in range(5)]} for t in range(4)]
+        body = {"mode": "tournament", "teams": teams, "matches": [{"round": 1, "a": 0, "b": 3}, {"round": 1, "a": 1, "b": 2}],
+                "requested_by": owner}
+        c = fresh_client()
+        assert c.post("/api/bot/inhouse/events", json=body).status_code in (401, 403)
+        eid = c.post("/api/bot/inhouse/events", json=body, headers=h).json()["id"]
+        view = c.post(f"/api/bot/inhouse/events/{eid}/view", json={"requested_by": owner}, headers=h).json()
+        assert view["is_owner"] is True and len(view["matches"]) == 2 and "created_by" not in view
+        assert c.post(f"/api/bot/inhouse/events/{eid}/view", json={"requested_by": far}, headers=h).status_code == 404, "다른 서버"
+        assert c.post(f"/api/bot/inhouse/events/{eid}/matches/0/start", json={"requested_by": other}, headers=h).status_code == 403
+        for i in range(2):
+            gid = c.post(f"/api/bot/inhouse/events/{eid}/matches/{i}/start", json={"requested_by": owner}, headers=h).json()["game_id"]
+            r = c.post(f"/api/bot/inhouse/games/{gid}/result", json={"winner": "blue", "requested_by": owner}, headers=h)
+            assert r.status_code == 200, r.text
+        view = c.post(f"/api/bot/inhouse/events/{eid}/view", json={"requested_by": other}, headers=h).json()
+        assert view["is_owner"] is False and [m for m in view["matches"] if m["round"] == 2][0]["a"] == 0, "1팀·2팀 결승"
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("봇 대회: 저장·진행판·만든 사람만 시작·결과로 다음 라운드·다른 서버 차단")
+
+def test_inhouse_tournament_code_result_and_ranking():
+    """내전 토너먼트 코드: 만든 사람만 발급, 위조 콜백(다른 게임 ID) 무시, 진짜 결과는 자동 기록·손 결과 잠금, 순위·세부 기록"""
+    import os
+    import httpx
+    from app import inhouse
+    from app.riot_client import riot_client
+    saved_mode, saved_key = os.environ.get("RIOT_TOURNAMENT"), settings.riot_api_key
+    os.environ["RIOT_TOURNAMENT"] = "stub"
+    settings.riot_api_key = "RGAPI-test-key"
+    riot_client.reset_key_status()
+    code = "KR0001-aaaabbbb-cccc-dddd"
+    puuids = [f"puuid-{i:02d}" + "x" * 60 for i in range(10)]
+
+    def participant(i):
+        return {"puuid": puuids[i], "riotIdGameName": f"검수용{i}", "riotIdTagline": "KR1", "teamId": 100 if i < 5 else 200,
+                "win": i < 5, "championName": "Ahri" if i == 0 else "Garen", "teamPosition": "MIDDLE",
+                "kills": 5, "deaths": 2, "assists": 7, "goldEarned": 12000, "totalMinionsKilled": 180,
+                "neutralMinionsKilled": 10, "totalDamageDealtToChampions": 20000, "visionScore": 25, "turretTakedowns": 2}
+
+    def match(tcode):
+        return {"metadata": {"matchId": "KR_777"}, "info": {"tournamentCode": tcode, "gameDuration": 1800,
+                "teams": [{"teamId": 100, "win": True}, {"teamId": 200, "win": False}],
+                "participants": [participant(i) for i in range(10)]}}
+
+    calls = []
+
+    def riot(req):
+        path = req.url.path
+        calls.append(path)
+        if path.endswith("/tournament-stub/v5/providers"):
+            return httpx.Response(200, json=11)
+        if path.endswith("/tournament-stub/v5/tournaments"):
+            return httpx.Response(200, json=22)
+        if path.endswith("/tournament-stub/v5/codes"):
+            assert req.url.params["tournamentId"] == "22"
+            return httpx.Response(200, json=[code])
+        if path.endswith("/lol/match/v5/matches/KR_777"):
+            return httpx.Response(200, json=match(code))
+        if path.endswith("/lol/match/v5/matches/KR_666"):
+            return httpx.Response(200, json=match("KR0001-other-code-0000"))
+        return httpx.Response(404, json={})
+
+    try:
+        owner = fresh_client()
+        seats = [{"name": f"검수용{i}"} for i in range(10)]
+        gid = owner.post("/api/inhouse/games", json={"blue": seats[:5], "red": seats[5:]}).json()["id"]
+        with riot_http(riot):
+            assert fresh_client().post(f"/api/inhouse/games/{gid}/code").status_code == 403, "다른 사람은 코드 발급 불가"
+            r = owner.post(f"/api/inhouse/games/{gid}/code")
+            assert r.status_code == 200 and r.json() == {"code": code, "mode": "stub"}, r.text
+            assert owner.post(f"/api/inhouse/games/{gid}/code").json()["code"] == code, "같은 게임은 같은 코드"
+
+            cb = fresh_client()
+            assert cb.post("/api/riot/tournament/callback", json={"shortCode": code, "gameId": 666}).json()["status"] == "mismatch"
+            assert inhouse.get_game(gid)["winner"] is None, "다른 경기 ID 로 보낸 위조 알림은 반영 안 됨"
+            assert cb.post("/api/riot/tournament/callback", json={"shortCode": "KR0001-unknown-0000", "gameId": 777}).json()["status"] == "not_found"
+            assert cb.post("/api/riot/tournament/callback", json={"shortCode": code, "gameId": 777}).json()["status"] == "ok"
+            assert cb.post("/api/riot/tournament/callback", json={"shortCode": code, "gameId": 777}).json()["status"] == "already"
+        g = inhouse.get_game(gid)
+        assert g["winner"] == "blue" and g["match_id"] == "KR_777"
+        assert owner.post(f"/api/inhouse/games/{gid}/result", json={"winner": "red"}).status_code == 409, "라이엇 결과는 잠김"
+
+        board = fresh_client().get("/api/inhouse/ranking").json()["players"]
+        top = next(p for p in board if p["name"] == "검수용0")
+        assert top["games"] == 1 and top["wins"] == 1 and top["kda"] == 6.0 and top["rating"] > 1000
+        assert top["most_champions"] == [{"champion": "Ahri", "games": 1}] and top["placement"] is True
+        assert "avg_gold" not in top, "평균 골드 같은 세부 기록은 순위표에 없음"
+        detail = fresh_client().get(f"/api/inhouse/players/{top['key']}").json()
+        assert detail["avg_gold"] == 12000 and detail["avg_turrets"] == 2.0 and detail["cs_per_min"] == 6.3, detail
+        assert fresh_client().get("/api/inhouse/players/n:abc").status_code == 404
+        loser = next(p for p in board if p["name"] == "검수용9")
+        assert loser["losses"] == 1 and loser["rating"] < 1000
+    finally:
+        if saved_mode is None:
+            os.environ.pop("RIOT_TOURNAMENT", None)
+        else:
+            os.environ["RIOT_TOURNAMENT"] = saved_mode
+        settings.riot_api_key = saved_key
+        riot_client.reset_key_status()
+    assert fresh_client(follow_redirects=False).post(f"/api/inhouse/games/{gid}/code").status_code in (403, 503)
+    ok("내전 토너먼트 코드: 만든 사람만 발급, 위조 알림 무시, 라이엇 결과 자동 기록·잠금, 순위(점수·KDA·모스트)·세부 기록 분리")
+
 if __name__ == "__main__":
     print("=" * 80)
     print("🛡️ [Security Regression Suite] 2026-10-24 보안 감사 수정사항 회귀 검증")

@@ -1,3 +1,4 @@
 Set WshShell = CreateObject("WScript.Shell")
 WshShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
-WshShell.Run """C:\Users\nkkju\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"" run.py", 0, False
+' use pythonw from PATH (no personal PC paths in the repo)
+WshShell.Run "pythonw.exe run.py", 0, False

@@ -31,6 +31,8 @@
 - 라이엇 API 호출량을 늘리는 변경(목록 프리패치, 화면당 다수 호출)은 하지 않는다. 매치 상세는 `match_cache`로 캐시.
   - 예외 (2026-10-25 사용자 승인): 장인랭킹용 챔피언 숙련도 — 소환사 조회 시 +1회, 챌린저 래더 숙련도 하루 1회 갱신(약 43회/일).
   - 예외 (2026-10-25 사용자 승인): 티어표·상성용 매치 수집기(`app/match_collector.py`) — 자체 한도 120초당 40회(공용 한도 95회 중 나머지는 방문자용), 솔로랭크만, 압축 저장. `MATCH_COLLECTOR=0`으로 끔. 최신 패치가 2만 게임이면 10분마다 1명만 크롤(감속), 최신 2개 패치보다 오래된 매치는 1시간마다 삭제.
+  - 예외 (2026-10-28 사용자 승인): 챌린저 랭킹 상위 300명 (`LADDER_NAMED_TOP_N`). 닉네임은 `ladder_names` 에 7일 저장해 새로 들어온 사람·7일 지난 이름만 다시 조회. 장인 숙련도는 상위 50명(`LADDER_MASTERY_TOP_N`)만.
+  - 예외 (2026-10-28 사용자 승인): 서버 랭킹 하루 1회 갱신 때 등록·인증 멤버의 최근 30일 솔로·자유랭크 매치 (같이 한 게임은 인증 멤버만, 팀 짜기 퍼포먼스·라인은 등록 멤버까지) (`community_rank.cache_member_matches`, 1명당 목록 2회 + 캐시에 없는 매치만). `MEMBER_MATCH_FETCH=0` 으로 끔.
 - AI 코치(`app/ai_coach.py`, `/api/ai-coach`): 실제 전적 vs 수집된 고티어 포지션 평균. `ANTHROPIC_API_KEY`가 있으면 리포트 수치만(소환사 이름 제외) Claude로 보내 요약을 받는다. IP당 10분 6회, AI 요약은 서버 전체 하루 300회.
 - 정식 키가 필요한 화면은 샘플 데이터 + 화면 표시(목록: `docs/PRODUCTION_KEY_SAMPLES.md`). 샘플에 실존 인물 이름을 쓰지 않는다.
 - Data Dragon 이미지 주소는 하드코딩하지 않는다: 파이썬은 `DDRAGON_CDN`, JS는 `__DDRAGON_VER__` 표식.
@@ -46,7 +48,23 @@
 - 디스코드 채널 메시지는 `?wait=true`로 ID를 받아 두고 참가·마감·삭제·만료 때 같은 메시지를 PATCH. 역할 멘션은 `DUO_ALERT_ROLES` 의 숫자 ID만.
 - 디스코드 봇(`scripts/discord_bot.py`): `/구인`·`/구인글`·`/내구인`·`/내전`·`/내전전적`·`/배그` 은 `/api/bot/...` (헤더 `X-Bot-Secret`=`BOT_API_SECRET`, 16자 이상). 멤버 로그인을 켜도 이 헤더가 맞으면 API만 통과.
 - 배그 전적: `app/pubg_api.py` + `GET /api/pubg/player` (`PUBG_API_KEY` 없으면 503, 분당 8회 자체 제한, 10분 캐시). 키가 있을 때만 `/api/duo-games` 의 배그 `has_stats`=true.
-- 내전 팀 짜기: `app/inhouse.py` (LP 환산 점수, 126가지 전부 계산), 웹 `POST /api/inhouse/balance`, 봇 `POST /api/bot/inhouse`(연결된 계정 티어, 라이엇 호출 없음). 기록: `inhouse_games` 표, 팀 저장한 사람(member:<ID>/IP)만 24시간 안에 결과 지정(관리자는 언제나), `GET /api/inhouse/stats`.
+- 계정 (2026-10-28 사용자 결정, 두 단계):
+  - 닉네임 등록 `POST /api/me/riot-account` (라이엇에 있는 계정만, verified=0): 티어 역할·내전 팀 나누기용. 다른 멤버가 인증한 계정은 불가, 인증한 멤버는 덮어쓰지 않음.
+  - 라이엇 로그인 RSO (`app/riot_sign_on.py`, verified=1): 서버 랭킹·내전 순위·승급 알림·같이 한 게임은 이것만. 한 계정은 한 멤버에게만. `RSO_CLIENT_ID/SECRET` 이 없으면 버튼 '준비 중'.
+- 롤 구인글 닉네임 (2026-10-28): `_check_recruit_identity` — 라이엇에 없는 닉네임#태그는 422 (Account-V1 1회, 메모리 기억). `RECRUIT_REQUIRE_VERIFIED=1`(Production·RSO 승인 뒤 켬)이면 인증한 본인 계정으로만.
+- 테스트는 `test_support.no_real_riot_key()` 로 .env 의 진짜 키를 비운다 (가짜 키는 테스트가 직접 넣음).
+- 내전 순위·기록 (2026-10-28): `inhouse.ranking()` 내전 점수(시작 1000, 팀 평균 Elo K=24)·판수·승률·KDA·모스트, 3판 미만은 '배치'. 평균 골드·CS·딜·시야·타워는 `GET /api/inhouse/players/{key}` (순위표 줄을 눌렀을 때만).
+  경기 기록은 라이엇 토너먼트 코드 게임에서만 (`app/tournament.py`, `RIOT_TOURNAMENT=live|stub`, 기본 꺼짐). 콜백 `POST /api/riot/tournament/callback` 은 로그인 없이 열려 있지만 내용은 믿지 않고 매치를 직접 불러 `info.tournamentCode` 가 우리 코드일 때만 반영. 라이엇 결과가 들어온 게임은 손 결과 409.
+- 내전 팀 짜기 엔진 (2026-10-28): `app/team_builder.py` — 점수 = 현재 티어 + 최고 티어 보정(우리 rank_snapshots) + 최근 20판(승률·판 평균 대비 KDA) + 내전 Elo(판수 비중). 라인 주·부(최근 게임 또는 직접). 10명 전수 계산, N명은 뱀 드래프트+맞바꾸기. `POST /api/inhouse/plan` (single/multi[balanced|tiered]/tournament/league, 남는 인원 대기), 토너먼트·리그 저장 `inhouse_events` (`/api/inhouse/events`, 경기 시작 = 보통 내전 게임 생성, 대진·순위는 게임 결과로 계산). 봇 `POST /api/bot/inhouse/plan`.
+- 내전 팀 짜기 (예전 10명 전용): `app/inhouse.py` (LP 환산 점수, 126가지 전부 계산), 웹 `POST /api/inhouse/balance`, 봇 `POST /api/bot/inhouse`(연결된 계정 티어, 라이엇 호출 없음). 기록: `inhouse_games` 표, 팀 저장한 사람(member:<ID>/IP)만 24시간 안에 결과 지정(관리자는 언제나), `GET /api/inhouse/stats`.
+
+## 여러 디스코드 서버 (2026-10-28)
+- `app/communities.py`: `COMMUNITY_GUILDS=ID:이름,...` (없으면 `DISCORD_GUILD_ID`+`COMMUNITY_NAME` 한 곳, 그것도 없으면 구분 없음 ""). 첫 서버가 기본 서버, 서버 값이 비어 있는 예전 데이터는 기본 서버 것.
+- 서버별로 나뉘는 것: 구인글(JSON `guild_id`), `inhouse_games.guild_id`, 서버 랭킹·같이 한 게임·주간 MVP(`member_guilds` 표), 웹후크·알림 역할(`DISCORD_WEBHOOK_URL_<ID>`, `DUO_ALERT_ROLES_<ID>`). 기본 서버가 아니면 예전 설정 이름으로 대신하지 않는다 (다른 서버 채널로 새는 것 방지).
+- 지금 서버: 쿠키 `community` 가 내 서버(`member_guilds`)일 때만, 아니면 내 첫 서버. 다른 서버 글 참가는 404. 봇은 `member.guild_id` 를 보내고 등록 안 된 서버면 403.
+
+- 구인 알림 역할 (2026-10-28): 봇 `/알림역할`(서버 관리 권한) → `community_settings` 표 `alert_roles`, `.env` `DUO_ALERT_ROLES(_<ID>)` 보다 먼저 ("off" 면 끔). 멤버는 `/알림받기` 로 직접 토글.
+- 티어 역할 (2026-10-28): 서버마다 기존 역할을 연결 (`community_settings.tier_roles`, `POST /api/bot/tier-role-map`). 봇 `/티어역할 자동연결|연결|보기|만들기|맞추기` + `TIER_ROLE_SYNC=1` 이면 1시간마다. 자동연결은 장식·'롤'·'티어'를 뺀 이름이 티어 말과 같을 때만, 관리 권한 있는 역할은 제외. `GET /api/bot/tier-roles?guild_id=` 는 그 서버 멤버의 인증(verified) 계정 솔로랭크만 (미인증·언랭크 None → 역할 뗌). 이름이 맞는 티어 역할만 건드린다.
 
 ## 보안 규칙
 - 관리자 API는 `verify_admin_access(request)` 필수. 공개 쓰기 API는 `app/rate_limit.py` 제한기를 건다.

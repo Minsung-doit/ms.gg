@@ -26,3 +26,56 @@
 #viewSearch #homeInhouse .hi-red .hi-side-tag { color: #EF4444; }
 #viewSearch #homeInhouse .hi-win { font-weight: 700; }
 #viewSearch #homeInhouse .hi-lose { opacity: 0.6; }
+
+/* 머리말 디스코드 서버 선택 (여러 서버 멤버만) */
+.community-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.community-switch i {
+  color: #5865F2;
+}
+
+.community-switch select {
+  max-width: 140px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.community-switch select option {
+  background: var(--bg-card, #1E293B);
+  color: var(--text-main);
+}
+
+[data-theme="light"] .community-switch {
+  background: #FFFFFF;
+}
+
+[data-theme="light"] .community-switch select option {
+  background: #FFFFFF;
+  color: #0F172A;
+}
+
+@media (max-width: 640px) {
+  .community-switch {
+    padding: 0.25rem 0.3rem 0.25rem 0.55rem;
+    font-size: 0.78rem;
+  }
+  .community-switch select {
+    max-width: 96px;
+  }
+}

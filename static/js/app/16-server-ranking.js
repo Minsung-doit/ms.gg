@@ -46,47 +46,6 @@ async function loadServerRanking() {
   }
 }
 
-async function connectRiotAccount(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  const input = document.getElementById("srRiotIdInput");
-  if (!input) return;
-  const riotId = input.value.trim();
-  if (!riotId) {
-    if (typeof showToast === "function") {
-      showToast("닉네임#태그 형식으로 입력해주세요.", "warning");
-    }
-    return;
-  }
-
-  const btn = document.getElementById("btnConnectRiotAccount");
-  if (btn) btn.disabled = true;
-
-  try {
-    const res = await fetch("/api/me/riot-account", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ riot_id: riotId })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      if (typeof showToast === "function") {
-        showToast(data.detail || data.message || "라이엇 계정이 성공적으로 연결되었습니다.", "success");
-      }
-      loadServerRanking();
-    } else {
-      if (typeof showToast === "function") {
-        showToast(data.detail || "계정 연결 실패", "error");
-      }
-    }
-  } catch (err) {
-    if (typeof showToast === "function") {
-      showToast("서버와 통신하는 중 오류가 발생했습니다.", "error");
-    }
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
 async function disconnectRiotAccount() {
   if (!confirm("정말 라이엇 계정 연결을 해제하시겠습니까?")) return;
   const btn = document.getElementById("btnDisconnectRiotAccount");
@@ -105,6 +64,68 @@ async function disconnectRiotAccount() {
     } else {
       if (typeof showToast === "function") {
         showToast(data.detail || "계정 연결 해제 실패", "error");
+      }
+    }
+  } catch (err) {
+    if (typeof showToast === "function") {
+      showToast("서버와 통신하는 중 오류가 발생했습니다.", "error");
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function registerRiotNickname() {
+  const input = document.getElementById("srNickInput");
+  const btn = document.getElementById("btnSrNickRegister");
+  if (!input) return;
+
+  const raw = (input.value || "").trim();
+  const hashIdx = raw.lastIndexOf("#");
+  if (hashIdx === -1) {
+    if (typeof showToast === "function") {
+      showToast("닉네임#태그 형식으로 입력해 주세요.", "error");
+    }
+    return;
+  }
+
+  const gameName = raw.slice(0, hashIdx).trim();
+  const tagLine = raw.slice(hashIdx + 1).trim();
+  if (!gameName || !tagLine) {
+    if (typeof showToast === "function") {
+      showToast("닉네임#태그 형식으로 입력해 주세요.", "error");
+    }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/me/riot-account", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        game_name: gameName,
+        tag_line: tagLine
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (typeof showToast === "function") {
+        showToast("닉네임을 등록했어요.", "success");
+      }
+      loadServerRanking();
+    } else {
+      let msg = "닉네임 등록에 실패했습니다.";
+      if (Array.isArray(data.detail)) {
+        msg = "닉네임과 태그를 확인해 주세요.";
+      } else if (typeof data.detail === "string" && data.detail) {
+        msg = data.detail;
+      }
+      if (typeof showToast === "function") {
+        showToast(msg, "error");
       }
     }
   } catch (err) {
@@ -146,28 +167,74 @@ function renderMyAccountCard(me) {
     return;
   }
 
-  // 2. 연결됨: "내 계정: 닉네임#태그" + "연결 해제" 버튼(confirm)
+  const riotLogin = !!me.riot_login_enabled;
+  const riotLoginMarkup = riotLogin
+    ? `<a href="/auth/riot/login" class="sr-btn sr-btn-riot"><i class="fa-solid fa-shield-halved"></i> 라이엇 로그인으로 연결</a>`
+    : `<button type="button" class="sr-btn sr-btn-riot" disabled title="라이엇 로그인 연동을 준비 중입니다"><i class="fa-solid fa-shield-halved"></i> 라이엇 로그인 준비 중</button>`;
+
+  // 2. account 있음
   if (me.account && me.account.game_name) {
     const gn = me.account.game_name;
     const tag = me.account.tag_line || "";
-    container.innerHTML = `
-      <div class="sr-card sr-card-linked">
-        <div class="sr-linked-info">
-          <span class="sr-label"><i class="fa-solid fa-id-badge"></i> 내 계정:</span>
-          <span class="sr-name-highlight">
-            <strong class="sr-linked-gn">${escapeHtml(gn)}</strong><span class="sr-linked-tag">#${escapeHtml(tag)}</span>
-          </span>
-          ${me.discord_name ? `<span class="sr-discord-tag">(${escapeHtml(me.discord_name)})</span>` : ""}
+    const isVerified = !!me.account.verified;
+
+    if (isVerified) {
+      // 2-1. verified true: 지금처럼 "내 계정: 닉#태그 (디스코드이름) [✓ 인증됨]" + 연결 해제 버튼
+      const verifyHtml = `<span class="sr-verified-badge" title="라이엇 로그인으로 본인 계정임을 확인했습니다"><i class="fa-solid fa-circle-check"></i> 인증됨</span>`;
+      container.innerHTML = `
+        <div class="sr-card sr-card-linked">
+          <div class="sr-linked-info">
+            <span class="sr-label"><i class="fa-solid fa-id-badge"></i> 내 계정:</span>
+            <span class="sr-name-highlight">
+              <strong class="sr-linked-gn">${escapeHtml(gn)}</strong><span class="sr-linked-tag">#${escapeHtml(tag)}</span>
+            </span>
+            ${me.discord_name ? `<span class="sr-discord-tag">(${escapeHtml(me.discord_name)})</span>` : ""}
+            ${verifyHtml}
+          </div>
+          <button type="button" id="btnDisconnectRiotAccount" class="sr-btn sr-btn-danger">
+            <i class="fa-solid fa-unlink"></i> 연결 해제
+          </button>
         </div>
-        <button type="button" id="btnDisconnectRiotAccount" class="sr-btn sr-btn-danger" onclick="disconnectRiotAccount()">
-          <i class="fa-solid fa-unlink"></i> 연결 해제
-        </button>
-      </div>
-    `;
-    return;
+      `;
+      const discBtn = document.getElementById("btnDisconnectRiotAccount");
+      if (discBtn) {
+        discBtn.addEventListener("click", disconnectRiotAccount);
+      }
+      return;
+    } else {
+      // 2-2. verified false: "내 계정: 닉#태그" 옆에 회색 배지 "닉네임 등록" (아이콘 fa-solid fa-user-tag, title="라이엇 로그인 인증 전: 티어 역할·팀 나누기에만 쓰입니다")
+      // 그 아래 안내 한 줄: "서버 랭킹과 내전 순위에 올라가려면 라이엇 로그인으로 인증해 주세요."
+      // 버튼 2개를 한 줄에: 라이엇 로그인 버튼(riot_login_enabled 에 따라 링크 또는 비활성, 지금 3번 분기와 같은 마크업) + "등록 해제" 버튼(disconnectRiotAccount 재사용)
+      const unverifiedHtml = `<span class="sr-unverified-badge" title="라이엇 로그인 인증 전: 티어 역할·팀 나누기에만 쓰입니다"><i class="fa-solid fa-user-tag"></i> 닉네임 등록</span>`;
+      container.innerHTML = `
+        <div class="sr-card sr-card-unlinked">
+          <div class="sr-linked-info">
+            <span class="sr-label"><i class="fa-solid fa-id-badge"></i> 내 계정:</span>
+            <span class="sr-name-highlight">
+              <strong class="sr-linked-gn">${escapeHtml(gn)}</strong><span class="sr-linked-tag">#${escapeHtml(tag)}</span>
+            </span>
+            ${me.discord_name ? `<span class="sr-discord-tag">(${escapeHtml(me.discord_name)})</span>` : ""}
+            ${unverifiedHtml}
+          </div>
+          <div class="sr-nick-help">서버 랭킹과 내전 순위에 올라가려면 라이엇 로그인으로 인증해 주세요.</div>
+          <div class="sr-nick-row">
+            ${riotLoginMarkup}
+            <button type="button" id="btnDisconnectRiotAccount" class="sr-btn sr-btn-danger">
+              <i class="fa-solid fa-unlink"></i> 등록 해제
+            </button>
+          </div>
+        </div>
+      `;
+      const discBtn = document.getElementById("btnDisconnectRiotAccount");
+      if (discBtn) {
+        discBtn.addEventListener("click", disconnectRiotAccount);
+      }
+      return;
+    }
   }
 
-  // 3. 연결 안 됨: 입력칸(placeholder "닉네임#태그") + "연결" 버튼
+  // 3. account 없음
+  // 순서: 제목 → 닉네임 등록 줄 → 설명 → 구분선 → 라이엇 인증 안내 → 라이엇 로그인 버튼
   container.innerHTML = `
     <div class="sr-card sr-card-unlinked">
       <div class="sr-unlinked-title">
@@ -175,14 +242,31 @@ function renderMyAccountCard(me) {
         <span>라이엇 계정 연결</span>
         ${me.discord_name ? `<span class="sr-discord-tag">${escapeHtml(me.discord_name)}</span>` : ""}
       </div>
-      <form class="sr-connect-form" onsubmit="connectRiotAccount(event)">
-        <input type="text" id="srRiotIdInput" class="sr-input" placeholder="닉네임#태그" autocomplete="off" required>
-        <button type="submit" id="btnConnectRiotAccount" class="sr-btn sr-btn-primary">
-          <i class="fa-solid fa-plus"></i> 연결
-        </button>
-      </form>
+      <div class="sr-nick-row">
+        <input type="text" id="srNickInput" class="sr-input sr-nick-input" placeholder="닉네임#태그 (예: 닉네임#KR1)" maxlength="22" autocomplete="off" />
+        <button type="button" id="btnSrNickRegister" class="sr-btn sr-btn-primary">등록</button>
+      </div>
+      <div class="sr-nick-help">등록한 닉네임으로 티어 역할을 받고 내전 팀을 나눕니다. 랭킹에 올라가려면 아래 라이엇 로그인 인증이 필요해요.</div>
+      <div class="sr-divider"></div>
+      <div class="sr-verify-note">라이엇 공식 홈페이지에서 로그인하면 본인 계정으로 인증되어 서버 랭킹에 올라갑니다. 비밀번호는 이 사이트에 전달되지 않습니다.</div>
+      ${riotLoginMarkup}
     </div>
   `;
+
+  const regBtn = document.getElementById("btnSrNickRegister");
+  if (regBtn) {
+    regBtn.addEventListener("click", registerRiotNickname);
+  }
+
+  const inputEl = document.getElementById("srNickInput");
+  if (inputEl) {
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.isComposing) {
+        e.preventDefault();
+        registerRiotNickname();
+      }
+    });
+  }
 }
 
 function renderServerBoard(data) {
@@ -231,7 +315,7 @@ function renderServerBoard(data) {
     const nameHtml = `
       <div class="sr-identity">
         <div class="sr-riot-id">
-          <strong class="sr-game-name">${escapeHtml(gn)}</strong>${tag ? `<span class="sr-tag">#${escapeHtml(tag)}</span>` : ""}
+          <strong class="sr-game-name">${escapeHtml(gn)}</strong>${tag ? `<span class="sr-tag">#${escapeHtml(tag)}</span>` : ""}${m.verified ? ` <i class="fa-solid fa-circle-check sr-verified-icon" title="라이엇 로그인 인증"></i>` : ""}
         </div>
         ${discordHtml}
       </div>
@@ -330,7 +414,6 @@ function renderServerBoard(data) {
 }
 
 window.loadServerRanking = loadServerRanking;
-window.connectRiotAccount = connectRiotAccount;
 window.disconnectRiotAccount = disconnectRiotAccount;
 window.renderMyAccountCard = renderMyAccountCard;
 window.renderServerBoard = renderServerBoard;
@@ -338,3 +421,47 @@ window.renderServerBoard = renderServerBoard;
 if (typeof window._tabLoaders === "object" && window._tabLoaders) {
   window._tabLoaders.serverranking = loadServerRanking;
 }
+
+// 라이엇 로그인 인증에서 돌아왔을 때 결과 안내 (/?tab=serverranking&riot_link=ok 등)
+(function showRiotLinkResult() {
+  const params = new URLSearchParams(window.location.search);
+  const result = params.get("riot_link");
+  if (!result) return;
+  const messages = {
+    ok: ["라이엇 계정이 본인 인증으로 연결되었습니다.", "success"],
+    denied: ["라이엇 로그인을 취소했습니다.", "info"],
+    state: ["인증 요청이 만료되었습니다. 다시 시도해주세요.", "warning"],
+    riot: ["라이엇에서 계정 정보를 받지 못했습니다. 잠시 후 다시 시도해주세요.", "error"],
+    login: ["디스코드 로그인 후 다시 시도해주세요.", "warning"],
+    off: ["라이엇 로그인 인증은 아직 준비 중입니다.", "info"],
+  };
+  const [msg, kind] = messages[result] || messages.riot;
+  params.delete("riot_link");
+  const qs = params.toString();
+  history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
+  setTimeout(() => { if (typeof showToast === "function") showToast(msg, kind, 4000); }, 300);
+})();
+
+// 머리말 디스코드 서버 선택 (여러 서버에 들어가 있는 멤버만 보임): 바꾸면 그 서버 구인글·내전·랭킹으로 다시 연다
+document.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("communitySwitch");
+  if (!sel) return;
+  sel.addEventListener("change", async () => {
+    sel.disabled = true;
+    try {
+      const res = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guild_id: sel.value })
+      });
+      if (res.ok) {
+        location.reload();
+        return;
+      }
+      if (typeof showToast === "function") showToast("서버를 바꾸지 못했습니다.", "error");
+    } catch (err) {
+      if (typeof showToast === "function") showToast("서버와 통신하는 중 오류가 발생했습니다.", "error");
+    }
+    sel.disabled = false;
+  });
+});

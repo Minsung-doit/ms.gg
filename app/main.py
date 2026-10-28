@@ -51,7 +51,7 @@ from app.database import (
     add_search_history,
     get_system_database_stats,
 )
-from app.riot_client import riot_client
+from app.riot_client import RiotAPIError, riot_client
 from app.real_data import (
     PlayerDataUnavailable,
     fetch_player,
@@ -72,7 +72,7 @@ from app.match_collector import player_collected_summary, player_cached_summary
 from app.sample_data import SAMPLE_NOTICE, anonymize_featured
 from app.ai_coach import build_coach_report, ai_summary
 from app.traffic import record_page_view, traffic_summary
-from app import member_auth, community_rank
+from app import member_auth, community_rank, riot_sign_on, communities
 from app.champion_stats import compute_tier_list, compute_matchups, compute_head_to_head, compute_duo_synergy, compute_champion_build, compute_pair_synergy, compute_bot_lane_matchups
 from app.champion_skills_data import get_champion_skills_data
 from app.spectator_engine import generate_spectator_launch_script, get_featured_matches
@@ -240,6 +240,7 @@ async def member_discord_callback(request: Request, code: str = "", state: str =
         resp.delete_cookie(member_auth.STATE_COOKIE)
         return resp
     community_rank.remember_member(result["discord_id"], result.get("name", ""))
+    community_rank.set_member_guilds(result["discord_id"], result.get("guilds") or [])
     resp = RedirectResponse(url=member_auth.safe_next(next_path), status_code=302)
     resp.delete_cookie(member_auth.STATE_COOKIE)
     resp.set_cookie(member_auth.SESSION_COOKIE, member_auth.make_session(result["discord_id"]),
@@ -254,37 +255,182 @@ def _member_id(request: Request) -> Optional[str]:
     return "local-dev"
 
 
-class RiotAccountLink(BaseModel):
-    riot_id: str = Field(min_length=3, max_length=40)
+def _current_guild(request: Request) -> str:
+    """지금 보고 있는 디스코드 서버 (app/communities.py). 서버 설정이 없으면 "" (구분 없음)"""
+    mid = _member_id(request) if member_auth.login_enabled() else None
+    return communities.current(request, mid)
+
+
+def _guild_allowed(row_guild: Optional[str], request: Request) -> bool:
+    """글·게임이 내가 들어가 있는 서버 것인지 (다른 서버 글에 참가하지 못하게)"""
+    if not communities.ids():
+        return True
+    mid = _member_id(request) if member_auth.login_enabled() else None
+    allowed = communities.member_guilds(mid) if mid else communities.ids()
+    return (row_guild or communities.default_id()) in allowed
 
 
 @app.get("/api/me")
 async def get_me(request: Request):
     member_id = _member_id(request)
     member = community_rank.get_member(member_id) if member_id else None
-    account = {"game_name": member["game_name"], "tag_line": member["tag_line"]} if member and member.get("puuid") else None
+    # verified: 라이엇 로그인으로 본인 인증 (서버 랭킹·내전 순위에 올라감). False 면 닉네임 등록만 (티어 역할·팀 나누기용)
+    account = ({"game_name": member["game_name"], "tag_line": member["tag_line"], "verified": bool(member.get("verified"))}
+               if member and member.get("puuid") else None)
+    mine = communities.member_guilds(member_id if member_auth.login_enabled() else None)
     return {"login_enabled": member_auth.login_enabled(), "logged_in": bool(member_id),
-            "discord_name": (member or {}).get("discord_name", ""), "account": account}
+            "discord_name": (member or {}).get("discord_name", ""), "account": account,
+            "riot_login_enabled": riot_sign_on.config_ok(),
+            # 여러 서버에 들어가 있으면 화면 위에서 서버를 바꿀 수 있다
+            "communities": [{"id": g, "name": communities.name_of(g) or "디스코드 서버"} for g in mine],
+            "community": _current_guild(request)}
+
+
+class CommunityPick(BaseModel):
+    guild_id: str = Field(min_length=1, max_length=32, pattern=r"^\d+$")
+
+
+@app.post("/api/community")
+async def pick_community(req: CommunityPick, request: Request):
+    """보고 있을 디스코드 서버 바꾸기 (내가 들어가 있는 서버만)"""
+    mid = _member_id(request) if member_auth.login_enabled() else None
+    if req.guild_id not in communities.member_guilds(mid):
+        raise HTTPException(status_code=403, detail="들어가 있지 않은 서버입니다.")
+    resp = JSONResponse({"status": "ok", "community": req.guild_id, "name": communities.name_of(req.guild_id)})
+    resp.set_cookie(communities.CURRENT_COOKIE, req.guild_id, max_age=365 * 86400, httponly=True, samesite="lax",
+                    secure=member_auth.cookie_secure())
+    return resp
+
+
+RIOT_LINK_DONE = "/?tab=serverranking&riot_link="
+
+
+@app.get("/auth/riot/login")
+async def riot_login(request: Request):
+    """라이엇 공식 로그인으로 본인 계정 인증 시작 (디스코드 로그인한 멤버만)"""
+    if not riot_sign_on.config_ok():
+        return RedirectResponse(url=RIOT_LINK_DONE + "off", status_code=302)
+    if not _member_id(request):
+        return RedirectResponse(url="/login?next=" + urllib.parse.quote("/?tab=serverranking"), status_code=302)
+    state = riot_sign_on.new_state()
+    resp = RedirectResponse(url=riot_sign_on.authorize_url(request, state), status_code=302)
+    resp.set_cookie(riot_sign_on.STATE_COOKIE, state, max_age=600, httponly=True, samesite="lax",
+                    secure=riot_sign_on.cookie_secure())
+    return resp
+
+
+@app.get("/auth/riot/callback")
+async def riot_login_callback(request: Request, code: str = "", state: str = "", error: str = ""):
+    saved_state = request.cookies.get(riot_sign_on.STATE_COOKIE, "")
+    member_id = _member_id(request)
+
+    def done(result: str) -> RedirectResponse:
+        resp = RedirectResponse(url=RIOT_LINK_DONE + result, status_code=302)
+        resp.delete_cookie(riot_sign_on.STATE_COOKIE)
+        return resp
+
+    if error:
+        return done("denied")
+    if not riot_sign_on.config_ok() or not member_id:
+        return done("off" if member_id else "login")
+    if not code or not state or not saved_state or not secrets.compare_digest(state, saved_state):
+        return done("state")
+    enforce_rate_limit(member_link_limiter, request, "member_link")
+    try:
+        account = await riot_sign_on.fetch_account(request, code)
+    except httpx.HTTPError:
+        account = {"ok": False}
+    if not account.get("ok"):
+        return done("riot")
+    # 티어·아이콘은 기존 소환사 조회로 채운다. 조회가 안 돼도 인증한 puuid·닉네임으로는 연결한다.
+    player = {"puuid": account["puuid"], "game_name": account["game_name"], "tag_line": account["tag_line"]}
+    try:
+        fetched = await fetch_player(account["game_name"], account["tag_line"], allow_cached=False)
+        if fetched.get("puuid") == account["puuid"]:
+            player = fetched
+    except PlayerDataUnavailable:
+        pass
+    community_rank.link_account(member_id, player)
+    return done("ok")
+
+
+class RegisterRiotAccountRequest(BaseModel):
+    # 띄어쓰기는 상관없다 (라이엇 조회가 공백·대소문자를 무시). 이름의 연속 공백은 하나로, 태그의 공백은 뺀다
+    game_name: str = Field(min_length=1, max_length=24)
+    tag_line: str = Field(min_length=2, max_length=8)
+
+    @field_validator("game_name")
+    @classmethod
+    def _clean_name(cls, v):
+        v = " ".join(v.split())
+        if not v or len(v.replace(" ", "")) > 16:
+            raise ValueError("닉네임은 16자까지입니다.")
+        return v
+
+    @field_validator("tag_line")
+    @classmethod
+    def _clean_tag(cls, v):
+        v = "".join(v.split()).lstrip("#")
+        if not 2 <= len(v) <= 5:
+            raise ValueError("태그는 2~5자입니다.")
+        return v
 
 
 @app.post("/api/me/riot-account")
-async def link_my_riot_account(payload: RiotAccountLink, request: Request):
-    """내 디스코드 계정에 라이엇 ID 연결 (서버 랭킹용). 라이엇에서 실제 계정을 확인한다."""
+async def register_my_riot_account(req: RegisterRiotAccountRequest, request: Request):
+    """닉네임 등록: 라이엇에 실제로 있는 계정만 (본인 인증 아님 → 티어 역할·팀 나누기용, 랭킹·내전 순위에는 안 올라감)"""
     member_id = _member_id(request)
     if not member_id:
         raise HTTPException(status_code=401, detail="디스코드 로그인이 필요합니다.")
     enforce_rate_limit(member_link_limiter, request, "member_link")
-    name, sep, tag = payload.riot_id.strip().partition("#")
-    if not sep or not name.strip() or not tag.strip():
-        raise HTTPException(status_code=400, detail="닉네임#태그 형식으로 입력해주세요. (예: Hide on bush#KR1)")
+    return await _register_riot_account(member_id, req)
+
+
+class BotRegisterRiotAccountRequest(RegisterRiotAccountRequest):
+    member: BotMember
+
+
+@app.post("/api/bot/riot-account")
+async def bot_register_riot_account(req: BotRegisterRiotAccountRequest, request: Request):
+    """봇 /계정등록 닉네임#태그 (웹 닉네임 등록과 같음)"""
+    _verify_bot(request)
+    _bot_rate(req.member)
+    _bot_guild(req.member)
+    community_rank.remember_member(req.member.discord_id, req.member.discord_name)
+    return await _register_riot_account(req.member.discord_id, req)
+
+
+async def _register_riot_account(member_id: str, req: RegisterRiotAccountRequest) -> Dict[str, Any]:
+    """라이엇 호출은 계정 확인 1회만 (봇이 오래 기다리지 않게). 티어는 바로 뒤에 따로 받아 둔다"""
+    if not settings.riot_api_key:
+        raise HTTPException(status_code=503, detail="라이엇 API 키가 등록되지 않아 닉네임을 확인할 수 없습니다.")
     try:
-        player = await fetch_player(name.strip(), tag.strip(), allow_cached=False)
-    except PlayerDataUnavailable as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+        account = await riot_client.get_account_by_riot_id(req.game_name, req.tag_line)
+    except RiotAPIError as e:
+        if e.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"라이엇에 없는 닉네임이에요: {req.game_name}#{req.tag_line}")
+        if e.status_code == 429:
+            raise HTTPException(status_code=429, detail="라이엇 응답이 몰려 있어요. 잠시 후 다시 시도해 주세요.")
+        raise HTTPException(status_code=503, detail="라이엇에서 확인하지 못했어요. 잠시 후 다시 시도해 주세요.")
+    player = {"puuid": account.get("puuid"), "game_name": account.get("gameName") or req.game_name,
+              "tag_line": account.get("tagLine") or req.tag_line}
     if not community_rank.is_linkable(player):
-        raise HTTPException(status_code=404, detail="라이엇에서 확인된 소환사가 아닙니다.")
-    community_rank.link_account(member_id, player)
-    return {"status": "success", "account": {"game_name": player["game_name"], "tag_line": player["tag_line"]}}
+        raise HTTPException(status_code=404, detail="라이엇에서 확인되지 않는 소환사입니다.")
+    status = community_rank.register_account(member_id, player)
+    if status == "ok":
+        async def _fill_tier(name=player["game_name"], tag=player["tag_line"]):
+            try:
+                await fetch_player(name, tag, allow_cached=False)  # 티어 역할에 쓸 솔로랭크
+            except Exception as e:
+                logger.warning("tier fetch after nickname registration failed: %s", type(e).__name__)
+        task = asyncio.create_task(_fill_tier())
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+    if status == "verified_already":
+        raise HTTPException(status_code=409, detail="이미 라이엇 로그인으로 인증한 계정이 있어요. 바꾸려면 연결을 먼저 해제해 주세요.")
+    if status == "taken":
+        raise HTTPException(status_code=409, detail="다른 멤버가 라이엇 로그인으로 인증한 계정입니다.")
+    return {"status": "ok", "account": {"game_name": player["game_name"], "tag_line": player["tag_line"], "verified": False}}
 
 
 @app.delete("/api/me/riot-account")
@@ -297,16 +443,17 @@ async def unlink_my_riot_account(request: Request):
 
 
 @app.get("/api/server-ranking")
-async def get_server_ranking():
-    """연결된 멤버 계정의 솔로랭크 순위 (DB 값, 하루 1회 라이엇에서 갱신) + 이번 주 MVP + 같이 한 게임"""
-    data = community_rank.leaderboard()
+async def get_server_ranking(request: Request):
+    """연결된 멤버 계정의 솔로랭크 순위 (DB 값, 하루 1회 라이엇에서 갱신) + 이번 주 MVP + 같이 한 게임 (지금 서버만)"""
+    guild = _current_guild(request)
+    data = community_rank.leaderboard(guild)
     best = None
     for m in data["members"]:
         d = m.get("lp_change_7d")
         if d is not None and d > 0 and (best is None or d > best["lp_change_7d"]):
             best = m
     data["mvp"] = best
-    data["duos"] = community_rank.server_duos()["duos"]
+    data["duos"] = community_rank.server_duos(guild_id=guild)["duos"]
     return data
 
 
@@ -818,7 +965,11 @@ def _render_index(request: Request, title: str = DEFAULT_PAGE_TITLE, description
             "canonical_url": os.getenv("SITE_URL", "").strip().rstrip("/") + canonical_path,
             "member_login": member_auth.login_enabled(),
             # 디스코드 서버 이름 (예: "OO서버"). 비우면 "우리 서버"로 표시
-            "community_name": os.getenv("COMMUNITY_NAME", "").strip()[:30],
+            "community_name": communities.name_of(_current_guild(request)),
+            # 들어가 있는 서버가 둘 이상이면 머리말에서 서버를 바꾼다
+            "community_options": [{"id": g, "name": communities.name_of(g) or "디스코드 서버"}
+                                  for g in communities.member_guilds(_member_id(request) if member_auth.login_enabled() else None)],
+            "community_current": _current_guild(request),
         }
     )
 
@@ -1993,9 +2144,12 @@ class CreateDuoPostRequest(BaseModel):
     game: Optional[str] = Field("lol", max_length=20)
     game_name: str = Field(min_length=1, max_length=16)
     tag_line: Optional[str] = Field("KR1", max_length=5)
-    tier_kr: Optional[str] = "다이아몬드"
-    my_position: Optional[str] = "ALL"
-    target_position: Optional[str] = "ALL"
+    tier_kr: Optional[str] = Field("다이아몬드", max_length=24)
+    # tier_kr 을 풀어 서버가 채운다 (보내도 덮어씀)
+    tier_to: Optional[str] = None
+    tier_label: Optional[str] = None
+    my_position: Optional[str] = Field("ALL", max_length=40)
+    target_position: Optional[str] = Field("ALL", max_length=40)
     queue_type: Optional[str] = None
     voice: Optional[bool] = True
     title: str = Field(min_length=1, max_length=60)
@@ -2010,7 +2164,7 @@ class CreateDuoPostRequest(BaseModel):
     room_status: Optional[str] = Field(None, max_length=40)
     host_mic: Optional[bool] = None
     current_members: Optional[int] = Field(1, ge=1, le=10)
-    max_members: Optional[int] = Field(None, ge=2, le=10)
+    max_members: Optional[int] = Field(None, ge=1, le=10)
     is_full: Optional[bool] = False
 
     @field_validator("tag_line")
@@ -2029,21 +2183,41 @@ class CreateDuoPostRequest(BaseModel):
         self.game = (self.game or duo_games.DEFAULT_GAME).strip().lower()
         aliases = {"JUNGLE": "JUG", "ADC": "BOT", "SUPPORT": "SUP"} if self.game == "lol" else {}
         codes = duo_games.position_codes(self.game)
+        if self.queue_type:
+            # 줄임말(솔랭·자랭·롤체·증칼)도 받는다
+            self.queue_type = duo_games.parse_queue(game, self.queue_type) or self.queue_type
+        queue = self.queue_type or game["queues"][0]
+        no_pos = queue in (game.get("no_position_queues") or [])
         for field in ("my_position", "target_position"):
-            v = (getattr(self, field) or "ALL").strip().upper()
-            v = aliases.get(v, v)
-            if v != "ALL" and v not in codes:
-                raise ValueError("올바르지 않은 포지션입니다.")
-            if self.game == "lol" and field == "my_position" and v == "ALL":
+            # 여러 포지션은 "TOP,JUG" 처럼 쉼표로 (게임 정의 순서로 정리, 중복 제거)
+            picked = {aliases.get(x, x) for x in (getattr(self, field) or "ALL").upper().replace(" ", "").split(",") if x}
+            if "ALL" in picked or not picked or no_pos:
+                v = "ALL"
+            else:
+                if not picked <= codes:
+                    raise ValueError("올바르지 않은 포지션입니다.")
+                v = ",".join(code for code, _ in game["positions"] if code in picked)
+            if self.game == "lol" and field == "my_position" and v == "ALL" and not no_pos:
                 raise ValueError("내 포지션을 선택해 주세요.")
             setattr(self, field, v)
-        if self.tier_kr and self.tier_kr not in game["tiers"]:
-            raise ValueError("올바르지 않은 티어입니다.")
+        # 티어는 '다이아1'·'에2'·'브~다' 처럼 줄임말·단계·범위로도 받는다 (duo_games.parse_tier)
+        tier_info = duo_games.parse_tier(game, self.tier_kr) if self.tier_kr else None
+        if self.tier_kr and not tier_info:
+            raise ValueError("티어를 알아보지 못했어요. 예: 다이아1, 에2, 골드, 브~다")
         self.queue_type = self.queue_type or game["queues"][0]
         if self.queue_type not in game["queues"]:
             raise ValueError("올바르지 않은 큐 종류입니다.")
-        if self.tier_kr in (game.get("no_duo_tiers") or {}).get(self.queue_type, []):
-            raise ValueError("마스터 이상은 솔로랭크 듀오를 할 수 없습니다.")
+        if tier_info:
+            self.tier_kr, self.tier_to, self.tier_label = tier_info["tier_kr"], tier_info["tier_to"], tier_info["label"]
+            if set(tier_info["tiers"]) & set((game.get("no_duo_tiers") or {}).get(self.queue_type, [])):
+                raise ValueError("마스터 이상은 솔로랭크 듀오를 할 수 없습니다.")
+        else:
+            self.tier_to = self.tier_label = None
+        span = (game.get("adjustable_party") or {}).get(self.queue_type)
+        if span and self.max_members is not None and not span[0] <= self.max_members <= span[1]:
+            raise ValueError(f"최대 인원은 {span[0]}~{span[1]}명으로 정해 주세요.")
+        if not span and self.max_members is not None and self.max_members < 2:
+            raise ValueError("최대 인원은 2명 이상이어야 합니다.")
         if not self.tier_kr:
             self.tier_kr = game.get("default_tier") or game["tiers"][0]
         return self
@@ -2060,6 +2234,8 @@ class CreateDuoPostRequest(BaseModel):
 # BOT_API_SECRET 이 서버와 봇에 같은 값으로 있어야 하고, 없으면 이 경로들은 꺼져 있다.
 # ---------------------------------------------------------------------------
 bot_action_limiter = SlidingWindowLimiter(max_events=6, window_sec=60)
+# 내전 진행(여러 방 저장·대회 경기 시작·결과)은 주최자 한 명이 연달아 누르므로 따로 넉넉하게
+bot_inhouse_limiter = SlidingWindowLimiter(max_events=60, window_sec=60)
 
 
 def _verify_bot(request: Request) -> None:
@@ -2072,15 +2248,27 @@ def _verify_bot(request: Request) -> None:
 class BotMember(BaseModel):
     discord_id: str = Field(min_length=1, max_length=32, pattern=r"^\d+$")
     discord_name: str = Field(min_length=1, max_length=32)
+    # 명령을 쓴 디스코드 서버 (여러 서버 지원). 등록되지 않은 서버면 거절
+    guild_id: Optional[str] = Field(default=None, max_length=32, pattern=r"^\d+$")
+
+
+def _bot_guild(member: BotMember) -> str:
+    """봇 명령이 온 서버 → 저장할 서버 ID. 그 서버 멤버로도 기록해 둔다"""
+    gid = communities.resolve(member.guild_id)
+    if gid is None:
+        raise HTTPException(status_code=403, detail="이 디스코드 서버는 carry.gg에 등록되지 않았어요. 관리자에게 문의해 주세요.")
+    if gid:
+        community_rank.add_member_guild(member.discord_id, gid)
+    return gid
 
 
 class BotCreatePost(CreateDuoPostRequest):
     member: BotMember
 
 
-def _bot_rate(member: BotMember) -> None:
+def _bot_rate(member: BotMember, limiter: Optional[SlidingWindowLimiter] = None) -> None:
     # 봇은 한 곳(IP)에서 오므로 IP가 아니라 디스코드 사용자별로 제한
-    if not bot_action_limiter.hit(f"bot:{member.discord_id}"):
+    if not (limiter or bot_action_limiter).hit(f"bot:{member.discord_id}"):
         raise HTTPException(status_code=429, detail="잠시 후 다시 시도해주세요.")
 
 
@@ -2088,9 +2276,65 @@ def _bot_rate(member: BotMember) -> None:
 async def bot_create_post(req: BotCreatePost, request: Request):
     _verify_bot(request)
     _bot_rate(req.member)
-    res = _create_recruit_post(req, req.member.discord_name, owner_key=f"member:{req.member.discord_id}")
+    guild = _bot_guild(req.member)
+    await _check_recruit_identity(req, req.member.discord_id)
+    res = _create_recruit_post(req, req.member.discord_name, owner_key=f"member:{req.member.discord_id}", guild_id=guild)
     res.pop("owner_token", None)  # 봇 글은 웹 작성자 토큰이 필요 없음
     return res
+
+
+class BotAlertRoleRequest(BaseModel):
+    member: BotMember
+    game: str = Field(default="lol", pattern="^(lol|pubg|overwatch)$")
+    role_id: Optional[str] = Field(default=None, max_length=32, pattern=r"^\d+$")  # 비우면 알림 끔
+
+
+@app.post("/api/bot/alert-role")
+async def bot_set_alert_role(req: BotAlertRoleRequest, request: Request):
+    """구인 알림 역할 정하기 (봇 /알림역할 — 디스코드에서 '서버 관리' 권한이 있는 사람만 보이는 명령)"""
+    _verify_bot(request)
+    _bot_rate(req.member)
+    gid = _bot_guild(req.member)
+    communities.set_alert_role(gid, req.game, req.role_id)
+    return {"status": "ok", "roles": communities.alert_role_ids(gid)}
+
+
+@app.get("/api/bot/alert-role")
+async def bot_get_alert_role(request: Request, guild_id: str = Query("", max_length=32, pattern=r"^\d*$")):
+    """봇 /알림받기 가 붙였다 뗄 역할"""
+    _verify_bot(request)
+    gid = communities.resolve(guild_id)
+    if gid is None:
+        raise HTTPException(status_code=403, detail="등록되지 않은 디스코드 서버입니다.")
+    return {"roles": communities.alert_role_ids(gid)}
+
+
+@app.get("/api/bot/tier-roles")
+async def bot_tier_roles(request: Request, guild_id: str = Query("", max_length=32, pattern=r"^\d*$")):
+    """티어 역할 자동 부여: 이 서버 멤버의 인증 계정 솔로랭크 티어 (라이엇 호출 없음, 저장된 값)"""
+    _verify_bot(request)
+    gid = communities.resolve(guild_id)
+    if gid is None:
+        raise HTTPException(status_code=403, detail="등록되지 않은 디스코드 서버입니다.")
+    return {"members": community_rank.guild_member_tiers(gid), "role_map": communities.tier_role_map(gid)}
+
+
+class BotTierRoleMapRequest(BaseModel):
+    member: BotMember
+    # 티어 코드 → 역할 ID (전체를 바꾼다, 빠진 티어는 연결 해제)
+    roles: Dict[str, Optional[str]] = Field(default_factory=dict, max_length=10)
+
+
+@app.post("/api/bot/tier-role-map")
+async def bot_set_tier_role_map(req: BotTierRoleMapRequest, request: Request):
+    """서버마다 이미 있는 역할을 티어에 연결 (봇 /티어역할 연결·자동연결, '역할 관리' 권한자만 보이는 명령)"""
+    _verify_bot(request)
+    _bot_rate(req.member)
+    gid = _bot_guild(req.member)
+    bad = [c for c, r in req.roles.items() if c not in communities.TIER_CODES or (r is not None and not str(r).isdigit())]
+    if bad:
+        raise HTTPException(status_code=422, detail="티어 코드나 역할 ID가 올바르지 않습니다.")
+    return {"role_map": communities.set_tier_role_map(gid, req.roles)}
 
 
 @app.post("/api/bot/duo-posts/mine")
@@ -2127,7 +2371,11 @@ async def bot_join_post(post_id: int, member: BotMember, request: Request):
     """웹사이트 디스코드 로그인과 같은 키(member:<디스코드ID>)라, 웹·디스코드 어디서 눌러도 한 번만 참가"""
     _verify_bot(request)
     _bot_rate(member)
-    from app.duo_finder_engine import join_duo_post, public_post
+    from app.duo_finder_engine import join_duo_post, public_post, get_post
+    guild = _bot_guild(member)
+    target = get_post(post_id)
+    if target and not communities.same(target.get("guild_id"), guild):
+        raise HTTPException(status_code=404, detail="구인글을 찾을 수 없습니다.")
     res = join_duo_post(post_id, f"member:{member.discord_id}", member.discord_name)
     if res["status"] == "not_found":
         raise HTTPException(status_code=404, detail="구인글을 찾을 수 없습니다.")
@@ -2171,7 +2419,7 @@ class BotInhouseRequest(BaseModel):
 async def bot_inhouse(req: BotInhouseRequest, request: Request):
     """디스코드 음성 채널 10명 → 연결된 계정 티어로 팀 나누기 (연결 안 한 사람은 언랭크=추정)"""
     _verify_bot(request)
-    _bot_rate(req.requested_by)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
     from app import inhouse
     tiers = community_rank.member_tiers([m.discord_id for m in req.members])
     players = []
@@ -2183,7 +2431,8 @@ async def bot_inhouse(req: BotInhouseRequest, request: Request):
     return inhouse.balance(players)
 
 
-inhouse_limiter = SlidingWindowLimiter(max_events=12, window_sec=600)
+# 토너먼트(8팀 7경기)는 경기마다 시작·결과·코드를 누르므로 넉넉하게
+inhouse_limiter = SlidingWindowLimiter(max_events=60, window_sec=600)
 
 
 class InhouseSeat(BaseModel):
@@ -2207,6 +2456,8 @@ def _inhouse_result_response(status: str) -> Dict[str, Any]:
         raise HTTPException(status_code=403, detail="팀을 저장한 사람만 결과를 정할 수 있습니다.")
     if status == "expired":
         raise HTTPException(status_code=409, detail="하루가 지난 기록은 바꿀 수 없습니다.")
+    if status == "locked":
+        raise HTTPException(status_code=409, detail="라이엇 경기 기록으로 정해진 결과는 바꿀 수 없습니다.")
     return {"status": "ok"}
 
 
@@ -2216,7 +2467,8 @@ async def inhouse_save_game(req: InhouseGameRequest, request: Request):
     from app import inhouse
     enforce_rate_limit(inhouse_limiter, request, "inhouse")
     _, key = _duo_joiner(request)
-    gid = inhouse.record_game([x.model_dump() for x in req.blue], [x.model_dump() for x in req.red], key)
+    gid = inhouse.record_game([x.model_dump() for x in req.blue], [x.model_dump() for x in req.red], key,
+                             guild_id=_current_guild(request))
     return {"id": gid}
 
 
@@ -2229,10 +2481,261 @@ async def inhouse_set_result(game_id: int, req: InhouseResultRequest, request: R
     return _inhouse_result_response(inhouse.set_result(game_id, req.winner, key, is_admin=admin))
 
 
-@app.get("/api/inhouse/stats")
-async def inhouse_stats(days: int = Query(30, ge=1, le=365), recent: int = Query(10, ge=1, le=50)):
+def _inhouse_owner_or_admin(game_id: int, request: Request) -> Dict[str, Any]:
     from app import inhouse
-    return inhouse.stats(days=days, recent=recent)
+    game = inhouse.get_game(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="내전 기록을 찾을 수 없습니다.")
+    if not is_admin_authenticated(request) and game["created_by"] != _duo_joiner(request)[1]:
+        raise HTTPException(status_code=403, detail="팀을 저장한 사람만 할 수 있습니다.")
+    return game
+
+
+async def _issue_tournament_code(game: Dict[str, Any]) -> Dict[str, Any]:
+    from app import inhouse, tournament
+    try:
+        return await tournament.create_code(game["id"], inhouse.seat_puuids(game))
+    except tournament.TournamentError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@app.post("/api/inhouse/games/{game_id}/code")
+async def inhouse_tournament_code(game_id: int, request: Request):
+    """라이엇 토너먼트 코드 발급: 클라이언트 '사설 게임 → 토너먼트 코드'에 넣으면 그 게임 결과가 자동 기록된다"""
+    enforce_rate_limit(inhouse_limiter, request, "inhouse")
+    return await _issue_tournament_code(_inhouse_owner_or_admin(game_id, request))
+
+
+@app.post("/api/inhouse/games/{game_id}/sync")
+async def inhouse_tournament_sync(game_id: int, request: Request):
+    """끝난 토너먼트 코드 게임의 결과를 라이엇에서 직접 불러오기 (알림을 못 받았을 때)"""
+    from app import tournament
+    enforce_rate_limit(inhouse_limiter, request, "inhouse")
+    _inhouse_owner_or_admin(game_id, request)
+    return {"status": await tournament.fetch_result(game_id)}
+
+
+tournament_callback_limiter = SlidingWindowLimiter(max_events=30, window_sec=60)
+
+
+@app.post("/api/riot/tournament/callback")
+async def riot_tournament_callback(request: Request):
+    """라이엇 게임 종료 알림. 내용은 믿지 않고 매치를 직접 불러 우리 코드인지 확인한 뒤에만 반영"""
+    from app import tournament
+    enforce_rate_limit(tournament_callback_limiter, request, "tournament_callback")
+    try:
+        payload = await request.json()
+    except ValueError:
+        payload = None
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="bad payload")
+    return {"status": await tournament.handle_callback(payload)}
+
+
+class PlanPlayer(BaseModel):
+    name: str = Field(min_length=1, max_length=40)
+    discord_id: Optional[str] = Field(default=None, max_length=32, pattern=r"^\d+$")
+    tier: Optional[str] = Field(default=None, max_length=16)
+    rank: Optional[str] = Field(default="", max_length=4)
+    lp: Optional[int] = Field(default=0, ge=0, le=5000)
+    main: Optional[str] = Field(default=None, pattern="^(TOP|JUNGLE|MID|ADC|SUPPORT)$")
+    sub: Optional[str] = Field(default=None, pattern="^(TOP|JUNGLE|MID|ADC|SUPPORT)$")
+
+
+class InhousePlanRequest(BaseModel):
+    players: List[PlanPlayer] = Field(min_length=10, max_length=80)
+    mode: str = Field(default="auto", pattern="^(auto|single|multi|tournament|league)$")
+    split: str = Field(default="balanced", pattern="^(balanced|tiered)$")
+
+
+inhouse_plan_limiter = SlidingWindowLimiter(max_events=20, window_sec=600)
+
+
+@app.post("/api/inhouse/plan")
+async def inhouse_plan(req: InhousePlanRequest, request: Request):
+    """N명 팀 짜기 (app/team_builder.py): 5:5 한 판 / 여러 판 동시(균형·실력대별) / 토너먼트 / 리그. 라이엇 호출 없음"""
+    from app import team_builder
+    enforce_rate_limit(inhouse_plan_limiter, request, "inhouse_plan")
+    try:
+        return await asyncio.to_thread(team_builder.plan, [p.model_dump() for p in req.players], req.mode, req.split,
+                                       _current_guild(request))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+class EventSeat(BaseModel):
+    name: str = Field(min_length=1, max_length=40)
+    discord_id: Optional[str] = Field(default=None, max_length=32, pattern=r"^\d+$")
+    lane: Optional[str] = Field(default=None, max_length=8)
+
+
+class EventTeam(BaseModel):
+    name: str = Field(default="", max_length=20)
+    players: List[EventSeat] = Field(min_length=5, max_length=5)
+
+
+class EventMatch(BaseModel):
+    round: int = Field(default=1, ge=1, le=20)
+    a: Optional[int] = Field(default=None, ge=0, le=15)
+    b: Optional[int] = Field(default=None, ge=0, le=15)
+
+
+class InhouseEventRequest(BaseModel):
+    mode: str = Field(pattern="^(tournament|league)$")
+    title: str = Field(default="", max_length=40)
+    teams: List[EventTeam] = Field(min_length=2, max_length=16)
+    matches: List[EventMatch] = Field(min_length=1, max_length=130)
+
+
+@app.post("/api/inhouse/events")
+async def inhouse_create_event(req: InhouseEventRequest, request: Request):
+    """토너먼트·리그 저장 (팀·대진은 /api/inhouse/plan 결과). 만든 사람만 경기를 시작할 수 있다"""
+    from app import inhouse
+    enforce_rate_limit(inhouse_limiter, request, "inhouse")
+    _, key = _duo_joiner(request)
+    try:
+        eid = inhouse.create_event(req.mode, [t.model_dump() for t in req.teams], [m.model_dump() for m in req.matches],
+                                   key, guild_id=_current_guild(request), title=req.title)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return {"id": eid}
+
+
+@app.get("/api/inhouse/events")
+async def inhouse_list_events(request: Request):
+    from app import inhouse
+    return {"events": inhouse.recent_events(_current_guild(request))}
+
+
+@app.get("/api/inhouse/events/{event_id}")
+async def inhouse_get_event(event_id: int, request: Request):
+    """대진표(토너먼트는 이긴 팀이 다음 라운드로)·순위표(리그)"""
+    from app import inhouse
+    ev = inhouse.event_view(event_id)
+    if not ev or not _guild_allowed(ev.get("guild_id"), request):
+        raise HTTPException(status_code=404, detail="대회를 찾을 수 없습니다.")
+    ev.pop("created_by", None)
+    ev.pop("guild_id", None)
+    return ev
+
+
+@app.post("/api/inhouse/events/{event_id}/matches/{index}/start")
+async def inhouse_start_event_match(event_id: int, index: int, request: Request):
+    """대진 한 경기를 내전 게임으로 열기 → 이긴 팀 기록·토너먼트 코드는 보통 내전과 같은 경로 (/api/inhouse/games/{id}/...)"""
+    from app import inhouse
+    enforce_rate_limit(inhouse_limiter, request, "inhouse")
+    admin = is_admin_authenticated(request)
+    res = inhouse.start_event_match(event_id, index, "" if admin else _duo_joiner(request)[1], is_admin=admin)
+    if res["status"] == "not_found":
+        raise HTTPException(status_code=404, detail="경기를 찾을 수 없습니다.")
+    if res["status"] == "forbidden":
+        raise HTTPException(status_code=403, detail="대회를 만든 사람만 경기를 시작할 수 있습니다.")
+    if res["status"] == "bye":
+        raise HTTPException(status_code=409, detail="부전승 경기입니다.")
+    return res
+
+
+class BotInhouseEventRequest(InhouseEventRequest):
+    requested_by: BotMember
+
+
+class BotRequester(BaseModel):
+    requested_by: BotMember
+
+
+@app.post("/api/bot/inhouse/events")
+async def bot_create_event(req: BotInhouseEventRequest, request: Request):
+    """봇: /내전 토너먼트·리그 결과로 대회 저장 (만든 사람 = 명령을 쓴 디스코드 멤버)"""
+    from app import inhouse
+    _verify_bot(request)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
+    guild = _bot_guild(req.requested_by)
+    try:
+        eid = inhouse.create_event(req.mode, [t.model_dump() for t in req.teams], [m.model_dump() for m in req.matches],
+                                   f"member:{req.requested_by.discord_id}", guild_id=guild, title=req.title)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return {"id": eid}
+
+
+@app.post("/api/bot/inhouse/events/{event_id}/view")
+async def bot_view_event(event_id: int, req: BotRequester, request: Request):
+    """봇: 대회 진행판 (대진·승자·우승·순위). 같은 서버 대회만"""
+    from app import inhouse
+    _verify_bot(request)
+    guild = _bot_guild(req.requested_by)
+    ev = inhouse.event_view(event_id)
+    if not ev or not communities.same(ev.get("guild_id"), guild):
+        raise HTTPException(status_code=404, detail="대회를 찾을 수 없습니다.")
+    ev["is_owner"] = ev.pop("created_by", None) == f"member:{req.requested_by.discord_id}"
+    ev.pop("guild_id", None)
+    return ev
+
+
+@app.post("/api/bot/inhouse/events/{event_id}/matches/{index}/start")
+async def bot_start_event_match(event_id: int, index: int, req: BotRequester, request: Request):
+    """봇: 대진 한 경기 시작 → game_id (결과는 /api/bot/inhouse/games/{id}/result, 대회를 만든 사람만)"""
+    from app import inhouse
+    _verify_bot(request)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
+    _bot_guild(req.requested_by)
+    res = inhouse.start_event_match(event_id, index, f"member:{req.requested_by.discord_id}")
+    if res["status"] == "not_found":
+        raise HTTPException(status_code=404, detail="경기를 찾을 수 없습니다.")
+    if res["status"] == "forbidden":
+        raise HTTPException(status_code=403, detail="대회를 만든 사람만 경기를 시작할 수 있어요.")
+    if res["status"] == "bye":
+        raise HTTPException(status_code=409, detail="부전승 경기입니다.")
+    return res
+
+
+class BotInhousePlanRequest(BaseModel):
+    members: List[BotMember] = Field(min_length=10, max_length=80)
+    requested_by: BotMember
+    mode: str = Field(default="auto", pattern="^(auto|single|multi|tournament|league)$")
+    split: str = Field(default="balanced", pattern="^(balanced|tiered)$")
+
+
+@app.post("/api/bot/inhouse/plan")
+async def bot_inhouse_plan(req: BotInhousePlanRequest, request: Request):
+    """봇: 음성 채널 사람들(10~80명) → 팀 짜기. 등록·인증 멤버는 저장된 티어·기록, 아니면 참가자 중간값(추정)"""
+    from app import team_builder
+    _verify_bot(request)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
+    guild = _bot_guild(req.requested_by)
+    players = [{"name": m.discord_name, "discord_id": m.discord_id} for m in req.members]
+    try:
+        return await asyncio.to_thread(team_builder.plan, players, req.mode, req.split, guild)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.get("/api/inhouse/members")
+async def inhouse_member_list(request: Request):
+    """내전 참가자 고르기: 이 서버에서 닉네임 등록·라이엇 인증한 멤버 (랭킹과 달리 미인증도 포함)"""
+    return {"members": community_rank.inhouse_members(_current_guild(request))}
+
+
+@app.get("/api/inhouse/ranking")
+async def inhouse_ranking(request: Request, days: int = Query(30, ge=1, le=365)):
+    """내전 순위: 내전 점수·판수·승률·KDA·모스트 (세부 기록은 /api/inhouse/players/{key}), 지금 서버 내전만"""
+    from app import inhouse
+    return inhouse.ranking(days=days, guild_id=_current_guild(request))
+
+
+@app.get("/api/inhouse/players/{key}")
+async def inhouse_player_detail(key: str, request: Request, days: int = Query(30, ge=1, le=365)):
+    from app import inhouse
+    detail = inhouse.player_detail(key, days=days, guild_id=_current_guild(request))
+    if detail is None:
+        raise HTTPException(status_code=404, detail="라이엇 경기 기록이 있는 플레이어만 세부 기록을 볼 수 있습니다.")
+    return detail
+
+
+@app.get("/api/inhouse/stats")
+async def inhouse_stats(request: Request, days: int = Query(30, ge=1, le=365), recent: int = Query(10, ge=1, le=50)):
+    from app import inhouse
+    return inhouse.stats(days=days, recent=recent, guild_id=_current_guild(request))
 
 
 @app.delete("/api/admin/inhouse/games/{game_id}")
@@ -2253,13 +2756,30 @@ class BotInhouseResultRequest(InhouseResultRequest):
     requested_by: BotMember
 
 
+class BotInhouseCodeRequest(BaseModel):
+    requested_by: BotMember
+
+
+@app.post("/api/bot/inhouse/games/{game_id}/code")
+async def bot_inhouse_tournament_code(game_id: int, req: BotInhouseCodeRequest, request: Request):
+    from app import inhouse
+    _verify_bot(request)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
+    game = inhouse.get_game(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="내전 기록을 찾을 수 없습니다.")
+    if game["created_by"] != f"member:{req.requested_by.discord_id}":
+        raise HTTPException(status_code=403, detail="팀을 나눈 사람만 코드를 받을 수 있어요.")
+    return await _issue_tournament_code(game)
+
+
 @app.post("/api/bot/inhouse/games")
 async def bot_inhouse_save_game(req: BotInhouseGameRequest, request: Request):
     from app import inhouse
     _verify_bot(request)
-    _bot_rate(req.requested_by)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
     gid = inhouse.record_game([x.model_dump() for x in req.blue], [x.model_dump() for x in req.red],
-                             f"member:{req.requested_by.discord_id}")
+                             f"member:{req.requested_by.discord_id}", guild_id=_bot_guild(req.requested_by))
     return {"id": gid}
 
 
@@ -2267,7 +2787,7 @@ async def bot_inhouse_save_game(req: BotInhouseGameRequest, request: Request):
 async def bot_inhouse_set_result(game_id: int, req: BotInhouseResultRequest, request: Request):
     from app import inhouse
     _verify_bot(request)
-    _bot_rate(req.requested_by)
+    _bot_rate(req.requested_by, bot_inhouse_limiter)
     return _inhouse_result_response(inhouse.set_result(game_id, req.winner, f"member:{req.requested_by.discord_id}"))
 
 
@@ -2297,6 +2817,7 @@ async def get_duo_games():
 @app.get("/api/duo-posts")
 @app.get("/api/duo/posts")
 async def fetch_duo_posts(
+    request: Request,
     game: Optional[str] = Query("lol"),
     position: Optional[str] = Query("ALL"),
     queue_type: Optional[str] = Query("ALL"),
@@ -2307,12 +2828,13 @@ async def fetch_duo_posts(
     듀오 구인구직 게시글 목록 조회 (포지션, 큐, 티어, 음성채팅 실시간 필터링, 30초 고속 캐시 적용)
     🌟 회장님 특명: 방 인원이 정원초과면 자동으로 하단으로 내리고 정원 미달인 방은 상단에 우선 노출
     """
-    cache_key = f"duo_posts:{game}:{position}:{queue_type}:{tier}:{voice}"
+    guild = _current_guild(request)
+    cache_key = f"duo_posts:{guild}:{game}:{position}:{queue_type}:{tier}:{voice}"
     cached_resp = fast_cache.get_response(cache_key)
     if cached_resp is not None:
         return cached_resp
 
-    posts = get_duo_posts(position=position, queue_type=queue_type, tier=tier, voice=voice, game=game)
+    posts = get_duo_posts(position=position, queue_type=queue_type, tier=tier, voice=voice, game=game, guild_id=guild)
     res = {
         "total": len(posts),
         "posts": posts
@@ -2327,6 +2849,7 @@ async def add_duo_post(req: CreateDuoPostRequest, request: Request):
     - 응답의 owner_token은 작성자만 받으며, 이후 방 상태 변경 시 X-Duo-Owner-Token 헤더로 제출
     """
     enforce_rate_limit(duo_post_limiter, request, "duo")
+    await _check_recruit_identity(req, _member_id(request))
     # 디스코드 로그인 멤버면 디스코드 닉네임을 글에 붙인다 (누가 올렸는지 서버 멤버가 알아보게)
     author = None
     if member_auth.login_enabled():
@@ -2334,16 +2857,68 @@ async def add_duo_post(req: CreateDuoPostRequest, request: Request):
         member = community_rank.get_member(mid) if mid else None
         if member and member.get("discord_name"):
             author = member["discord_name"]
-    return _create_recruit_post(req, author, owner_key=_duo_joiner(request)[1])
+    # 음성방 이름은 작성자가 적은 값 대신 링크의 실제 디스코드 채널 이름 (못 받으면 일반 이름)
+    link = req.discord_voice_url or req.room_link
+    if req.voice and link and DUO_LINK_PATTERN.match(link):
+        from app import discord_channels
+        real = await discord_channels.channel_name(link)
+        req.room_name = req.discord_channel_name = f"🔊 {real}" if real else "🔊 디스코드 음성방"
+    return _create_recruit_post(req, author, owner_key=_duo_joiner(request)[1], guild_id=_current_guild(request))
 
 
-def _create_recruit_post(req: "CreateDuoPostRequest", author: Optional[str], owner_key: str = "") -> Dict[str, Any]:
+_RIOT_ID_SEEN: Dict[str, Tuple[float, bool]] = {}  # '닉#태그' 소문자 → (확인 시각, 있음)
+
+
+def _norm_riot_id(name: str, tag: str) -> str:
+    return f"{''.join((name or '').split()).lower()}#{''.join((tag or '').split()).lower()}"
+
+
+async def _check_recruit_identity(req: "CreateDuoPostRequest", member_id: Optional[str]) -> None:
+    """롤 구인글 닉네임 검사 (2026-10-28 사용자 결정).
+    - 지금: 라이엇에 실제로 있는 닉네임#태그만 (Account-V1 1회, 있음 1시간·없음 10분 기억). 키가 없거나 라이엇이 응답하지 않으면 막지 않는다.
+    - RECRUIT_REQUIRE_VERIFIED=1 (Production·RSO 승인 뒤): 라이엇 로그인으로 인증한 본인 계정으로만"""
+    if req.game != "lol":
+        return
+    name, tag = (req.game_name or "").strip(), (req.tag_line or "").strip()
+    if os.getenv("RECRUIT_REQUIRE_VERIFIED", "").strip() == "1":
+        member = community_rank.get_member(member_id) if member_id else None
+        if not member or not member.get("verified") or not member.get("puuid"):
+            raise HTTPException(status_code=403, detail="라이엇 로그인으로 계정을 인증한 멤버만 구인글을 쓸 수 있어요. 서버 랭킹 탭에서 인증해 주세요.")
+        if _norm_riot_id(name, tag) != _norm_riot_id(member["game_name"], member["tag_line"]):
+            raise HTTPException(status_code=403, detail=f"인증한 본인 계정({member['game_name']}#{member['tag_line']})으로만 구인글을 쓸 수 있어요.")
+        return
+    if not settings.riot_api_key:
+        return
+    key = _norm_riot_id(name, tag)
+    seen = _RIOT_ID_SEEN.get(key)
+    if seen and time.time() - seen[0] < (3600 if seen[1] else 600):
+        exists = seen[1]
+    else:
+        try:
+            await riot_client.get_account_by_riot_id(name, tag)
+            exists = True
+        except RiotAPIError as e:
+            if e.status_code != 404:
+                logger.warning("recruit riot id check skipped: %s", e.status_code)
+                return  # 한도·키 문제로 확인 못 하면 글쓰기를 막지 않는다
+            exists = False
+        if len(_RIOT_ID_SEEN) > 5000:
+            _RIOT_ID_SEEN.clear()
+        _RIOT_ID_SEEN[key] = (time.time(), exists)
+    if not exists:
+        raise HTTPException(status_code=422, detail=f"라이엇에 없는 닉네임이에요: {name}#{tag} (닉네임과 태그를 확인해 주세요)")
+
+
+def _create_recruit_post(req: "CreateDuoPostRequest", author: Optional[str], owner_key: str = "",
+                         guild_id: str = "") -> Dict[str, Any]:
     default_max = duo_games.get_game(req.game)["party_size"].get(req.queue_type, 2)
     final_max_members = req.max_members if req.max_members is not None else default_max
     post, owner_token = create_duo_post(
         game_name=req.game_name,
         tag_line=(req.tag_line or "KR1") if duo_games.get_game(req.game)["needs_tag"] else "",
         tier_kr=req.tier_kr or "다이아몬드",
+        tier_to=req.tier_to,
+        tier_label=req.tier_label,
         my_position=req.my_position,
         target_position=req.target_position,
         queue_type=req.queue_type or "솔로랭크",
@@ -2361,9 +2936,10 @@ def _create_recruit_post(req: "CreateDuoPostRequest", author: Optional[str], own
         host_mic=req.host_mic,
         current_members=req.current_members if req.current_members is not None else 1,
         max_members=final_max_members,
-        is_full=bool(req.is_full),
+        is_full=bool(req.is_full) or (req.current_members or 1) >= final_max_members,
         game=req.game,
         author=author,
+        guild_id=guild_id,
     )
     if owner_key and post.get("id") is not None:
         from app.duo_finder_engine import set_post_owner
@@ -2372,7 +2948,7 @@ def _create_recruit_post(req: "CreateDuoPostRequest", author: Optional[str], own
     
     # 디스코드 채널(게임별 채널이 있으면 그곳)에 올리고, 나중에 마감·삭제를 반영하도록 메시지 ID를 저장
     from app.services.discord_service import duo_webhook_url
-    if duo_webhook_url(post.get("game")):
+    if duo_webhook_url(post.get("game"), post.get("guild_id")):
         def _post_and_remember(p=post):
             res = send_duo_post_webhook(p)
             if res.get("message_id") and p.get("id") is not None:
@@ -2483,9 +3059,12 @@ async def leave_duo_post_endpoint(post_id: int, request: Request):
 @app.post("/api/duo-posts/{post_id}/join")
 async def join_duo_post_endpoint(post_id: int, request: Request):
     """'같이해요': 인원 +1 (한 사람당 한 번), 정원이 차면 마감. 디스코드 채널에 참가·마감 알림"""
-    from app.duo_finder_engine import join_duo_post, public_post
+    from app.duo_finder_engine import join_duo_post, public_post, get_post
     enforce_rate_limit(discord_join_limiter, request, "duo_join")
     name, key = _duo_joiner(request)
+    target = get_post(post_id)
+    if target and not _guild_allowed(target.get("guild_id"), request):
+        raise HTTPException(status_code=404, detail="구인글을 찾을 수 없습니다.")
     res = join_duo_post(post_id, key, name)
     if res["status"] == "not_found":
         raise HTTPException(status_code=404, detail="구인글을 찾을 수 없습니다.")
@@ -2500,7 +3079,7 @@ async def join_duo_post_endpoint(post_id: int, request: Request):
         asyncio.create_task(asyncio.to_thread(update_duo_post_webhook, post))
     # 원래 메시지가 인원을 고쳐 보여주므로, 따로 알리는 건 정원이 찼을 때만 (채널 도배 방지)
     from app.services.discord_service import duo_webhook_url
-    game_hook = duo_webhook_url(post.get("game"))
+    game_hook = duo_webhook_url(post.get("game"), post.get("guild_id"))
     if res["status"] == "ok" and game_hook and (post.get("is_full") or not post.get("discord_message_id")):
         cur, mx = post.get("current_members"), post.get("max_members")
         who = name or "멤버"

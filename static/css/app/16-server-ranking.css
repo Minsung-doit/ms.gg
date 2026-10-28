@@ -606,3 +606,153 @@
   #viewServerRanking .sr-row .sr-tag { display: none !important; }
   #viewServerRanking .sr-identity, #viewServerRanking .sr-riot-id, #viewServerRanking .sr-game-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* 라이엇 로그인(RSO) 인증 */
+.sr-card-unlinked {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sr-verify-note {
+  flex-basis: 100%;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.sr-btn-riot {
+  background: #d13639;
+  color: #ffffff;
+}
+
+.sr-btn-riot:hover {
+  background: #b32a2d;
+}
+
+.sr-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.sr-verified-badge {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.sr-verified-icon {
+  color: #10b981;
+  font-size: 0.8em;
+  margin-left: 4px;
+}
+
+[data-theme="light"] .sr-verified-badge,
+body.light-mode .sr-verified-badge {
+  color: #047857;
+}
+
+/* ==========================================================================
+   닉네임 등록 (미인증 계정) 추가 스타일
+   ========================================================================== */
+
+.sr-nick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.sr-nick-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #334155);
+  background: var(--bg-input, #181d28);
+  color: var(--text-main, #f1f5f9);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.sr-nick-input:focus {
+  border-color: var(--primary, #4f80e2);
+  box-shadow: 0 0 0 2px rgba(79, 128, 226, 0.25);
+}
+
+.sr-btn-primary {
+  background: var(--primary, #4f80e2);
+  color: #ffffff;
+}
+
+.sr-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.sr-unverified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--text-muted, #94a3b8);
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.sr-nick-help {
+  font-size: 0.82rem;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.5;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.sr-divider {
+  width: 100%;
+  flex-basis: 100%;
+  height: 1px;
+  background: var(--border-color, rgba(255, 255, 255, 0.1));
+  margin: 6px 0;
+  border: none;
+}
+
+/* 화이트 모드 테마 */
+[data-theme="light"] .sr-nick-input,
+body.light-mode .sr-nick-input {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .sr-btn-primary,
+body.light-mode .sr-btn-primary {
+  background: var(--primary, #3b82f6);
+  color: #ffffff;
+}
+
+[data-theme="light"] .sr-unverified-badge,
+body.light-mode .sr-unverified-badge {
+  color: #64748b;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .sr-nick-help,
+body.light-mode .sr-nick-help {
+  color: #64748b;
+}
+
+[data-theme="light"] .sr-divider,
+body.light-mode .sr-divider {
+  background: #cbd5e1;
+}

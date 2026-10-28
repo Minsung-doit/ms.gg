@@ -87,7 +87,7 @@ async function openPlayerDetail(player) {
       <div style="padding: 2rem; text-align: center; color: #E84057;">
         <i class="fa-solid fa-circle-exclamation" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
         ${escapeHtml(err.message || "데이터를 불러오는 중 오류가 발생했습니다.")}
-        <div style="margin-top: 8px; font-size: 0.82rem; color: var(--text-muted);">이름#태그 형식(예: Hide on bush#KR1)인지 확인해 주세요.</div>
+        <div style="margin-top: 8px; font-size: 0.82rem; color: var(--text-muted);">이름#태그 형식(예: 닉네임#KR1)인지 확인해 주세요.</div>
       </div>
     `;
   }

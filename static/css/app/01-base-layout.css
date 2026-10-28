@@ -171,6 +171,8 @@
 
 /* Light (White) Theme - Enhanced Clean Contrast */
 [data-theme="light"] {
+  --color-duo-open-text: #047857;
+  --color-duo-full-text: #B91C1C;
   --bg-main: #F3F5F9;
   --bg-nav: #FFFFFF;
   --bg-nav-top: #FFFFFF;

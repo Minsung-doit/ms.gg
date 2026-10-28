@@ -196,30 +196,106 @@ def test_ai_coach_report_uses_real_numbers_only():
 
 
 def test_server_ranking_link_and_board():
-    import os
+    """닉네임 등록(라이엇에 있는 계정만, 미인증)은 티어 역할·팀 나누기용, 서버 랭킹에는 라이엇 로그인 인증 계정만"""
+    from app import community_rank
+    from app import main as main_mod
+    from app.database import get_connection
     install_fakes()
     c = TestClient(app)
-    assert c.post("/api/me/riot-account", json={"riot_id": "형식틀림"}).status_code == 400
-    assert c.post("/api/me/riot-account", json={"riot_id": "없는소환사#KR1"}).status_code == 404
-    res = c.post("/api/me/riot-account", json={"riot_id": "실제소환사#KR1"})
-    assert res.status_code == 200, res.text
-    assert c.get("/api/me").json()["account"] == {"game_name": "실제소환사", "tag_line": "KR1"}
+    community_rank._ensure_tables()
+    conn = get_connection()
+    conn.execute("DELETE FROM member_accounts")
+    conn.commit()
+    conn.close()
+
+    from app.riot_client import RiotAPIError
+
+    async def fake_fetch(name, tag, allow_cached=True):
+        return {"puuid": "p" * 78, "game_name": name, "tag_line": tag, "tier": "GOLD"}
+
+    async def fake_account(name, tag):
+        if "".join(name.split()) != "실제소환사":  # 라이엇처럼 띄어쓰기 무시
+            raise RiotAPIError(404, "없음")
+        return {"puuid": "p" * 78, "gameName": "실제소환사", "tagLine": "KR1"}
+    orig_fetch, orig_acc = main_mod.fetch_player, riot_client.get_account_by_riot_id
+    main_mod.fetch_player, riot_client.get_account_by_riot_id = fake_fetch, fake_account
+    try:
+        assert c.post("/api/me/riot-account", json={"game_name": "실제 소환사", "tag_line": " KR 1"}).status_code == 200, "띄어쓰기 상관없음"
+        assert c.post("/api/me/riot-account", json={"game_name": "가짜닉", "tag_line": "KR1"}).status_code == 404, "없는 닉네임 거부"
+        r = c.post("/api/me/riot-account", json={"game_name": "실제소환사", "tag_line": "KR1"})
+        assert r.status_code == 200 and r.json()["account"]["verified"] is False, r.text
+        # 봇 /계정등록 도 같은 규칙 (봇 비밀값 필요, 없는 닉네임 거부)
+        import os
+        saved_secret = os.environ.get("BOT_API_SECRET")
+        os.environ["BOT_API_SECRET"] = "b" * 32
+        try:
+            bm = {"discord_id": "5501", "discord_name": "봇멤버"}
+            assert c.post("/api/bot/riot-account", json={"member": bm, "game_name": "실제소환사", "tag_line": "KR1"}).status_code == 403
+            h = {"X-Bot-Secret": "b" * 32}
+            assert c.post("/api/bot/riot-account", headers=h, json={"member": bm, "game_name": "가짜닉", "tag_line": "KR1"}).status_code == 404
+            assert c.post("/api/bot/riot-account", headers=h, json={"member": bm, "game_name": "실제소환사", "tag_line": "KR1"}).status_code == 200
+            assert community_rank.get_member("5501")["verified"] == 0 and community_rank.get_member("5501")["discord_name"] == "봇멤버"
+        finally:
+            if saved_secret is None:
+                os.environ.pop("BOT_API_SECRET", None)
+            else:
+                os.environ["BOT_API_SECRET"] = saved_secret
+    finally:
+        main_mod.fetch_player, riot_client.get_account_by_riot_id = orig_fetch, orig_acc
+    assert c.get("/api/me").json()["account"] == {"game_name": "실제소환사", "tag_line": "KR1", "verified": False}
+    assert c.get("/api/server-ranking").json()["total"] == 0, "등록만 한 계정은 서버 랭킹에 없음"
+    picks = c.get("/api/inhouse/members").json()["members"]
+    assert any(m["game_name"] == "실제소환사" and m["verified"] is False for m in picks), "내전 참가자 목록에는 등록 멤버도"
+    tiers = {m["discord_id"]: m["tier"] for m in community_rank.guild_member_tiers("")}
+    assert "local-dev" not in tiers, "디스코드 ID(숫자)가 아닌 행은 티어 역할 대상 아님"
+
+    community_rank.link_account("local-dev", {"puuid": "p" * 78, "game_name": "실제소환사", "tag_line": "KR1"})
+    assert c.get("/api/me").json()["account"] == {"game_name": "실제소환사", "tag_line": "KR1", "verified": True}
     board = c.get("/api/server-ranking").json()
-    assert board["total"] == 1 and board["members"][0]["game_name"] == "실제소환사" and board["members"][0]["rank"] == 1
+    assert board["total"] == 1 and board["members"][0]["game_name"] == "실제소환사" and board["members"][0]["verified"] is True
     assert c.delete("/api/me/riot-account").status_code == 200
     assert c.get("/api/server-ranking").json()["total"] == 0
+    ok("서버 랭킹: 닉네임 등록은 실제 계정만·미인증 표시·랭킹 제외, 라이엇 인증 계정만 순위표, 연결 해제")
 
-    saved = os.environ.get("MEMBER_LOGIN")
-    os.environ["MEMBER_LOGIN"] = "discord"
+
+
+def test_member_match_cache_only_missing_ranked():
+    """멤버 최근 게임 받기: 솔로·자유랭크 목록만 묻고, 캐시에 있는 매치는 다시 받지 않는다"""
+    import asyncio, json
+    from app import community_rank
+    from app.riot_client import riot_client
+    from app.database import get_connection
+    real_data.init_match_cache()
+    conn = get_connection()
+    conn.execute("INSERT OR REPLACE INTO match_cache (match_id, data, game_end, fetched_at) VALUES ('KR_OLD', ?, 0, 0)",
+                 (json.dumps({"info": {"queueId": 420}}),))
+    conn.commit()
+    conn.close()
+    asked, fetched = [], []
+
+    async def ids(puuid, count=20, queue=None, start_time=None):
+        asked.append(queue)
+        assert start_time and count == community_rank.MEMBER_MATCH_LIMIT
+        return ["KR_OLD", "KR_NEW1"] if queue == 420 else ["KR_NEW2"]
+
+    async def detail(mid):
+        fetched.append(mid)
+        return {"metadata": {"matchId": mid}, "info": {"queueId": 420, "gameEndTimestamp": 1, "participants": []}}
+    o_ids, o_detail, o_gap = riot_client.get_match_ids_by_puuid, riot_client.get_match_detail, community_rank.MEMBER_MATCH_GAP_SEC
+    riot_client.get_match_ids_by_puuid, riot_client.get_match_detail = ids, detail
+    community_rank.MEMBER_MATCH_GAP_SEC = 0
     try:
-        assert c.post("/api/me/riot-account", json={"riot_id": "실제소환사#KR1"}).status_code == 401, "로그인 없이 연결 불가"
+        got = asyncio.run(community_rank.cache_member_matches("p" * 78))
     finally:
-        if saved is None:
-            os.environ.pop("MEMBER_LOGIN", None)
-        else:
-            os.environ["MEMBER_LOGIN"] = saved
-    ok("서버 랭킹: 라이엇 ID 연결(실제 계정 확인)·해제, 순위표, 로그인 없으면 연결 불가")
-
+        riot_client.get_match_ids_by_puuid, riot_client.get_match_detail = o_ids, o_detail
+        community_rank.MEMBER_MATCH_GAP_SEC = o_gap
+        conn = get_connection()
+        conn.execute("DELETE FROM match_cache WHERE match_id IN ('KR_OLD', 'KR_NEW1', 'KR_NEW2')")
+        conn.commit()
+        conn.close()
+    assert asked == [420, 440], asked
+    assert fetched == ["KR_NEW1", "KR_NEW2"] and got == 2, fetched
+    ok("멤버 최근 게임: 솔로·자유랭크만, 캐시에 없는 매치만 받기")
 
 def test_server_duos_and_mvp():
     """같이 한 게임: 캐시된 실제 매치에서 같은 팀 멤버 쌍만, 솔로·자유랭크만. MVP: 7일 LP 상승 최대"""
@@ -231,7 +307,7 @@ def test_server_duos_and_mvp():
     conn = get_connection()
     conn.execute("DELETE FROM member_accounts")
     for i, pu in enumerate(("PU_A", "PU_B", "PU_C")):
-        conn.execute("INSERT INTO member_accounts (discord_id, discord_name, puuid, game_name, tag_line, linked_at) VALUES (?,?,?,?,?,?)",
+        conn.execute("INSERT INTO member_accounts (discord_id, discord_name, puuid, game_name, tag_line, linked_at, verified) VALUES (?,?,?,?,?,?,1)",
                      (f"d{i}", f"멤버{i}", pu, f"이름{i}", "KR1", 0))
     now_ms = int(time.time() * 1000)
 
@@ -244,18 +320,18 @@ def test_server_duos_and_mvp():
     match("M3", 450, [("PU_A", 100, True), ("PU_C", 100, True)])                        # 칼바람: 제외
     conn.commit()
     conn.close()
-    community_rank._DUO_MEMO.update(at=0.0, data=None)
+    community_rank._DUO_MEMO.clear()
     duos = community_rank.server_duos()["duos"]
     assert len(duos) == 1, duos
     assert {duos[0]["a"]["game_name"], duos[0]["b"]["game_name"]} == {"이름0", "이름1"}
     assert duos[0]["games"] == 2 and duos[0]["win_rate"] == 50.0
 
     orig = community_rank.leaderboard
-    community_rank.leaderboard = lambda: {"members": [
+    community_rank.leaderboard = lambda *a: {"members": [
         {"game_name": "x", "lp_change_7d": 30}, {"game_name": "y", "lp_change_7d": 85}, {"game_name": "z", "lp_change_7d": None}]}
     try:
         assert community_rank.weekly_mvp()["game_name"] == "y"
-        community_rank.leaderboard = lambda: {"members": [{"game_name": "x", "lp_change_7d": -10}]}
+        community_rank.leaderboard = lambda *a: {"members": [{"game_name": "x", "lp_change_7d": -10}]}
         assert community_rank.weekly_mvp() is None, "LP가 오른 멤버가 없으면 MVP 없음"
     finally:
         community_rank.leaderboard = orig

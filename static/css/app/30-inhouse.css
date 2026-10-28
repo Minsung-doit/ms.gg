@@ -111,13 +111,6 @@
   gap: 6px;
 }
 
-#srInhouse .ih-section-hint {
-  font-size: 0.78rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  margin-left: 6px;
-}
-
 #srInhouse .ih-btn-text {
   background: none;
   border: none;
@@ -849,3 +842,698 @@
   #srInhouse .ih-stats-table th, #srInhouse .ih-stats-table td { padding: 7px 6px; }
   #srInhouse .ih-running-wrap .ih-btn-win { flex: 1 1 40%; }
 }
+
+/* 내전 순위표 (챔피언 순위처럼 가로 한 줄) + 세부 기록 + 토너먼트 코드 */
+#srInhouse .ih-rank-table td { vertical-align: middle; }
+#srInhouse .ih-rank-tr[data-detail] { cursor: pointer; }
+#srInhouse .ih-rank-tr.ih-open { background: var(--bg-card-hover); }
+#srInhouse .ih-td-rating { font-weight: 800; color: var(--text-heading); text-align: right; }
+#srInhouse .ih-th-rating, #srInhouse .ih-th-games, #srInhouse .ih-td-games,
+#srInhouse .ih-th-kda, #srInhouse .ih-td-kda { text-align: right; }
+#srInhouse .ih-rate-good { color: #34D399; font-weight: 700; }
+#srInhouse .ih-rate-bad { color: #F87171; font-weight: 700; }
+#srInhouse .ih-wl { color: var(--text-muted); font-size: 0.78rem; margin-left: 4px; }
+#srInhouse .ih-td-most { min-width: 84px; }
+#srInhouse .ih-most-champ { width: 24px; height: 24px; border-radius: 50%; margin-right: 3px; vertical-align: middle; border: 1px solid var(--border-color); }
+#srInhouse .ih-muted { color: var(--text-muted); }
+#srInhouse .ih-placement-badge {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+  color: var(--text-muted); border: 1px solid var(--border-color);
+}
+#srInhouse .ih-detail-caret { font-size: 0.7rem; color: var(--text-muted); margin-left: 6px; transition: transform 0.15s; }
+#srInhouse .ih-rank-tr.ih-open .ih-detail-caret { transform: rotate(180deg); }
+#srInhouse .ih-rank-foot { margin-top: 8px; font-size: 0.76rem; color: var(--text-muted); }
+#srInhouse .ih-detail-tr td { white-space: normal; padding: 0 10px 12px; }
+#srInhouse .ih-detail-box { padding: 12px; border-radius: 10px; background: var(--bg-main); border: 1px solid var(--border-color); font-size: 0.84rem; }
+#srInhouse .ih-detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; }
+#srInhouse .ih-detail-grid span { display: block; font-size: 0.74rem; color: var(--text-muted); }
+#srInhouse .ih-detail-grid strong { color: var(--text-heading); }
+#srInhouse .ih-detail-recent { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+#srInhouse .ih-detail-game {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 2px; border-radius: 999px; font-size: 0.76rem; font-weight: 700;
+  border: 1px solid var(--border-color);
+}
+#srInhouse .ih-detail-game img { width: 20px; height: 20px; border-radius: 50%; }
+#srInhouse .ih-detail-game.ih-win { color: #60A5FA; }
+#srInhouse .ih-detail-game.ih-loss { color: #F87171; }
+#srInhouse .ih-code-wrap { flex-basis: 100%; margin-top: 10px; }
+#srInhouse .ih-code-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#srInhouse .ih-code-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+#srInhouse .ih-code-value {
+  font-family: ui-monospace, Consolas, monospace; font-size: 0.86rem; padding: 4px 8px; border-radius: 6px;
+  background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-heading); user-select: all; word-break: break-all;
+}
+#srInhouse .ih-code-help { margin-top: 6px; font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; }
+
+@media (max-width: 520px) {
+  #srInhouse .ih-wl { display: none; }
+  #srInhouse .ih-most-champ { width: 20px; height: 20px; }
+}
+
+[data-theme="light"] #srInhouse .ih-rate-good { color: #047857; }
+[data-theme="light"] #srInhouse .ih-rate-bad { color: #B91C1C; }
+[data-theme="light"] #srInhouse .ih-detail-game.ih-win { color: #1D4ED8; }
+[data-theme="light"] #srInhouse .ih-detail-game.ih-loss { color: #B91C1C; }
+#srInhouse .ih-rank-table .ih-name-truncate { display: inline-block; max-width: 140px; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+#srInhouse .ih-rank-table .ih-td-name { white-space: nowrap; max-width: none; }
+#srInhouse .ih-game-action-wrap.ih-running { flex: 1 1 100%; }
+#srInhouse .ih-result-actions { flex-wrap: wrap; }
+#srInhouse .ih-result-actions:has(.ih-running) { flex: 1 1 100%; justify-content: flex-start; }
+
+/* ── 방식 선택 (Mode Tabs) ───────────────────────────────────────── */
+#srInhouse .ih-mode-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#srInhouse .ih-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+#srInhouse .ih-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-mode-tab:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--text-heading);
+}
+
+#srInhouse .ih-mode-tab.active {
+  background: rgba(79, 128, 226, 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+[data-theme="light"] #srInhouse .ih-mode-tab {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+[data-theme="light"] #srInhouse .ih-mode-tab.active {
+  background: rgba(59, 114, 222, 0.12);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+#srInhouse .ih-mode-tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+[data-theme="light"] #srInhouse .ih-mode-tab:disabled {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+  color: #94A3B8;
+}
+
+#srInhouse .ih-split-subwrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 2px;
+}
+
+#srInhouse .ih-split-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-split-chip {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#srInhouse .ih-split-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+#srInhouse .ih-split-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] #srInhouse .ih-split-chip {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+[data-theme="light"] #srInhouse .ih-split-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+}
+
+#srInhouse .ih-mode-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  word-break: keep-all;
+  padding: 2px 4px;
+}
+
+/* ── 대기자 배너 ──────────────────────────────────────────────── */
+#srInhouse .ih-waitlist-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+  font-size: 0.86rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  word-break: keep-all;
+}
+
+#srInhouse .ih-waitlist-banner strong {
+  color: var(--text-heading);
+}
+
+[data-theme="light"] #srInhouse .ih-waitlist-banner {
+  background: #FFFBEB;
+  border-color: #FCD34D;
+  color: #B45309;
+}
+
+/* ── 라인 적합도 배지 ───────────────────────────────────────── */
+#srInhouse .ih-fit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-fit-main {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10B981;
+}
+
+#srInhouse .ih-fit-sub {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+}
+
+#srInhouse .ih-fit-off {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+#srInhouse .ih-fit-any {
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: var(--text-muted);
+}
+
+[data-theme="light"] #srInhouse .ih-fit-main {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #A7F3D0;
+}
+
+[data-theme="light"] #srInhouse .ih-fit-sub {
+  background: #FFFBEB;
+  color: #B45309;
+  border-color: #FDE68A;
+}
+
+[data-theme="light"] #srInhouse .ih-fit-off {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+[data-theme="light"] #srInhouse .ih-fit-any {
+  background: #F1F5F9;
+  color: #64748B;
+  border-color: #CBD5E1;
+}
+
+/* ── 여러 판 동시 (Multi Mode) ────────────────────────────────── */
+#srInhouse .ih-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+#srInhouse .ih-room-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+[data-theme="light"] #srInhouse .ih-room-card {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+#srInhouse .ih-room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+#srInhouse .ih-room-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#srInhouse .ih-room-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#srInhouse .ih-room-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* ── 토너먼트 / 리그 준비 (Tournament Prep) ───────────────────── */
+#srInhouse .ih-tourney-prep-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#srInhouse .ih-tourney-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#srInhouse .ih-tourney-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#srInhouse .ih-tourney-teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+}
+
+#srInhouse .ih-tourney-team-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+[data-theme="light"] #srInhouse .ih-tourney-team-card {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+#srInhouse .ih-tourney-action-bar {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+#srInhouse .ih-btn-lg {
+  height: 44px;
+  padding: 0 24px;
+  font-size: 1rem;
+}
+
+/* ── 대회 화면 (Event View) ───────────────────────────────────── */
+#srInhouse .ih-event-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#srInhouse .ih-event-view {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+[data-theme="light"] #srInhouse .ih-event-view {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+#srInhouse .ih-event-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+#srInhouse .ih-event-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#srInhouse .ih-champion-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+  border: 1px solid #F59E0B;
+  color: #F59E0B;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+[data-theme="light"] #srInhouse .ih-champion-banner {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #B45309;
+}
+
+#srInhouse .ih-league-standings-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#srInhouse .ih-rounds-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#srInhouse .ih-round-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#srInhouse .ih-round-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#srInhouse .ih-match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#srInhouse .ih-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+[data-theme="light"] #srInhouse .ih-match-row {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+#srInhouse .ih-match-teams {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-heading);
+  word-break: keep-all;
+}
+
+#srInhouse .ih-match-vs {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-match-status-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#srInhouse .ih-match-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#srInhouse .ih-match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#srInhouse .ih-match-bye {
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-match-winner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10B981;
+}
+
+[data-theme="light"] #srInhouse .ih-match-winner {
+  color: #047857;
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+}
+
+#srInhouse .ih-btn-sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
+/* ── 최근 대회 (Recent Events) ───────────────────────────────── */
+#srInhouse .ih-events-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#srInhouse .ih-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#srInhouse .ih-recent-event-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#srInhouse .ih-recent-event-card:hover {
+  border-color: var(--primary);
+  background: var(--bg-card-hover);
+}
+
+[data-theme="light"] #srInhouse .ih-recent-event-card {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+[data-theme="light"] #srInhouse .ih-recent-event-card:hover {
+  background: #F1F5F9;
+  border-color: var(--primary);
+}
+
+#srInhouse .ih-recent-event-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+#srInhouse .ih-event-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+#srInhouse .ih-event-mode-tournament {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+}
+
+#srInhouse .ih-event-mode-league {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #A855F7;
+}
+
+[data-theme="light"] #srInhouse .ih-event-mode-tournament {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #B45309;
+}
+
+[data-theme="light"] #srInhouse .ih-event-mode-league {
+  background: #FAF5FF;
+  border-color: #E9D5FF;
+  color: #7E22CE;
+}
+
+#srInhouse .ih-recent-event-title {
+  font-size: 0.88rem;
+  color: var(--text-heading);
+}
+
+#srInhouse .ih-recent-event-teams {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-recent-event-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#srInhouse .ih-recent-event-date {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+#srInhouse .ih-event-arrow {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── 반응형 미디어쿼리 추가 (Mode, Event, 390px) ─────────────────── */
+@media (max-width: 640px) {
+  #srInhouse .ih-mode-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 390px) {
+  #srInhouse .ih-mode-tabs {
+    grid-template-columns: 1fr;
+  }
+  #srInhouse .ih-tourney-teams-grid {
+    grid-template-columns: 1fr;
+  }
+  #srInhouse .ih-match-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #srInhouse .ih-match-status-area {
+    justify-content: flex-start;
+  }
+}
+

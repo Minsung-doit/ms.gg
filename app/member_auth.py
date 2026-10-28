@@ -3,11 +3,12 @@
 
 라이엇 개인(Personal) 키는 '소규모 비공개 커뮤니티'용이라, 사이트를 지정한 디스코드 서버 멤버에게만 연다.
 - MEMBER_LOGIN=discord 이면 켜진다 (로컬 개발은 기본 꺼짐).
-- 디스코드 OAuth2 (scope: identify guilds.members.read) → DISCORD_GUILD_ID 서버의 내 멤버 정보가 있으면 로그인 쿠키 발급.
-  (다른 서버 목록은 받지 않는다. 표시 이름은 그 서버 별명 → 전역 이름 → 사용자명 순)
+- 디스코드 OAuth2 (scope: identify guilds.members.read) → 등록된 서버(app/communities.py) 중 하나라도 멤버면 로그인 쿠키 발급.
+  등록된 서버마다 내 멤버 정보를 물어본다 (다른 서버 목록은 받지 않는다. 표시 이름은 첫 서버 별명 → 전역 이름 → 사용자명 순)
 - 쿠키는 서명된 '<디스코드ID>.<만료>.<서명>' (7일). 서버를 나간 사람은 최대 7일 뒤 다시 로그인할 때 막힌다.
 - 설정이 빠졌는데 켜져 있으면 아무도 들여보내지 않는다 (실수로 공개되지 않게).
 """
+import asyncio
 import hashlib
 import hmac
 import os
@@ -25,7 +26,8 @@ STATE_COOKIE = "discord_oauth_state"
 SESSION_TTL = 7 * 86400
 
 # 로그인 없이 열려 있어야 하는 주소 (로그인 화면·정적 파일·헬스 체크)
-PUBLIC_PREFIXES = ("/login", "/logout", "/auth/discord/", "/static/", "/api/health")
+# /api/riot/tournament/callback: 라이엇 서버가 보내는 내전 결과 알림 (로그인 없음, 내용은 매치를 직접 불러 확인)
+PUBLIC_PREFIXES = ("/login", "/logout", "/auth/discord/", "/static/", "/api/health", "/api/riot/tournament/callback")
 PUBLIC_PATHS = {"/robots.txt", "/manifest.json", "/sw.js", "/favicon.ico"}
 
 
@@ -38,7 +40,8 @@ def login_enabled() -> bool:
 
 
 def config_ok() -> bool:
-    return all(_env(k) for k in ("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "DISCORD_GUILD_ID"))
+    from app import communities
+    return all(_env(k) for k in ("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET")) and bool(communities.ids())
 
 
 def _secret() -> bytes:
@@ -101,7 +104,9 @@ def new_state() -> str:
 
 
 async def check_membership(request: Request, code: str) -> Dict[str, Any]:
-    """인가 코드를 토큰으로 바꾸고, 사용자 ID와 지정 서버 가입 여부를 돌려준다."""
+    """인가 코드를 토큰으로 바꾸고, 사용자 ID와 들어가 있는 등록 서버 목록(guilds)을 돌려준다."""
+    from app import communities
+    guild_ids = communities.ids()
     async with httpx.AsyncClient(timeout=10.0) as client:
         tok = await client.post(f"{DISCORD_API}/oauth2/token", data={
             "client_id": _env("DISCORD_CLIENT_ID"),
@@ -114,14 +119,23 @@ async def check_membership(request: Request, code: str) -> Dict[str, Any]:
             return {"ok": False, "reason": "token"}
         headers = {"Authorization": f"Bearer {tok.json().get('access_token', '')}"}
         me = await client.get(f"{DISCORD_API}/users/@me", headers=headers)
-        # 지정 서버의 내 멤버 정보: 200 이면 멤버(별명 포함), 404 면 멤버 아님
-        gm = await client.get(f"{DISCORD_API}/users/@me/guilds/{_env('DISCORD_GUILD_ID')}/member", headers=headers)
-    if me.status_code != 200 or gm.status_code not in (200, 404):
-        return {"ok": False, "reason": "profile"}
+        if me.status_code != 200:
+            return {"ok": False, "reason": "profile"}
+        # 등록된 서버마다 내 멤버 정보: 200 이면 멤버(별명 포함), 404 면 멤버 아님
+        joined, nick = [], None
+        for gid in guild_ids:
+            gm = await client.get(f"{DISCORD_API}/users/@me/guilds/{gid}/member", headers=headers)
+            if gm.status_code == 429:  # 이 경로는 한도가 낮다: 잠깐 기다렸다 한 번 더
+                wait = min(float((gm.json() or {}).get("retry_after", 1) or 1), 3.0)
+                await asyncio.sleep(wait)
+                gm = await client.get(f"{DISCORD_API}/users/@me/guilds/{gid}/member", headers=headers)
+            if gm.status_code == 200:
+                joined.append(gid)
+                nick = nick or (gm.json() or {}).get("nick")
+            elif gm.status_code != 404:
+                return {"ok": False, "reason": "profile"}
     user = me.json()
-    member = gm.status_code == 200
-    nick = (gm.json() or {}).get("nick") if member else None
-    return {"ok": True, "member": member, "discord_id": str(user.get("id", "")),
+    return {"ok": True, "member": bool(joined), "guilds": joined, "discord_id": str(user.get("id", "")),
             "name": nick or user.get("global_name") or user.get("username") or ""}
 
 

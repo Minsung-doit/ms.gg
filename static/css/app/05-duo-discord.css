@@ -193,6 +193,8 @@ body.light-mode .mic-active-glow {
   background: rgba(16, 185, 129, 0.2);
   border-color: rgba(16, 185, 129, 0.5);
   color: #047857;
+  box-shadow: none;
+  animation: none;
 }
 
 [data-theme="light"] .btn-host-room-join,

@@ -24,10 +24,10 @@
    ```env
    GOOGLE_ADSENSE_CLIENT_ID='ca-pub-1234567890123456'
    ```
-   - 등록 즉시 [`templates/index.html`](file:///C:/Users/nkkju/OneDrive/바탕%20화면/opgg/templates/index.html) 상단에 공식 Google AdSense 로더 스크립트가 자동 활성화되며, 하단 및 사이드바 광고 슬롯이 활성화됩니다.
+   - 등록 즉시 [`templates/index.html`](../templates/index.html) 상단에 공식 Google AdSense 로더 스크립트가 자동 활성화되며, 하단 및 사이드바 광고 슬롯이 활성화됩니다.
 5. **`ads.txt` 파일 확인**:
    - 구글 크롤러가 사이트 루트의 `https://당신도메인/ads.txt`를 검사합니다.
-   - 프로젝트 루트의 [`ads.txt`](file:///C:/Users/nkkju/OneDrive/바탕%20화면/opgg/ads.txt) 파일에 발급받은 pub-ID를 기입하십시오:
+   - 프로젝트 루트의 [`ads.txt`](../ads.txt) 파일에 발급받은 pub-ID를 기입하십시오:
      ```text
      google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0
      ```

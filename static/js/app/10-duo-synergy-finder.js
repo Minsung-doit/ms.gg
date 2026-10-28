@@ -66,6 +66,7 @@ async function resolveMyLolTier() {
 
 function getDuoPosNameKr(pos, game) {
   if (!pos || pos === "ALL") return "전체";
+  if (String(pos).includes(",")) return String(pos).split(",").map(x => getDuoPosNameKr(x, game)).join("·");
   const p = pos.toUpperCase();
   if (p === "TOP") return "탑";
   if (p === "JUG" || p === "JUNGLE") return "정글";
@@ -79,6 +80,7 @@ function getDuoPosNameKr(pos, game) {
 
 function getDuoPosIcon(pos) {
   if (!pos || pos === "ALL") return '<i class="fa-solid fa-layer-group"></i>';
+  if (String(pos).includes(",")) return '<i class="fa-solid fa-layer-group"></i>';
   const p = pos.toUpperCase();
   if (p === "TOP") return '<i class="fa-solid fa-shield"></i>';
   if (p === "JUG" || p === "JUNGLE") return '<i class="fa-solid fa-tree"></i>';
@@ -97,7 +99,11 @@ function getQueueIcon(q) {
   if (str.includes("스쿼드") || str.includes("자유") || str.includes("파티")) return "fa-users";
   if (str.includes("듀오")) return "fa-user-group";
   if (str.includes("칼바람")) return "fa-snowflake";
-  if (str.includes("빠른")) return "fa-bolt";
+  if (str.includes("빠른") || str.includes("신속")) return "fa-bolt";
+  if (str.includes("교차") || str.includes("일반")) return "fa-shuffle";
+  if (str.includes("아레나")) return "fa-fire";
+  if (str.includes("TFT")) return "fa-chess";
+  if (str.includes("내전")) return "fa-scale-balanced";
   return "fa-gamepad";
 }
 
@@ -282,7 +288,7 @@ function updateModalForGame(gameId) {
   const nameLabel = document.getElementById("dfLabelName");
   const nameInput = document.getElementById("dfInputName");
   if (nameLabel) nameLabel.textContent = game.id === "lol" ? "소환사 닉네임" : "닉네임";
-  if (nameInput) nameInput.placeholder = game.id === "lol" ? "예: Hide on bush" : "예: 닉네임 입력";
+  if (nameInput) nameInput.placeholder = game.id === "lol" ? "예: 소환사 닉네임" : "예: 닉네임 입력";
 
   // Tag
   const tagGroup = document.getElementById("dfFormGroupTag");
@@ -309,6 +315,21 @@ function updateModalForGame(gameId) {
     } else if (game.tiers.length > 0) {
       tierSelect.value = game.tiers[0];
     }
+    // 단계(다이아 1)와 범위(브론즈 ~ 다이아): 서버가 '다이아몬드 1' · '브론즈~다이아몬드' 로 받는다
+    const tierTo = document.getElementById("dfSelectTierTo");
+    if (tierTo) {
+      tierTo.innerHTML = `<option value="">범위 없음</option>` + game.tiers.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}까지</option>`).join("");
+      tierTo.value = "";
+    }
+    const syncDivision = () => {
+      const div = document.getElementById("dfSelectDivision");
+      if (!div) return;
+      const has = (game.tier_divisions || []).includes(tierSelect.value);
+      div.style.display = has ? "" : "none";
+      if (!has) div.value = "";
+    };
+    tierSelect.onchange = syncDivision;
+    syncDivision();
   }
 
   // Positions
@@ -370,13 +391,25 @@ function updateModalForGame(gameId) {
     selectQueue.innerHTML = game.queues.map(q => `<option value="${escapeHtml(q)}">${escapeHtml(q)}</option>`).join("");
     selectQueue.value = game.queues[0];
 
+    // TFT처럼 인원을 고를 수 있는 큐는 배지 대신 '최대 인원' 선택을 보여 준다
+    const maxGroup = document.getElementById("dfFormGroupMaxMembers");
+    const maxSelect = document.getElementById("dfSelectMaxMembers");
     const updatePartyBadge = () => {
       const qVal = selectQueue.value;
       const pSize = (game.party_size && game.party_size[qVal]) || 2;
-      if (partyBadge) partyBadge.textContent = `(${pSize}명)`;
+      const span = (game.adjustable_party || {})[qVal];
+      if (partyBadge) partyBadge.textContent = span ? "" : `(${pSize}명)`;
+      if (maxGroup) maxGroup.style.display = span ? "" : "none";
+      if (maxSelect && span) {
+        const opts = [];
+        for (let n = span[1]; n >= span[0]; n--) opts.push(`<option value="${n}">${n}명</option>`);
+        maxSelect.innerHTML = opts.join("");
+        maxSelect.value = String(Math.min(Math.max(pSize, span[0]), span[1]));
+      }
     };
-    selectQueue.onchange = updatePartyBadge;
+    selectQueue.onchange = () => { updatePartyBadge(); syncModalPositionVisibility(game); };
     updatePartyBadge();
+    syncModalPositionVisibility(game);
   }
 
   // Champions
@@ -392,29 +425,47 @@ function updateModalForGame(gameId) {
   }
 }
 
+// 포지션 칩은 여러 개 선택 가능. 내 포지션은 최소 1개, 찾는 포지션은 '전체'를 누르거나 다 끄면 전체
 function bindModalPosChips() {
-  const selectMyPos = document.getElementById("dfSelectMyPos");
   const myPosChips = document.querySelectorAll("#modalMyPosBadges .m-pos-chip");
   myPosChips.forEach(chip => {
     chip.onclick = () => {
-      myPosChips.forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-      if (selectMyPos) {
-        selectMyPos.value = chip.getAttribute("data-pos") || "MID";
-      }
+      const activeCount = document.querySelectorAll("#modalMyPosBadges .m-pos-chip.active").length;
+      if (chip.classList.contains("active") && activeCount <= 1) return;
+      chip.classList.toggle("active");
     };
   });
 
-  const selectTargetPos = document.getElementById("dfSelectTargetPos");
   const targetPosChips = document.querySelectorAll("#modalTargetPosBadges .m-pos-chip");
+  const allChip = document.querySelector('#modalTargetPosBadges .m-pos-chip[data-pos="ALL"]');
   targetPosChips.forEach(chip => {
     chip.onclick = () => {
-      targetPosChips.forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-      if (selectTargetPos) {
-        selectTargetPos.value = chip.getAttribute("data-pos") || "ALL";
+      if (chip === allChip) {
+        targetPosChips.forEach(c => c.classList.toggle("active", c === allChip));
+        return;
       }
+      chip.classList.toggle("active");
+      const anyPos = [...targetPosChips].some(c => c !== allChip && c.classList.contains("active"));
+      if (allChip) allChip.classList.toggle("active", !anyPos);
     };
+  });
+}
+
+// 선택된 포지션 칩 → "TOP,JUG" (없거나 '전체'면 ALL)
+function readModalPositions(containerId, fallback) {
+  const codes = [...document.querySelectorAll(`#${containerId} .m-pos-chip.active`)]
+    .map(c => c.getAttribute("data-pos")).filter(Boolean);
+  if (!codes.length || codes.includes("ALL")) return fallback;
+  return codes.join(",");
+}
+
+// 포지션이 없는 큐(칼바람·아레나·TFT)는 포지션 선택을 숨긴다
+function syncModalPositionVisibility(game) {
+  const queue = document.getElementById("dfSelectQueue")?.value || "";
+  const noPos = !game?.positions?.length || (game.no_position_queues || []).includes(queue);
+  ["dfFormGroupMyPos", "dfFormGroupTargetPos"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = noPos ? "none" : "";
   });
 }
 
@@ -456,7 +507,10 @@ async function prefillDuoFormFromAccount() {
   if (nameEl && !nameEl.value.trim()) nameEl.value = p.game_name || "";
   if (tagEl && (!tagEl.value.trim() || tagEl.value.trim() === "KR1")) tagEl.value = p.tag_line || tagEl.value;
   const tierKr = (typeof TIER_NAMES_KR !== "undefined" && TIER_NAMES_KR[String(p.tier || "").toUpperCase()]) || "";
-  if (tierEl && tierKr && [...tierEl.options].some(o => o.value === tierKr)) tierEl.value = tierKr;
+  if (tierEl && tierKr && [...tierEl.options].some(o => o.value === tierKr)) {
+    tierEl.value = tierKr;
+    if (tierEl.onchange) tierEl.onchange();
+  }
 }
 window.openCreateDuoModal = openCreateDuoModal;
 
@@ -582,9 +636,14 @@ async function initDuoFinder() {
         tag = "KR1";
       }
 
-      const tierKr = document.getElementById("dfSelectTier")?.value || (activeGame?.tiers && activeGame.tiers[0]) || "다이아몬드";
-      const myPos = activeGame?.positions?.length ? (document.getElementById("dfSelectMyPos")?.value || "MID") : "ALL";
-      const targetPos = activeGame?.positions?.length ? (document.getElementById("dfSelectTargetPos")?.value || "ALL") : "ALL";
+      const tierBase = document.getElementById("dfSelectTier")?.value || (activeGame?.tiers && activeGame.tiers[0]) || "다이아몬드";
+      const tierDiv = document.getElementById("dfSelectDivision")?.value || "";
+      const tierUpTo = document.getElementById("dfSelectTierTo")?.value || "";
+      const tierKr = `${tierBase}${tierDiv ? " " + tierDiv : ""}${tierUpTo && tierUpTo !== tierBase ? "~" + tierUpTo : ""}`;
+      const queueVal = document.getElementById("dfSelectQueue")?.value || "";
+      const usesPositions = activeGame?.positions?.length && !(activeGame.no_position_queues || []).includes(queueVal);
+      const myPos = usesPositions ? readModalPositions("modalMyPosBadges", "ALL") : "ALL";
+      const targetPos = usesPositions ? readModalPositions("modalTargetPosBadges", "ALL") : "ALL";
       const queue = document.getElementById("dfSelectQueue")?.value || (activeGame?.queues && activeGame.queues[0]) || "솔로랭크";
       const voice = document.getElementById("dfCheckVoice")?.checked ?? true;
       const title = document.getElementById("dfInputTitle")?.value || "";
@@ -592,7 +651,9 @@ async function initDuoFinder() {
       const discordTag = document.getElementById("dfInputDiscord")?.value || "";
       const champsVal = document.getElementById("dfInputChamps")?.value || "";
       const mostChamps = (currentDfGame === "lol" && champsVal) ? champsVal.split(",").map(c => c.trim()).filter(Boolean) : [];
-      const partySize = (activeGame?.party_size && activeGame.party_size[queue]) || 2;
+      const queueSpan = (activeGame?.adjustable_party || {})[queue];
+      const pickedMax = parseInt(document.getElementById("dfSelectMaxMembers")?.value || "", 10);
+      const partySize = (queueSpan && pickedMax) ? pickedMax : ((activeGame?.party_size && activeGame.party_size[queue]) || 2);
 
       let discordChannelName = "";
       let discordVoiceUrl = "";
@@ -600,8 +661,9 @@ async function initDuoFinder() {
       let roomLink = "";
       if (voice && channelSelect) {
         if (channelSelect.value === "CUSTOM") {
-          roomName = `🔊 ${name || '호스트'}의 음성방`;
-          discordChannelName = roomName;
+          // 방 이름은 서버가 링크에서 실제 디스코드 채널 이름을 받아 채운다
+          roomName = "";
+          discordChannelName = "";
           roomLink = customUrlInput?.value.trim() || "";
           discordVoiceUrl = roomLink;
         } else {
@@ -804,6 +866,8 @@ function getDuoOwnerTokens() {
   try {
     tokens = JSON.parse(localStorage.getItem(DUO_OWNER_TOKENS_KEY) || "{}") || {};
   } catch (_) {}
+  // 예전 버전이 저장해 둔 멤버 표시는 무시 (지금 로그인한 멤버의 글만 서버 목록으로 다시 채운다)
+  Object.keys(tokens).forEach(k => { if (tokens[k] === MEMBER_OWNER_MARK) delete tokens[k]; });
   myMemberPostIds.forEach(id => { if (!tokens[id]) tokens[id] = MEMBER_OWNER_MARK; });
   return tokens;
 }
@@ -814,8 +878,20 @@ function ownerHeaders(token) {
 
 function saveDuoOwnerToken(postId, token) {
   try {
-    const tokens = getDuoOwnerTokens();
+    // 저장소에는 작성자 토큰만 (디스코드 멤버 표시는 매번 서버에서 받아 온다: 다른 계정으로 바꿔도 남지 않게)
+    let tokens = {};
+    try { tokens = JSON.parse(localStorage.getItem(DUO_OWNER_TOKENS_KEY) || "{}") || {}; } catch (_) {}
+    Object.keys(tokens).forEach(k => { if (tokens[k] === MEMBER_OWNER_MARK) delete tokens[k]; });
     tokens[postId] = token;
+    localStorage.setItem(DUO_OWNER_TOKENS_KEY, JSON.stringify(tokens));
+  } catch (_) {}
+}
+
+function forgetDuoOwnerToken(postId) {
+  try {
+    const tokens = JSON.parse(localStorage.getItem(DUO_OWNER_TOKENS_KEY) || "{}") || {};
+    delete tokens[postId];
+    Object.keys(tokens).forEach(k => { if (tokens[k] === MEMBER_OWNER_MARK) delete tokens[k]; });
     localStorage.setItem(DUO_OWNER_TOKENS_KEY, JSON.stringify(tokens));
   } catch (_) {}
 }
@@ -886,11 +962,7 @@ async function deleteDuoPost(postId, event) {
   try {
     const res = await fetch(`/api/duo-posts/${encodeURIComponent(postId)}`, { method: "DELETE", headers: ownerHeaders(ownerToken) });
     if (!res.ok && res.status !== 404) throw new Error(String(res.status));
-    try {
-      const tokens = getDuoOwnerTokens();
-      delete tokens[postId];
-      localStorage.setItem(DUO_OWNER_TOKENS_KEY, JSON.stringify(tokens));
-    } catch (_) {}
+    forgetDuoOwnerToken(postId);
     showToast("구인글을 삭제했어요.", "success");
     loadDuoPosts();
   } catch (e) {
@@ -906,13 +978,7 @@ async function toggleDuoRoomCapacity(postId, event) {
     showToast("내가 작성한 구인글만 상태를 변경할 수 있습니다.", "warning");
     return;
   }
-  const forgetToken = () => {
-    try {
-      const tokens = getDuoOwnerTokens();
-      delete tokens[postId];
-      localStorage.setItem(DUO_OWNER_TOKENS_KEY, JSON.stringify(tokens));
-    } catch (_) {}
-  };
+  const forgetToken = () => forgetDuoOwnerToken(postId);
   try {
     const res = await fetch(`/api/duo-posts/${postId}/toggle-status`, {
       method: "POST",
@@ -1170,7 +1236,7 @@ function createDuoCardElement(p, ownedPostIds) {
   card.setAttribute("data-post-id", String(p.id));
 
   const discordVal = p.discord_tag || (p.tag_line ? `${p.game_name}#${p.tag_line}` : p.game_name);
-  const roomName = p.room_name || p.discord_channel_name || (p.voice ? `🔊 ${p.game_name}의 음성방` : "음성 미사용");
+  const roomName = p.room_name || p.discord_channel_name || (p.voice ? "🔊 디스코드 음성방" : "음성 미사용");
   const voiceUrl = [p.room_link, p.discord_voice_url].find(isRealDuoLink) || "";
   const inviteUrl = isRealDuoLink(p.discord_invite_url) ? p.discord_invite_url : (voiceUrl.startsWith("http") ? voiceUrl : "");
   const hasJoinLink = Boolean(voiceUrl || inviteUrl);
@@ -1209,7 +1275,7 @@ function createDuoCardElement(p, ownedPostIds) {
     ? `<span class="dp-capacity-pill full" title="방 인원이 정원초과되어 입장이 마감되었습니다."><i class="fa-solid fa-lock"></i> 정원 마감 (${curMembers}/${maxMembers}명)</span>`
     : `<span class="dp-capacity-pill open" title="방 인원이 정원 미달로 즉시 입장 가능합니다."><span class="voice-pulse-dot" style="width: 6px; height: 6px; background: #10B981;"></span> 대기 중 (${curMembers}/${maxMembers}명)</span>`;
 
-  const hasPositions = (p.game !== "pubg") && (p.my_position && p.my_position !== "ALL" || p.target_position && p.target_position !== "ALL" || p.game === "lol");
+  const hasPositions = (p.game !== "pubg") && (p.my_position && p.my_position !== "ALL" || p.target_position && p.target_position !== "ALL");
 
   const joinersList = (Array.isArray(p.joiner_names) ? p.joiner_names : []).map(j => escapeHtml(String(j).trim())).filter(Boolean);
   const joinersHtml = joinersList.length > 0
@@ -1243,7 +1309,7 @@ function createDuoCardElement(p, ownedPostIds) {
   card.innerHTML = `
     <div class="dp-card-top">
       <div class="dp-author-wrap dp-summoner-chip" data-gn="${escapeHtml(p.game_name)}" data-tag="${escapeHtml(p.tag_line || 'KR1')}" title="${escapeHtml(p.game_name)} 상세 전적 열기">
-        ${(p.game || "lol") === "lol" ? `<img class="dp-tier-crest" src="${tierEmblemUrl}" alt="" onerror="this.style.display='none'">` : `<span class="dp-tier-text">${escapeHtml(p.tier_kr || "")}</span>`}
+        ${(p.game || "lol") === "lol" ? `<img class="dp-tier-crest" src="${tierEmblemUrl}" alt="" onerror="this.style.display='none'">` : `<span class="dp-tier-text">${escapeHtml(p.tier_label || p.tier_kr || "")}</span>`}
         <div>
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <span class="dp-author-name" data-gn="${escapeHtml(p.game_name)}" data-tag="${escapeHtml(p.tag_line || 'KR1')}">${escapeHtml(p.game_name)}</span>
@@ -1257,7 +1323,7 @@ function createDuoCardElement(p, ownedPostIds) {
             ${capacityPillHtml}
           </div>
           <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
-            <span class="dp-tier-pill tier-${(p.tier || 'DIAMOND').toLowerCase()}">${escapeHtml(p.tier_kr || p.tier || '다이아몬드')}</span>
+            <span class="dp-tier-pill tier-${(p.tier || 'DIAMOND').toLowerCase()}">${escapeHtml(p.tier_label || p.tier_kr || p.tier || '다이아몬드')}</span>
             <span class="dp-queue-chip ${queueClass}"><i class="fa-solid ${queueIcon}"></i> ${escapeHtml(p.queue_type || '솔로랭크')}</span>
           </div>
         </div>
@@ -1270,11 +1336,11 @@ function createDuoCardElement(p, ownedPostIds) {
     <div class="dp-positions-bar">
       ${hasPositions ? `
         <div class="dp-pos-flow">
-          <span class="dp-pos-badge pos-${(p.my_position||'').toLowerCase()} my" title="작성자 포지션: ${getDuoPosNameKr(p.my_position, p.game)}">
+          <span class="dp-pos-badge pos-${(p.my_position||'').split(',')[0].toLowerCase()} my" title="작성자 포지션: ${getDuoPosNameKr(p.my_position, p.game)}">
             ${getDuoPosIcon(p.my_position)} 나: ${getDuoPosNameKr(p.my_position, p.game)}
           </span>
           <i class="fa-solid fa-arrow-right-long dp-pos-arrow"></i>
-          <span class="dp-pos-badge pos-${(p.target_position||'').toLowerCase()} target" title="찾는 포지션: ${getDuoPosNameKr(p.target_position, p.game)}">
+          <span class="dp-pos-badge pos-${(p.target_position||'').split(',')[0].toLowerCase()} target" title="찾는 포지션: ${getDuoPosNameKr(p.target_position, p.game)}">
             ${getDuoPosIcon(p.target_position)} 찾음: ${getDuoPosNameKr(p.target_position, p.game)}
           </span>
         </div>
