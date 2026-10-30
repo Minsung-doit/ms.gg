@@ -7,7 +7,7 @@
 ## 1. 서버 만들기 (AWS Lightsail)
 1. https://lightsail.aws.amazon.com 가입 → **Create instance**
 2. 지역 **Seoul (ap-northeast-2)**, 플랫폼 **Linux/Unix**, 블루프린트 **OS Only → Ubuntu 24.04 LTS**
-3. 요금제 **2 GB RAM** (1 GB 는 매치 수집기·봇을 같이 돌리기에 부족) → 이름 `carrygg` → Create
+3. 요금제 **2 GB RAM** (사이트가 챔피언 통계용 매치를 메모리에 올려 700~850MB 를 쓴다. setup.sh 가 스왑 2GB 도 만든다) → 이름 `carrygg` → Create
 4. 인스턴스 → **Networking**
    - **Attach static IP** (고정 IP, 무료)
    - IPv4 방화벽에 **HTTPS (443)** 추가 (SSH 22, HTTP 80 은 기본으로 열려 있음)

@@ -17,7 +17,7 @@ from app import database
 
 logger = logging.getLogger(__name__)
 
-KEEP_BACKUPS = 7
+KEEP_BACKUPS = max(1, int(os.getenv("OPGG_BACKUP_KEEP", "7") or 7))  # 디스크가 작은 서버는 .env 로 줄인다
 BACKUP_INTERVAL_SEC = 86400
 
 

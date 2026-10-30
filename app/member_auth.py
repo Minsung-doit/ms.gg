@@ -5,7 +5,8 @@
 - MEMBER_LOGIN=discord 이면 켜진다 (로컬 개발은 기본 꺼짐).
 - 디스코드 OAuth2 (scope: identify guilds.members.read) → 등록된 서버(app/communities.py) 중 하나라도 멤버면 로그인 쿠키 발급.
   등록된 서버마다 내 멤버 정보를 물어본다 (다른 서버 목록은 받지 않는다. 표시 이름은 첫 서버 별명 → 전역 이름 → 사용자명 순)
-- 쿠키는 서명된 '<디스코드ID>.<만료>.<서명>' (7일). 서버를 나간 사람은 최대 7일 뒤 다시 로그인할 때 막힌다.
+- 쿠키는 서명된 '<디스코드ID>.<만료>.<서명>' (7일).
+- 서버를 나간·추방된 사람은 5분 안에 끊긴다 (still_member: 봇 토큰으로 5분마다 멤버인지 다시 확인, 2026-10-30).
 - 설정이 빠졌는데 켜져 있으면 아무도 들여보내지 않는다 (실수로 공개되지 않게).
 """
 import asyncio
@@ -137,6 +138,52 @@ async def check_membership(request: Request, code: str) -> Dict[str, Any]:
     user = me.json()
     return {"ok": True, "member": bool(joined), "guilds": joined, "discord_id": str(user.get("id", "")),
             "name": nick or user.get("global_name") or user.get("username") or ""}
+
+
+MEMBERSHIP_RECHECK_SEC = 300
+_membership_seen: Dict[str, Any] = {}  # 디스코드 ID → (확인 시각, 멤버인가)
+# 디스코드 오류 코드: 10007 그 서버 멤버가 아님, 10013 없는(삭제된) 계정. 봇이 서버에 없을 때의 404(10004)와 구분
+NOT_MEMBER_CODES = (10007, 10013)
+
+
+async def still_member(discord_id: str) -> bool:
+    """로그인한 사람이 아직 등록된 디스코드 서버 멤버인지 (5분 기억). 봇 토큰이 없거나 디스코드가 답하지 않으면 막지 않는다"""
+    from app import communities
+    token = _env("DISCORD_BOT_TOKEN")
+    guild_ids = communities.ids()
+    if not token or not guild_ids or not discord_id.isdigit():
+        return True
+    hit = _membership_seen.get(discord_id)
+    if hit and time.time() - hit[0] < MEMBERSHIP_RECHECK_SEC:
+        return hit[1]
+    joined, unsure = [], False
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            for gid in guild_ids:
+                r = await client.get(f"{DISCORD_API}/guilds/{gid}/members/{discord_id}",
+                                     headers={"Authorization": f"Bot {token}"})
+                if r.status_code == 200:
+                    joined.append(gid)
+                elif r.status_code == 404 and (r.json() or {}).get("code") in NOT_MEMBER_CODES:
+                    continue
+                else:  # 한도·봇이 서버에 없음·디스코드 장애: 판단하지 않는다
+                    unsure = True
+    except (httpx.HTTPError, ValueError):
+        unsure = True
+    if not joined and unsure:
+        _membership_seen[discord_id] = (time.time() - MEMBERSHIP_RECHECK_SEC + 60, True)  # 1분 뒤 다시 확인
+        return True
+    if len(_membership_seen) > 10000:
+        _membership_seen.clear()
+    _membership_seen[discord_id] = (time.time(), bool(joined))
+    if joined and not unsure:
+        from app import community_rank
+        community_rank.set_member_guilds(discord_id, joined)  # 들어가 있는 서버 목록도 최신으로
+    return bool(joined)
+
+
+def forget_membership(discord_id: str) -> None:
+    _membership_seen.pop(discord_id, None)
 
 
 def cookie_secure() -> bool:

@@ -181,11 +181,19 @@ async def require_discord_member(request: Request, call_next):
     # 디스코드 봇(scripts/discord_bot.py)은 로그인 대신 BOT_API_SECRET 으로 API만 쓴다
     if path.startswith("/api/") and _bot_secret_ok(request):
         return await call_next(request)
-    if not member_auth.is_public_path(path) and not member_auth.session_user(request):
-        if path.startswith("/api/"):
-            return JSONResponse(status_code=401, content={"detail": "디스코드 로그인이 필요합니다.", "login_url": "/login"})
-        target = path + (f"?{request.url.query}" if request.url.query else "")
-        return RedirectResponse(url="/login?next=" + urllib.parse.quote(target, safe=""), status_code=302)
+    if not member_auth.is_public_path(path):
+        uid = member_auth.session_user(request)
+        if not uid:
+            if path.startswith("/api/"):
+                return JSONResponse(status_code=401, content={"detail": "디스코드 로그인이 필요합니다.", "login_url": "/login"})
+            target = path + (f"?{request.url.query}" if request.url.query else "")
+            return RedirectResponse(url="/login?next=" + urllib.parse.quote(target, safe=""), status_code=302)
+        # 디스코드 서버를 나갔거나 추방된 사람은 로그인이 남아 있어도 끊는다 (5분마다 확인)
+        if not await member_auth.still_member(uid):
+            resp = (JSONResponse(status_code=401, content={"detail": "디스코드 서버 멤버가 아니라서 로그아웃되었습니다.", "login_url": "/login"})
+                    if path.startswith("/api/") else RedirectResponse(url="/login?error=member", status_code=302))
+            resp.delete_cookie(member_auth.SESSION_COOKIE)
+            return resp
     response = await call_next(request)
     response.headers["X-Robots-Tag"] = "noindex, nofollow"  # 멤버 전용 사이트는 검색엔진에 올리지 않는다
     return response
@@ -241,6 +249,7 @@ async def member_discord_callback(request: Request, code: str = "", state: str =
         return resp
     community_rank.remember_member(result["discord_id"], result.get("name", ""))
     community_rank.set_member_guilds(result["discord_id"], result.get("guilds") or [])
+    member_auth.forget_membership(result["discord_id"])  # 다시 들어온 사람은 바로 다시 확인
     resp = RedirectResponse(url=member_auth.safe_next(next_path), status_code=302)
     resp.delete_cookie(member_auth.STATE_COOKIE)
     resp.set_cookie(member_auth.SESSION_COOKIE, member_auth.make_session(result["discord_id"]),
@@ -386,20 +395,6 @@ async def register_my_riot_account(req: RegisterRiotAccountRequest, request: Req
     return await _register_riot_account(member_id, req)
 
 
-class BotRegisterRiotAccountRequest(RegisterRiotAccountRequest):
-    member: BotMember
-
-
-@app.post("/api/bot/riot-account")
-async def bot_register_riot_account(req: BotRegisterRiotAccountRequest, request: Request):
-    """봇 /계정등록 닉네임#태그 (웹 닉네임 등록과 같음)"""
-    _verify_bot(request)
-    _bot_rate(req.member)
-    _bot_guild(req.member)
-    community_rank.remember_member(req.member.discord_id, req.member.discord_name)
-    return await _register_riot_account(req.member.discord_id, req)
-
-
 async def _register_riot_account(member_id: str, req: RegisterRiotAccountRequest) -> Dict[str, Any]:
     """라이엇 호출은 계정 확인 1회만 (봇이 오래 기다리지 않게). 티어는 바로 뒤에 따로 받아 둔다"""
     if not settings.riot_api_key:
@@ -498,6 +493,18 @@ async def block_admin_on_public_port(request: Request, call_next):
     if (path == "/admin" or path.startswith(("/admin/", "/api/admin/"))) and not is_admin_port(request):
         return JSONResponse(status_code=404, content={"detail": "Not Found"})
     return await call_next(request)
+
+def _static_version() -> int:
+    """CSS·JS 주소 뒤 ?v= 값: 정적 파일이 바뀔 때만 바뀐다 (예전엔 매 요청 시각이라 방문할 때마다 1.7MB 를 다시 받았다)"""
+    newest = 0.0
+    for p in (BASE_DIR / "static").rglob("*"):
+        if p.is_file() and p.suffix in (".js", ".css"):
+            newest = max(newest, p.stat().st_mtime)
+    return int(newest)
+
+
+STATIC_VERSION = _static_version()
+
 
 class CachedStaticFiles(StaticFiles):
     """
@@ -840,7 +847,7 @@ async def read_admin_console(request: Request):
             "region": settings.riot_region.upper(),
             "port": request.url.port or settings.admin_port,
             "client_path": settings.lol_client_path,
-            "timestamp": int(time.time()),
+            "timestamp": STATIC_VERSION,
         }
     )
 
@@ -955,7 +962,7 @@ def _render_index(request: Request, title: str = DEFAULT_PAGE_TITLE, description
         context={
             "has_api_key": bool(settings.riot_api_key),
             "region": settings.riot_region.upper(),
-            "timestamp": int(time.time()),
+            "timestamp": STATIC_VERSION,  # 정적 파일 버전 (템플릿의 ?v=)
             "adsense_client_id": settings.google_adsense_client_id,
             "ddragon_cdn": DDRAGON_CDN,
             "synthetic_features": SYNTHETIC_FEATURES_ENABLED,
@@ -2264,6 +2271,20 @@ def _bot_guild(member: BotMember) -> str:
 
 class BotCreatePost(CreateDuoPostRequest):
     member: BotMember
+
+
+class BotRegisterRiotAccountRequest(RegisterRiotAccountRequest):
+    member: BotMember
+
+
+@app.post("/api/bot/riot-account")
+async def bot_register_riot_account(req: BotRegisterRiotAccountRequest, request: Request):
+    """봇 /계정등록 닉네임#태그 (웹 닉네임 등록과 같음)"""
+    _verify_bot(request)
+    _bot_rate(req.member)
+    _bot_guild(req.member)
+    community_rank.remember_member(req.member.discord_id, req.member.discord_name)
+    return await _register_riot_account(req.member.discord_id, req)
 
 
 def _bot_rate(member: BotMember, limiter: Optional[SlidingWindowLimiter] = None) -> None:

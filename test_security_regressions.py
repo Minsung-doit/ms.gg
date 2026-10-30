@@ -1070,6 +1070,52 @@ def test_bot_event_flow():
                 os.environ[k] = v
     ok("봇 대회: 저장·진행판·만든 사람만 시작·결과로 다음 라운드·다른 서버 차단")
 
+
+def test_left_member_is_logged_out():
+    """디스코드 서버를 나간 사람: 로그인 쿠키가 남아 있어도 다음 확인 때 401·로그인 화면 (디스코드 장애·봇이 서버에 없을 때는 막지 않음)"""
+    import os
+    import httpx
+    from app import member_auth
+    keys = ("MEMBER_LOGIN", "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "DISCORD_GUILD_ID", "MEMBER_SESSION_SECRET",
+            "DISCORD_BOT_TOKEN", "COMMUNITY_GUILDS")
+    saved = {k: os.environ.get(k) for k in keys}
+    answer = {"status": 200, "code": 0}
+
+    def discord(req):
+        if req.url.path.endswith("/guilds/777/members/4242"):
+            assert req.headers.get("authorization") == "Bot fake-bot-token"
+            return httpx.Response(answer["status"], json={"code": answer["code"]} if answer["status"] != 200 else {"user": {"id": "4242"}})
+        return httpx.Response(404, json={})
+    try:
+        os.environ.update(MEMBER_LOGIN="discord", DISCORD_CLIENT_ID="1", DISCORD_CLIENT_SECRET="x" * 20, DISCORD_GUILD_ID="777",
+                          MEMBER_SESSION_SECRET="y" * 40, DISCORD_BOT_TOKEN="fake-bot-token")
+        os.environ.pop("COMMUNITY_GUILDS", None)
+        c = fresh_client(follow_redirects=False)
+        c.cookies.set(member_auth.SESSION_COOKIE, member_auth.make_session("4242"))
+        with riot_http(discord):
+            member_auth.forget_membership("4242")
+            assert c.get("/api/duo-games").status_code == 200, "멤버면 통과"
+            answer.update(status=500)
+            member_auth.forget_membership("4242")
+            assert c.get("/api/duo-games").status_code == 200, "디스코드 장애면 막지 않음"
+            answer.update(status=404, code=10004)
+            member_auth.forget_membership("4242")
+            assert c.get("/api/duo-games").status_code == 200, "봇이 서버에 없는 404 는 탈퇴로 보지 않음"
+            answer.update(status=404, code=10007)
+            member_auth.forget_membership("4242")
+            r = c.get("/api/duo-games")
+            assert r.status_code == 401 and "로그아웃" in r.text, r.text
+            page = c.get("/")
+            assert page.status_code == 302 and page.headers["location"] == "/login?error=member"
+    finally:
+        member_auth.forget_membership("4242")
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    ok("서버를 나간 멤버: 다음 확인(5분) 때 로그아웃, 디스코드 장애·봇 문제로는 아무도 쫓아내지 않음")
+
 def test_inhouse_tournament_code_result_and_ranking():
     """내전 토너먼트 코드: 만든 사람만 발급, 위조 콜백(다른 게임 ID) 무시, 진짜 결과는 자동 기록·손 결과 잠금, 순위·세부 기록"""
     import os

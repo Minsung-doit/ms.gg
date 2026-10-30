@@ -7,6 +7,14 @@ import uvicorn
 from app.config import settings
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.log")
+LOG_MAX_BYTES = 5 * 1024 * 1024
+
+# 로그가 끝없이 커지지 않게: 켤 때 5MB 를 넘었으면 server.log.1 로 옮기고 새로 시작 (한 개만 보관)
+try:
+    if os.path.getsize(LOG_FILE) > LOG_MAX_BYTES:
+        os.replace(LOG_FILE, LOG_FILE + ".1")
+except OSError:
+    pass
 
 # Line-buffered file handle for both stdout and stderr
 log_file_obj = open(LOG_FILE, "a", encoding="utf-8", buffering=1)

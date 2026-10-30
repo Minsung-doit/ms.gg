@@ -7,6 +7,13 @@ DOMAIN="${1:?사용법: sudo bash deploy/setup.sh <도메인>}"
 APP_DIR=/opt/carrygg
 DATA_DIR=/var/lib/carrygg
 
+# 스왑 2GB: 챔피언 통계가 수집 매치를 메모리에 올려 사이트가 700~850MB 를 쓴다. 순간적으로 넘쳐도 꺼지지 않게
+SWAP_SIZE="${SWAP_SIZE:-2G}"  # 디스크가 작으면 SWAP_SIZE=1G sudo -E bash setup.sh ...
+if ! swapon --show | grep -q .; then
+  fallocate -l "$SWAP_SIZE" /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 echo "[1/5] 패키지 설치 (python, caddy)"
 apt-get update -y
 apt-get install -y python3 python3-venv python3-pip debian-keyring debian-archive-keyring apt-transport-https curl gpg

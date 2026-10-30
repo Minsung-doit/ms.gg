@@ -33,6 +33,7 @@ def no_real_riot_key() -> None:
     from app.config import settings
     settings.riot_api_key = ""
     os.environ["RIOT_API_KEY"] = ""
+    os.environ["DISCORD_BOT_TOKEN"] = ""  # 진짜 봇 토큰으로 디스코드를 부르지 않게 (멤버 재확인 등)
 
 
 def admin_client(app, **kwargs) -> TestClient:

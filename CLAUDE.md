@@ -15,6 +15,12 @@
 - `--dangerously-skip-permissions`는 어디에도 쓰지 않는다.
 - 완료 판정은 실제 테스트 결과로만 한다. 자체 채점 리포트(100점/ALL PASS)는 근거로 쓰지 않는다. (옛 `reports/`·`orders/`·사내 AI 파이프라인은 2026-10-25 삭제)
 
+## 서버 (2026-10-30~, 테스트 운영)
+- AWS EC2 시드니 t3.small (Ubuntu 24.04, **Python 3.12**), Caddy(HTTPS) 뒤에서 디스코드 로그인(MEMBER_LOGIN=discord)으로 멤버만 입장. 주소·접속 정보는 사용자 바탕 화면 `carrygg_서버_접속정보.txt`.
+- 서버가 진짜 데이터. PC 에서 사이트·봇을 같이 켜지 않는다 (같은 라이엇 키·봇 토큰).
+- PC 는 Python 3.14 라서 클래스 본문에서 뒤에 정의된 이름을 써도 돌지만 서버 3.12 에서는 NameError → 모델은 쓰는 이름보다 아래에 둔다. 배포 전 서버 venv 로 `import app.main` 확인.
+- 코드 올리기: `python scripts/make_deploy_bundle.py` → scp → `/opt/carrygg` 에 풀기(.env 유지) → `sudo systemctl restart carrygg carrygg-bot`.
+
 ## 실행 / 테스트
 - 서버: `python run.py` → 공개 http://127.0.0.1:3000 , 관리자 http://127.0.0.1:300/admin (비밀번호는 `.env`의 `ADMIN_PASSWORD`)
 - 화면 점검: 서버 실행 중 `python -X utf8 scripts/ui_check.py` — 11개 화면 × 데스크톱/태블릿/휴대폰 × 다크/화이트에서 JS 오류·가로 넘침·화이트 모드 어두운 상자·낮은 대비 글자. UI 변경 후 반드시 실행.

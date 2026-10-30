@@ -32,6 +32,7 @@ env/
 # 5. Runtime Logs & Temporary Output
 *.log
 server.log
+server.log.1
 logs/
 scratch/temp*
 
